@@ -1,0 +1,7 @@
+curl --location --request PUT 'https://ungushing-onward-lawana.ngrok-free.app/api/liability-frees/1/update-status' \
+--header 'Content-Type: application/json' \
+--header 'Authorization: Bearer 2|0POCpjf1kxpnCo022nq5OSvHoS5KID8S5Bs2dpQUc1bc9cb7' \
+--data '{
+    "is_accepted_by_admin": true,
+    "rejection_reason": null
+}'

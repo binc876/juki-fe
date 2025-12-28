@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import Link from "next/link";
 import NavbarPeserta from "@/components/dashboard/NavbarPeserta";
+import ListJadwalPelatihan from "@/components/dashboard/ListJadwalPelatihan";
 // import ListJadwalPelatihan from "@/components/dashboard/ListJadwalPelatihan";
 
 export default function Home() {
@@ -22,7 +23,7 @@ export default function Home() {
         />
         <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/40 text-center text-white px-4">
           <h1 className="text-3xl md:text-6xl font-bold mb-5">
-            Panggah Lulus Kuliah,<br />Bareng Jupalo.
+            JUKI<br />Jurnal Karya Ilmiah
           </h1>
           <p className="mb-8 max-w-xl text-lg md:leading-normal">
             Sistem administrasi pelatihan jurnal yang membantu mahasiswa mendapat LOA dengan cepat, mudah, dan bisa dipantau kapan saja.
@@ -31,13 +32,16 @@ export default function Home() {
       </section>
 
       <section className="max-w-5xl mx-auto py-20 px-4 grid md:grid-cols-2 gap-12">
-        <div>
-          <h2 className="text-4xl font-bold mb-4 text-[#5C7B78]">Tentang Jupalo.</h2>
+        <div className="col-md-12 flex flex-col items-start justify-center min-h-screen">
+          <h2 className="text-4xl font-bold mb-4 text-[#5C7B78]">
+            Tentang Juki.Hub
+          </h2>
+
           <p className="mb-8 max-w-xl text-lg md:leading-normal">
-            <span className="font-bold text-[#5C7B78]">Jupalo</span> adalah sistem informasi pelatihan jurnal berbasis web, yang dirancang khusus untuk membantu mahasiswa dalam mengurus pelatihan, mengumpulkan artikel, dan mendapatkan LOA sebagai syarat kelulusan.
+            <span className="font-bold text-[#5C7B78]">Juki.Hub</span> adalah sistem informasi pelatihan jurnal berbasis web, yang dirancang khusus untuk membantu mahasiswa dalam mengurus pelatihan, mengumpulkan artikel, dan mendapatkan LOA sebagai syarat kelulusan.
           </p>
         </div>
-        <div className="space-y-4">
+        <div className="space-y-4 my-auto">
           <p className="text-xl text-gray-800 md:text-2xl font-bold">Cara Kerja.</p>
           <Card className="bg-[#5C7B78]">
             <CardHeader className="flex flex-row items-start gap-4">
@@ -67,7 +71,7 @@ export default function Home() {
               <div>
                 <CardTitle className="text-white text-base md:text-lg">Upload artikel & ikut pelatihan</CardTitle>
                 <CardDescription className="text-white">
-                  Upload draft artikel jurnalmu dan Tim Jupalo akan bantu biar naskahmu makin siap publish.
+                  Upload draft artikel jurnalmu dan Tim Juki.Hub akan bantu biar naskahmu makin siap publish.
                 </CardDescription>
               </div>
             </CardHeader>
@@ -98,7 +102,7 @@ export default function Home() {
         </div>
         <div className="bg-[#5C7B78] py-10">
           <div className="max-w-5xl mx-auto px-4 text-center text-white">
-            {/* <ListJadwalPelatihan/> */}
+            <ListJadwalPelatihan/>
           </div>
         </div>
       </section>
@@ -122,7 +126,7 @@ export default function Home() {
 
       {/* Footer */}
       <footer className="bg-stone-950 text-center py-6 text-sm text-muted-foreground">
-        © 2025 Jupalo by Ruru Studio | All rights reserved
+        © 2025 Juki.Hub by Ruru Studio | All rights reserved
       </footer>
     </main>
     </> 

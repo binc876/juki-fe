@@ -1,0 +1,3762 @@
+{
+	"info": {
+		"_postman_id": "7da5cdab-4673-4f01-af49-c5f82199b621",
+		"name": "Jupalo",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "9050228",
+		"_collection_link": "https://unreal-0152.postman.co/workspace/Unreal-Workspace~e432a76b-f08b-4c97-b1c5-f74733772cc5/collection/10748833-7da5cdab-4673-4f01-af49-c5f82199b621?action=share&source=collection_link&creator=9050228"
+	},
+	"item": [
+		{
+			"name": "Authenticated",
+			"item": [
+				{
+					"name": "User Ticket",
+					"item": [
+						{
+							"name": "Get Unpaid Tickets (no longer effective)",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/api/user-tickets/unpaid?page=1&length=1",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"user-tickets",
+										"unpaid"
+									],
+									"query": [
+										{
+											"key": "page",
+											"value": "1"
+										},
+										{
+											"key": "length",
+											"value": "1"
+										}
+									]
+								}
+							},
+							"response": [
+								{
+									"name": "Success",
+									"originalRequest": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Accept",
+												"value": "application/json",
+												"type": "text"
+											}
+										],
+										"url": {
+											"raw": "{{base_url}}/api/user-tickets/unpaid?page=1&length=1",
+											"host": [
+												"{{base_url}}"
+											],
+											"path": [
+												"api",
+												"user-tickets",
+												"unpaid"
+											],
+											"query": [
+												{
+													"key": "page",
+													"value": "1"
+												},
+												{
+													"key": "length",
+													"value": "1"
+												}
+											]
+										}
+									},
+									"status": "OK",
+									"code": 200,
+									"_postman_previewlanguage": null,
+									"header": [
+										{
+											"key": "Host",
+											"value": "127.0.0.1:8000"
+										},
+										{
+											"key": "Connection",
+											"value": "close"
+										},
+										{
+											"key": "X-Powered-By",
+											"value": "PHP/8.3.14"
+										},
+										{
+											"key": "Cache-Control",
+											"value": "no-cache, private"
+										},
+										{
+											"key": "Date",
+											"value": "Sun, 17 Aug 2025 17:08:28 GMT"
+										},
+										{
+											"key": "Content-Type",
+											"value": "application/json"
+										},
+										{
+											"key": "Access-Control-Allow-Origin",
+											"value": "*"
+										}
+									],
+									"cookie": [],
+									"body": "{\n    \"status\": 200,\n    \"message\": \"Success\",\n    \"data\": [\n        {\n            \"id\": 1,\n            \"ticket_id\": 1,\n            \"user_id\": 1,\n            \"training_schedule_id\": null,\n            \"invoice_id\": 1,\n            \"paid_at\": null,\n            \"created_at\": \"2025-08-17T17:08:05.000000Z\",\n            \"updated_at\": \"2025-08-17T17:08:05.000000Z\",\n            \"ticket\": {\n                \"id\": 1,\n                \"title\": \"Sample Ticket\",\n                \"description\": \"This is a sample ticket description.\",\n                \"price\": 100000,\n                \"created_at\": \"2025-08-17T17:06:28.000000Z\",\n                \"updated_at\": \"2025-08-17T17:06:28.000000Z\"\n            }\n        }\n    ],\n    \"meta\": {\n        \"current_page\": 1,\n        \"last_page\": 1,\n        \"per_page\": 1,\n        \"total\": 1\n    }\n}"
+								}
+							]
+						},
+						{
+							"name": "Get All Tickets",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/api/user-tickets?page=1&length=1&is_paid=1",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"user-tickets"
+									],
+									"query": [
+										{
+											"key": "page",
+											"value": "1"
+										},
+										{
+											"key": "length",
+											"value": "1"
+										},
+										{
+											"key": "is_paid",
+											"value": "1",
+											"description": "0 = false\n1 = true\nif the attribute is not present, this api will get all data of the related user"
+										}
+									]
+								}
+							},
+							"response": [
+								{
+									"name": "Success",
+									"originalRequest": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Accept",
+												"value": "application/json",
+												"type": "text"
+											}
+										],
+										"url": {
+											"raw": "{{base_url}}/api/user-tickets?page=1&length=1&is_paid=1",
+											"host": [
+												"{{base_url}}"
+											],
+											"path": [
+												"api",
+												"user-tickets"
+											],
+											"query": [
+												{
+													"key": "page",
+													"value": "1"
+												},
+												{
+													"key": "length",
+													"value": "1"
+												},
+												{
+													"key": "is_paid",
+													"value": "1",
+													"description": "0 = false\n1 = true\nif the attribute is not present, this api will get all data of the related user"
+												}
+											]
+										}
+									},
+									"status": "OK",
+									"code": 200,
+									"_postman_previewlanguage": null,
+									"header": [
+										{
+											"key": "Host",
+											"value": "127.0.0.1:8000"
+										},
+										{
+											"key": "Connection",
+											"value": "close"
+										},
+										{
+											"key": "X-Powered-By",
+											"value": "PHP/8.3.14"
+										},
+										{
+											"key": "Cache-Control",
+											"value": "no-cache, private"
+										},
+										{
+											"key": "Date",
+											"value": "Thu, 18 Sep 2025 17:11:49 GMT"
+										},
+										{
+											"key": "Content-Type",
+											"value": "application/json"
+										},
+										{
+											"key": "Access-Control-Allow-Origin",
+											"value": "*"
+										}
+									],
+									"cookie": [],
+									"body": "{\n    \"status\": 200,\n    \"message\": \"User tickets retrieved successfully\",\n    \"data\": [\n        {\n            \"id\": 1,\n            \"ticket_id\": 1,\n            \"user_id\": 32,\n            \"training_schedule_id\": 4,\n            \"invoice_id\": 11,\n            \"paid_at\": \"2025-09-18 16:44:42\",\n            \"approved_by_admin_at\": null,\n            \"created_at\": \"2025-09-18T16:33:06.000000Z\",\n            \"updated_at\": \"2025-09-18T16:57:34.000000Z\",\n            \"ticket\": {\n                \"id\": 1,\n                \"title\": \"Sample Ticket\",\n                \"description\": \"This is a sample ticket description.\",\n                \"price\": 100000,\n                \"created_at\": \"2025-09-18T16:29:09.000000Z\",\n                \"updated_at\": \"2025-09-18T16:29:09.000000Z\"\n            }\n        }\n    ],\n    \"meta\": {\n        \"current_page\": 1,\n        \"last_page\": 1,\n        \"per_page\": 1,\n        \"total\": 1\n    }\n}"
+								}
+							]
+						},
+						{
+							"name": "Get User Ticket Detail",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "11|p9bccQ7eZvF4er3yX5UKb8uUa8DMMAqMktwNmQIE0cc3a6f",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/api/user-tickets/3",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"user-tickets",
+										"3"
+									]
+								}
+							},
+							"response": [
+								{
+									"name": "Success",
+									"originalRequest": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Accept",
+												"value": "application/json",
+												"type": "text"
+											}
+										],
+										"url": {
+											"raw": "{{base_url}}/api/user-tickets/1",
+											"host": [
+												"{{base_url}}"
+											],
+											"path": [
+												"api",
+												"user-tickets",
+												"1"
+											]
+										}
+									},
+									"status": "OK",
+									"code": 200,
+									"_postman_previewlanguage": null,
+									"header": [
+										{
+											"key": "Host",
+											"value": "127.0.0.1:8000"
+										},
+										{
+											"key": "Connection",
+											"value": "close"
+										},
+										{
+											"key": "X-Powered-By",
+											"value": "PHP/8.3.14"
+										},
+										{
+											"key": "Cache-Control",
+											"value": "no-cache, private"
+										},
+										{
+											"key": "Date",
+											"value": "Sat, 23 Aug 2025 17:32:42 GMT"
+										},
+										{
+											"key": "Content-Type",
+											"value": "application/json"
+										},
+										{
+											"key": "Access-Control-Allow-Origin",
+											"value": "*"
+										}
+									],
+									"cookie": [],
+									"body": "{\n    \"status\": 200,\n    \"message\": \"User ticket retrieved successfully\",\n    \"data\": {\n        \"id\": 1,\n        \"ticket_id\": 1,\n        \"user_id\": 1,\n        \"training_schedule_id\": null,\n        \"invoice_id\": 1,\n        \"paid_at\": null,\n        \"created_at\": \"2025-08-17T17:18:16.000000Z\",\n        \"updated_at\": \"2025-08-17T17:18:16.000000Z\",\n        \"ticket\": {\n            \"id\": 1,\n            \"title\": \"Sample Ticket\",\n            \"description\": \"This is a sample ticket description.\",\n            \"price\": 100000,\n            \"created_at\": \"2025-08-17T17:17:20.000000Z\",\n            \"updated_at\": \"2025-08-17T17:17:20.000000Z\"\n        },\n        \"invoice\": {\n            \"id\": 1,\n            \"order_id\": \"ORD-1755451093-edf1834ed8a9c2b2\",\n            \"transaction_id\": \"2036bb63-599f-4d4f-a0be-52f737ad4ab2\",\n            \"pdf_url\": null,\n            \"status\": \"pending\",\n            \"payment_link_url\": null,\n            \"gross_amount\": 104000,\n            \"paid_date\": null,\n            \"created_at\": \"2025-08-17T17:18:16.000000Z\",\n            \"updated_at\": \"2025-08-17T17:18:16.000000Z\",\n            \"invoiceable_type\": \"App\\\\Models\\\\VirtualAccount\",\n            \"invoiceable_id\": 1,\n            \"invoiceable\": {\n                \"id\": 1,\n                \"bank_code\": \"bni\",\n                \"va_prefix\": null,\n                \"va_number\": \"9883168522429483\",\n                \"created_at\": \"2025-08-17T17:18:16.000000Z\",\n                \"updated_at\": \"2025-08-17T17:18:16.000000Z\"\n            }\n        },\n        \"training_schedule\": null,\n        \"user_ticket_detail\": null\n    }\n}"
+								},
+								{
+									"name": "Success (all fields available)",
+									"originalRequest": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Accept",
+												"value": "application/json",
+												"type": "text"
+											}
+										],
+										"url": {
+											"raw": "{{base_url}}/api/user-tickets/1",
+											"host": [
+												"{{base_url}}"
+											],
+											"path": [
+												"api",
+												"user-tickets",
+												"1"
+											]
+										}
+									},
+									"status": "OK",
+									"code": 200,
+									"_postman_previewlanguage": null,
+									"header": [
+										{
+											"key": "Host",
+											"value": "127.0.0.1:8000"
+										},
+										{
+											"key": "Connection",
+											"value": "close"
+										},
+										{
+											"key": "X-Powered-By",
+											"value": "PHP/8.3.14"
+										},
+										{
+											"key": "Cache-Control",
+											"value": "no-cache, private"
+										},
+										{
+											"key": "Date",
+											"value": "Sun, 31 Aug 2025 08:17:22 GMT"
+										},
+										{
+											"key": "Content-Type",
+											"value": "application/json"
+										},
+										{
+											"key": "Access-Control-Allow-Origin",
+											"value": "*"
+										}
+									],
+									"cookie": [],
+									"body": "{\n    \"status\": 200,\n    \"message\": \"User ticket retrieved successfully\",\n    \"data\": {\n        \"id\": 1,\n        \"ticket_id\": 1,\n        \"user_id\": 1,\n        \"training_schedule_id\": 4,\n        \"invoice_id\": 1,\n        \"paid_at\": \"2025-08-31 08:03:33\",\n        \"approved_by_admin_at\": null,\n        \"created_at\": \"2025-08-31T08:03:19.000000Z\",\n        \"updated_at\": \"2025-08-31T08:12:25.000000Z\",\n        \"ticket\": {\n            \"id\": 1,\n            \"title\": \"Sample Ticket\",\n            \"description\": \"This is a sample ticket description.\",\n            \"price\": 100000,\n            \"created_at\": \"2025-08-31T08:02:40.000000Z\",\n            \"updated_at\": \"2025-08-31T08:02:40.000000Z\"\n        },\n        \"invoice\": {\n            \"id\": 1,\n            \"order_id\": \"ORD-1756627398-9ebbc103849a0bec\",\n            \"transaction_id\": \"a002475c-2147-4956-bd9d-ccfa79080680\",\n            \"pdf_url\": null,\n            \"status\": \"settlement\",\n            \"payment_link_url\": null,\n            \"gross_amount\": 104000,\n            \"paid_at\": \"2025-08-31 08:03:33\",\n            \"created_at\": \"2025-08-31T08:03:19.000000Z\",\n            \"updated_at\": \"2025-08-31T08:03:33.000000Z\",\n            \"invoiceable_type\": \"App\\\\Models\\\\VirtualAccount\",\n            \"invoiceable_id\": 1,\n            \"invoiceable\": {\n                \"id\": 1,\n                \"bank_code\": \"bri\",\n                \"va_prefix\": null,\n                \"va_number\": \"316850805043171301\",\n                \"created_at\": \"2025-08-31T08:03:19.000000Z\",\n                \"updated_at\": \"2025-08-31T08:03:19.000000Z\"\n            }\n        },\n        \"training_schedule\": {\n            \"id\": 4,\n            \"batch_number\": \"Batch 4\",\n            \"started_at\": \"2025-12-31T00:01:00.000000Z\",\n            \"subtitle\": \"Rabu, 31 Desember 2025\",\n            \"location\": \"Gedung G15\",\n            \"quota\": 30,\n            \"current_quota\": 2,\n            \"created_at\": \"2025-08-31T08:02:40.000000Z\",\n            \"updated_at\": \"2025-08-31T08:12:25.000000Z\"\n        },\n        \"user_ticket_detail\": {\n            \"id\": 2,\n            \"user_ticket_id\": 1,\n            \"article_title\": \"test title\",\n            \"payment_evidence_path\": \"payment-evidences/UpqSWlmtOB3XN0C8jVz6gSYyXLLBQV7Solhx33jQ.jpg\",\n            \"statement_letter_path\": \"statement-letters/kmmDnoMGbR7cLxIc1p8klRehGssYb35GVspJkoo9.pdf\",\n            \"article_path\": null,\n            \"created_at\": \"2025-08-31T08:12:25.000000Z\",\n            \"updated_at\": \"2025-08-31T08:12:25.000000Z\",\n            \"payment_evidence_url\": \"http://127.0.0.1:8000/api/payment-evidences/UpqSWlmtOB3XN0C8jVz6gSYyXLLBQV7Solhx33jQ.jpg\",\n            \"statement_letter_url\": \"http://127.0.0.1:8000/api/statement-letters/kmmDnoMGbR7cLxIc1p8klRehGssYb35GVspJkoo9.pdf\",\n            \"article_url\": null\n        }\n    }\n}"
+								}
+							]
+						},
+						{
+							"name": "Use Ticket",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "user_ticket_id",
+											"value": "1",
+											"type": "text"
+										},
+										{
+											"key": "training_schedule_id",
+											"value": "4",
+											"type": "text"
+										},
+										{
+											"key": "article_title",
+											"value": "test title",
+											"type": "text"
+										},
+										{
+											"key": "payment_evidence",
+											"type": "file",
+											"src": "/Users/mac/Downloads/profile-bg-red.jpg"
+										},
+										{
+											"key": "statement_letter",
+											"type": "file",
+											"src": "/Users/mac/Downloads/Get_Started_With_Smallpdf.pdf"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{base_url}}/api/user-tickets/use",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"user-tickets",
+										"use"
+									]
+								}
+							},
+							"response": [
+								{
+									"name": "Success",
+									"originalRequest": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Accept",
+												"value": "application/json",
+												"type": "text"
+											}
+										],
+										"body": {
+											"mode": "urlencoded",
+											"urlencoded": [
+												{
+													"key": "user_ticket_id",
+													"value": "1",
+													"type": "text"
+												},
+												{
+													"key": "training_schedule_id",
+													"value": "4",
+													"type": "text"
+												}
+											]
+										},
+										"url": {
+											"raw": "{{base_url}}/api/user-tickets/use",
+											"host": [
+												"{{base_url}}"
+											],
+											"path": [
+												"api",
+												"user-tickets",
+												"use"
+											]
+										}
+									},
+									"status": "OK",
+									"code": 200,
+									"_postman_previewlanguage": null,
+									"header": [
+										{
+											"key": "Host",
+											"value": "127.0.0.1:8000"
+										},
+										{
+											"key": "Connection",
+											"value": "close"
+										},
+										{
+											"key": "X-Powered-By",
+											"value": "PHP/8.3.14"
+										},
+										{
+											"key": "Cache-Control",
+											"value": "no-cache, private"
+										},
+										{
+											"key": "Date",
+											"value": "Sat, 30 Aug 2025 19:56:43 GMT"
+										},
+										{
+											"key": "Content-Type",
+											"value": "application/json"
+										},
+										{
+											"key": "Access-Control-Allow-Origin",
+											"value": "*"
+										}
+									],
+									"cookie": [],
+									"body": "{\n    \"status\": 200,\n    \"message\": \"User ticket used successfully\",\n    \"data\": null\n}"
+								}
+							]
+						},
+						{
+							"name": "Update Article",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "user_ticket_id",
+											"value": "1",
+											"type": "text"
+										},
+										{
+											"key": "article",
+											"type": "file",
+											"src": "/Users/mac/Downloads/Get_Started_With_Smallpdf.pdf"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{base_url}}/api/user-tickets/update-article",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"user-tickets",
+										"update-article"
+									]
+								}
+							},
+							"response": [
+								{
+									"name": "Success",
+									"originalRequest": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Accept",
+												"value": "application/json",
+												"type": "text"
+											}
+										],
+										"body": {
+											"mode": "formdata",
+											"formdata": [
+												{
+													"key": "user_ticket_id",
+													"value": "1",
+													"type": "text"
+												},
+												{
+													"key": "article",
+													"type": "file",
+													"src": "/Users/mac/Downloads/Get_Started_With_Smallpdf.pdf"
+												}
+											]
+										},
+										"url": {
+											"raw": "{{base_url}}/api/user-tickets/update-article",
+											"host": [
+												"{{base_url}}"
+											],
+											"path": [
+												"api",
+												"user-tickets",
+												"update-article"
+											]
+										}
+									},
+									"status": "OK",
+									"code": 200,
+									"_postman_previewlanguage": null,
+									"header": [
+										{
+											"key": "Host",
+											"value": "127.0.0.1:8000"
+										},
+										{
+											"key": "Connection",
+											"value": "close"
+										},
+										{
+											"key": "X-Powered-By",
+											"value": "PHP/8.3.14"
+										},
+										{
+											"key": "Cache-Control",
+											"value": "no-cache, private"
+										},
+										{
+											"key": "Date",
+											"value": "Sun, 31 Aug 2025 08:51:52 GMT"
+										},
+										{
+											"key": "Content-Type",
+											"value": "application/json"
+										},
+										{
+											"key": "Access-Control-Allow-Origin",
+											"value": "*"
+										}
+									],
+									"cookie": [],
+									"body": "{\n    \"status\": 200,\n    \"message\": \"Article uploaded successfully\",\n    \"data\": {\n        \"id\": 2,\n        \"user_ticket_id\": 1,\n        \"article_title\": \"test title\",\n        \"payment_evidence_path\": \"payment-evidences/UpqSWlmtOB3XN0C8jVz6gSYyXLLBQV7Solhx33jQ.jpg\",\n        \"statement_letter_path\": \"statement-letters/kmmDnoMGbR7cLxIc1p8klRehGssYb35GVspJkoo9.pdf\",\n        \"article_path\": \"articles/z80OTqSspQDYZoGWilZCmdb1MwWhpLHZzztUWkNh.pdf\",\n        \"created_at\": \"2025-08-31T08:12:25.000000Z\",\n        \"updated_at\": \"2025-08-31T08:51:52.000000Z\",\n        \"payment_evidence_url\": \"http://127.0.0.1:8000/api/payment-evidences/UpqSWlmtOB3XN0C8jVz6gSYyXLLBQV7Solhx33jQ.jpg\",\n        \"statement_letter_url\": \"http://127.0.0.1:8000/api/statement-letters/kmmDnoMGbR7cLxIc1p8klRehGssYb35GVspJkoo9.pdf\",\n        \"article_url\": \"http://127.0.0.1:8000/api/articles/z80OTqSspQDYZoGWilZCmdb1MwWhpLHZzztUWkNh.pdf\"\n    }\n}"
+								}
+							]
+						},
+						{
+							"name": "Get Payment Evidence (File)",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/payment-evidences/UpqSWlmtOB3XN0C8jVz6gSYyXLLBQV7Solhx33jQ.jpg",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"payment-evidences",
+										"UpqSWlmtOB3XN0C8jVz6gSYyXLLBQV7Solhx33jQ.jpg"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get Statement Letter (File)",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://127.0.0.1:8000/api/statement-letters/kmmDnoMGbR7cLxIc1p8klRehGssYb35GVspJkoo9.pdf",
+									"protocol": "http",
+									"host": [
+										"127",
+										"0",
+										"0",
+										"1"
+									],
+									"port": "8000",
+									"path": [
+										"api",
+										"statement-letters",
+										"kmmDnoMGbR7cLxIc1p8klRehGssYb35GVspJkoo9.pdf"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get Article (File)",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/articles/z80OTqSspQDYZoGWilZCmdb1MwWhpLHZzztUWkNh.pdf",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"articles",
+										"z80OTqSspQDYZoGWilZCmdb1MwWhpLHZzztUWkNh.pdf"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get Presence",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "user_ticket_id",
+											"value": "1",
+											"type": "text"
+										},
+										{
+											"key": "article",
+											"type": "file",
+											"src": "/Users/mac/Downloads/Get_Started_With_Smallpdf.pdf"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{base_url}}/api/user-tickets/1/presences/1",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"user-tickets",
+										"1",
+										"presences",
+										"1"
+									]
+								}
+							},
+							"response": [
+								{
+									"name": "Success (Not yet attending / not attended)",
+									"originalRequest": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Accept",
+												"value": "application/json",
+												"type": "text"
+											}
+										],
+										"body": {
+											"mode": "formdata",
+											"formdata": [
+												{
+													"key": "user_ticket_id",
+													"value": "1",
+													"type": "text"
+												},
+												{
+													"key": "article",
+													"type": "file",
+													"src": "/Users/mac/Downloads/Get_Started_With_Smallpdf.pdf"
+												}
+											]
+										},
+										"url": {
+											"raw": "{{base_url}}/api/user-tickets/1/presences/1",
+											"host": [
+												"{{base_url}}"
+											],
+											"path": [
+												"api",
+												"user-tickets",
+												"1",
+												"presences",
+												"1"
+											]
+										}
+									},
+									"status": "OK",
+									"code": 200,
+									"_postman_previewlanguage": null,
+									"header": [
+										{
+											"key": "Host",
+											"value": "127.0.0.1:8000"
+										},
+										{
+											"key": "Connection",
+											"value": "close"
+										},
+										{
+											"key": "X-Powered-By",
+											"value": "PHP/8.3.14"
+										},
+										{
+											"key": "Cache-Control",
+											"value": "no-cache, private"
+										},
+										{
+											"key": "Date",
+											"value": "Sun, 31 Aug 2025 10:08:37 GMT"
+										},
+										{
+											"key": "Content-Type",
+											"value": "application/json"
+										},
+										{
+											"key": "Access-Control-Allow-Origin",
+											"value": "*"
+										}
+									],
+									"cookie": [],
+									"body": "{\n    \"status\": 200,\n    \"message\": \"Presence retrieved successfully\",\n    \"data\": {\n        \"id\": 1,\n        \"user_ticket_id\": 1,\n        \"attended_at\": null,\n        \"created_at\": \"2025-08-31T17:05:36.000000Z\",\n        \"updated_at\": \"2025-08-31T17:05:36.000000Z\",\n        \"training_schedule\": {\n            \"id\": 4,\n            \"batch_number\": \"Batch 4\",\n            \"started_at\": \"2025-12-31T00:01:00.000000Z\",\n            \"subtitle\": \"Rabu, 31 Desember 2025\",\n            \"location\": \"Gedung G15\",\n            \"quota\": 30,\n            \"current_quota\": 2,\n            \"created_at\": \"2025-08-31T08:02:40.000000Z\",\n            \"updated_at\": \"2025-08-31T08:12:25.000000Z\"\n        },\n        \"user_ticket\": {\n            \"id\": 1,\n            \"ticket_id\": 1,\n            \"user_id\": 1,\n            \"training_schedule_id\": 4,\n            \"invoice_id\": 1,\n            \"paid_at\": \"2025-08-31 08:03:33\",\n            \"approved_by_admin_at\": null,\n            \"created_at\": \"2025-08-31T08:03:19.000000Z\",\n            \"updated_at\": \"2025-08-31T08:12:25.000000Z\"\n        }\n    }\n}"
+								},
+								{
+									"name": "Success (Attended / attending)",
+									"originalRequest": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Accept",
+												"value": "application/json",
+												"type": "text"
+											}
+										],
+										"body": {
+											"mode": "formdata",
+											"formdata": [
+												{
+													"key": "user_ticket_id",
+													"value": "1",
+													"type": "text"
+												},
+												{
+													"key": "article",
+													"type": "file",
+													"src": "/Users/mac/Downloads/Get_Started_With_Smallpdf.pdf"
+												}
+											]
+										},
+										"url": {
+											"raw": "{{base_url}}/api/user-tickets/1/presences/1",
+											"host": [
+												"{{base_url}}"
+											],
+											"path": [
+												"api",
+												"user-tickets",
+												"1",
+												"presences",
+												"1"
+											]
+										}
+									},
+									"status": "OK",
+									"code": 200,
+									"_postman_previewlanguage": null,
+									"header": [
+										{
+											"key": "Host",
+											"value": "127.0.0.1:8000"
+										},
+										{
+											"key": "Connection",
+											"value": "close"
+										},
+										{
+											"key": "X-Powered-By",
+											"value": "PHP/8.3.14"
+										},
+										{
+											"key": "Cache-Control",
+											"value": "no-cache, private"
+										},
+										{
+											"key": "Date",
+											"value": "Sun, 31 Aug 2025 10:12:00 GMT"
+										},
+										{
+											"key": "Content-Type",
+											"value": "application/json"
+										},
+										{
+											"key": "Access-Control-Allow-Origin",
+											"value": "*"
+										}
+									],
+									"cookie": [],
+									"body": "{\n    \"status\": 200,\n    \"message\": \"Presence retrieved successfully\",\n    \"data\": {\n        \"id\": 1,\n        \"user_ticket_id\": 1,\n        \"attended_at\": \"2025-08-31T10:11:45.000000Z\",\n        \"created_at\": \"2025-08-31T17:05:36.000000Z\",\n        \"updated_at\": \"2025-08-31T10:11:45.000000Z\",\n        \"training_schedule\": {\n            \"id\": 4,\n            \"batch_number\": \"Batch 4\",\n            \"started_at\": \"2025-12-31T00:01:00.000000Z\",\n            \"subtitle\": \"Rabu, 31 Desember 2025\",\n            \"location\": \"Gedung G15\",\n            \"quota\": 30,\n            \"current_quota\": 2,\n            \"created_at\": \"2025-08-31T08:02:40.000000Z\",\n            \"updated_at\": \"2025-08-31T08:12:25.000000Z\"\n        },\n        \"user_ticket\": {\n            \"id\": 1,\n            \"ticket_id\": 1,\n            \"user_id\": 1,\n            \"training_schedule_id\": 4,\n            \"invoice_id\": 1,\n            \"paid_at\": \"2025-08-31 08:03:33\",\n            \"approved_by_admin_at\": null,\n            \"created_at\": \"2025-08-31T08:03:19.000000Z\",\n            \"updated_at\": \"2025-08-31T08:12:25.000000Z\"\n        }\n    }\n}"
+								}
+							]
+						},
+						{
+							"name": "Update Training Schedule",
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "urlencoded",
+									"urlencoded": [
+										{
+											"key": "training_schedule_id",
+											"value": "4",
+											"type": "text"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{base_url}}/api/user-tickets/1/update-training-schedule",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"user-tickets",
+										"1",
+										"update-training-schedule"
+									]
+								}
+							},
+							"response": [
+								{
+									"name": "Success",
+									"originalRequest": {
+										"method": "PUT",
+										"header": [
+											{
+												"key": "Accept",
+												"value": "application/json",
+												"type": "text"
+											}
+										],
+										"body": {
+											"mode": "formdata",
+											"formdata": []
+										},
+										"url": {
+											"raw": "{{base_url}}/api/user-tickets/1/presences/1",
+											"host": [
+												"{{base_url}}"
+											],
+											"path": [
+												"api",
+												"user-tickets",
+												"1",
+												"presences",
+												"1"
+											]
+										}
+									},
+									"status": "OK",
+									"code": 200,
+									"_postman_previewlanguage": null,
+									"header": [
+										{
+											"key": "Host",
+											"value": "127.0.0.1:8000"
+										},
+										{
+											"key": "Connection",
+											"value": "close"
+										},
+										{
+											"key": "X-Powered-By",
+											"value": "PHP/8.3.14"
+										},
+										{
+											"key": "Cache-Control",
+											"value": "no-cache, private"
+										},
+										{
+											"key": "Date",
+											"value": "Sun, 31 Aug 2025 10:23:32 GMT"
+										},
+										{
+											"key": "Content-Type",
+											"value": "application/json"
+										},
+										{
+											"key": "Access-Control-Allow-Origin",
+											"value": "*"
+										}
+									],
+									"cookie": [],
+									"body": "{\n    \"status\": 200,\n    \"message\": \"Presence updated successfully\",\n    \"data\": {\n        \"id\": 1,\n        \"training_schedule_id\": 4,\n        \"user_ticket_id\": 1,\n        \"attended_at\": \"2025-08-31T10:23:32.000000Z\",\n        \"created_at\": \"2025-08-31T17:17:12.000000Z\",\n        \"updated_at\": \"2025-08-31T10:23:32.000000Z\"\n    }\n}"
+								}
+							]
+						},
+						{
+							"name": "Update Submission Evidence",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "_method",
+											"value": "PUT",
+											"type": "text"
+										},
+										{
+											"key": "article_revision_evidence",
+											"type": "file",
+											"src": "/Users/mac/Downloads/Human-Resource-Development.jpeg"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{base_url}}/api/user-ticket-details/1/update-submission-evidence",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"user-ticket-details",
+										"1",
+										"update-submission-evidence"
+									]
+								}
+							},
+							"response": [
+								{
+									"name": "Error",
+									"originalRequest": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Accept",
+												"value": "application/json",
+												"type": "text"
+											}
+										],
+										"body": {
+											"mode": "formdata",
+											"formdata": [
+												{
+													"key": "_method",
+													"value": "PUT",
+													"type": "text"
+												},
+												{
+													"key": "article_revision_evidence",
+													"type": "file",
+													"src": "/Users/mac/Downloads/Human-Resource-Development.jpeg"
+												}
+											]
+										},
+										"url": {
+											"raw": "{{base_url}}/api/user-ticket-details/1/update-submission-evidence",
+											"host": [
+												"{{base_url}}"
+											],
+											"path": [
+												"api",
+												"user-ticket-details",
+												"1",
+												"update-submission-evidence"
+											]
+										}
+									},
+									"status": "Unprocessable Content",
+									"code": 422,
+									"_postman_previewlanguage": null,
+									"header": [
+										{
+											"key": "Host",
+											"value": "127.0.0.1:8000"
+										},
+										{
+											"key": "Connection",
+											"value": "close"
+										},
+										{
+											"key": "X-Powered-By",
+											"value": "PHP/8.3.14"
+										},
+										{
+											"key": "Cache-Control",
+											"value": "no-cache, private"
+										},
+										{
+											"key": "Date",
+											"value": "Thu, 18 Sep 2025 18:10:46 GMT"
+										},
+										{
+											"key": "Content-Type",
+											"value": "application/json"
+										},
+										{
+											"key": "Access-Control-Allow-Origin",
+											"value": "*"
+										}
+									],
+									"cookie": [],
+									"body": "{\n    \"status\": 422,\n    \"message\": \"Article revision status must be \\\"revise\\\" to upload submission evidence.\"\n}"
+								},
+								{
+									"name": "Success",
+									"originalRequest": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Accept",
+												"value": "application/json",
+												"type": "text"
+											}
+										],
+										"body": {
+											"mode": "formdata",
+											"formdata": [
+												{
+													"key": "_method",
+													"value": "PUT",
+													"type": "text"
+												},
+												{
+													"key": "article_revision_evidence",
+													"type": "file",
+													"src": "/Users/mac/Downloads/Human-Resource-Development.jpeg"
+												}
+											]
+										},
+										"url": {
+											"raw": "{{base_url}}/api/user-ticket-details/1/update-submission-evidence",
+											"host": [
+												"{{base_url}}"
+											],
+											"path": [
+												"api",
+												"user-ticket-details",
+												"1",
+												"update-submission-evidence"
+											]
+										}
+									},
+									"status": "OK",
+									"code": 200,
+									"_postman_previewlanguage": null,
+									"header": [
+										{
+											"key": "Host",
+											"value": "127.0.0.1:8000"
+										},
+										{
+											"key": "Connection",
+											"value": "close"
+										},
+										{
+											"key": "X-Powered-By",
+											"value": "PHP/8.3.14"
+										},
+										{
+											"key": "Cache-Control",
+											"value": "no-cache, private"
+										},
+										{
+											"key": "Date",
+											"value": "Sat, 20 Sep 2025 07:22:49 GMT"
+										},
+										{
+											"key": "Content-Type",
+											"value": "application/json"
+										},
+										{
+											"key": "Access-Control-Allow-Origin",
+											"value": "*"
+										}
+									],
+									"cookie": [],
+									"body": "{\n    \"status\": 200,\n    \"message\": \"Article submission evidence updated successfully\",\n    \"data\": {\n        \"id\": 1,\n        \"user_ticket_id\": 1,\n        \"article_title\": \"test title\",\n        \"payment_evidence_path\": \"payment-evidences/QXrH0m90gzwMntahntWEKqwlBzvLWxhx1lKcGIZn.pdf\",\n        \"statement_letter_path\": \"statement-letters/wfwfrEkF7lBwVZQSVK3uiYsdhagsfNj3CohrGtD8.pdf\",\n        \"article_path\": \"articles/cyppRbQPCBxfDxTyN4uiTgXPtddBEQukkVZ44MJZ.pdf\",\n        \"article_revision_status\": null,\n        \"article_revision_evidence_path\": \"submission_evidences/hjdWdbeaq6pLL5wzfnJC5DORidPkLoyNFF6dmbbg.jpg\",\n        \"created_at\": \"2025-09-18T16:57:34.000000Z\",\n        \"updated_at\": \"2025-09-20T07:22:49.000000Z\",\n        \"payment_evidence_url\": \"http://127.0.0.1:8000/api/payment-evidences/QXrH0m90gzwMntahntWEKqwlBzvLWxhx1lKcGIZn.pdf\",\n        \"statement_letter_url\": \"http://127.0.0.1:8000/api/statement-letters/wfwfrEkF7lBwVZQSVK3uiYsdhagsfNj3CohrGtD8.pdf\",\n        \"article_url\": \"http://127.0.0.1:8000/api/articles/cyppRbQPCBxfDxTyN4uiTgXPtddBEQukkVZ44MJZ.pdf\",\n        \"article_revision_evidence_url\": \"http://127.0.0.1:8000/api/submission_evidences/hjdWdbeaq6pLL5wzfnJC5DORidPkLoyNFF6dmbbg.jpg\"\n    }\n}"
+								}
+							]
+						},
+						{
+							"name": "Get Training Registration Stepper",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/api/user-tickets/1/training-registration-stepper",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"user-tickets",
+										"1",
+										"training-registration-stepper"
+									]
+								}
+							},
+							"response": [
+								{
+									"name": "Success",
+									"originalRequest": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Accept",
+												"value": "application/json",
+												"type": "text"
+											}
+										],
+										"url": {
+											"raw": "{{base_url}}/api/user-tickets/1/training-registration-stepper",
+											"host": [
+												"{{base_url}}"
+											],
+											"path": [
+												"api",
+												"user-tickets",
+												"1",
+												"training-registration-stepper"
+											]
+										}
+									},
+									"status": "OK",
+									"code": 200,
+									"_postman_previewlanguage": null,
+									"header": [
+										{
+											"key": "Host",
+											"value": "127.0.0.1:8000"
+										},
+										{
+											"key": "Connection",
+											"value": "close"
+										},
+										{
+											"key": "X-Powered-By",
+											"value": "PHP/8.3.14"
+										},
+										{
+											"key": "Cache-Control",
+											"value": "no-cache, private"
+										},
+										{
+											"key": "Date",
+											"value": "Sat, 20 Sep 2025 09:16:34 GMT"
+										},
+										{
+											"key": "Content-Type",
+											"value": "application/json"
+										},
+										{
+											"key": "Access-Control-Allow-Origin",
+											"value": "*"
+										}
+									],
+									"cookie": [],
+									"body": "{\n    \"status\": 200,\n    \"message\": \"Training stepper retrieved successfully\",\n    \"data\": [\n        {\n            \"name\": \"Buy Ticket\",\n            \"status\": true\n        },\n        {\n            \"name\": \"Training Registration\",\n            \"status\": true\n        },\n        {\n            \"name\": \"Article Submission\",\n            \"status\": true\n        },\n        {\n            \"name\": \"Join Training\",\n            \"status\": true\n        },\n        {\n            \"name\": \"Article Review\",\n            \"status\": true\n        },\n        {\n            \"name\": \"Generate LOA\",\n            \"status\": true\n        }\n    ]\n}"
+								}
+							]
+						},
+						{
+							"name": "Generate LOA (File)",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/api/user-tickets/1/generate-loa",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"user-tickets",
+										"1",
+										"generate-loa"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Generate Statement Letter (File)",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/api/user-tickets/1/generate-statement-letter",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"user-tickets",
+										"1",
+										"generate-statement-letter"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Invoice",
+					"item": [
+						{
+							"name": "Create Invoice",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"ticket_id\": 1,\n    \"bank_code\": \"bri\" // bca, bni, bri\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/api/invoices",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"invoices"
+									]
+								}
+							},
+							"response": [
+								{
+									"name": "Success",
+									"originalRequest": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Accept",
+												"value": "application/json",
+												"type": "text"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n    \"ticket_id\": 1,\n    \"bank_code\": \"bni\"\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{base_url}}/api/invoices",
+											"host": [
+												"{{base_url}}"
+											],
+											"path": [
+												"api",
+												"invoices"
+											]
+										}
+									},
+									"status": "Created",
+									"code": 201,
+									"_postman_previewlanguage": null,
+									"header": [
+										{
+											"key": "Host",
+											"value": "127.0.0.1:8000"
+										},
+										{
+											"key": "Connection",
+											"value": "close"
+										},
+										{
+											"key": "X-Powered-By",
+											"value": "PHP/8.3.14"
+										},
+										{
+											"key": "Cache-Control",
+											"value": "no-cache, private"
+										},
+										{
+											"key": "Date",
+											"value": "Sun, 17 Aug 2025 17:18:16 GMT"
+										},
+										{
+											"key": "Content-Type",
+											"value": "application/json"
+										},
+										{
+											"key": "Access-Control-Allow-Origin",
+											"value": "*"
+										}
+									],
+									"cookie": [],
+									"body": "{\n    \"status\": 201,\n    \"message\": \"Invoice stored successfully\",\n    \"data\": {\n        \"user_id\": 1,\n        \"ticket_id\": 1,\n        \"invoice_id\": 1,\n        \"updated_at\": \"2025-08-17T17:18:16.000000Z\",\n        \"created_at\": \"2025-08-17T17:18:16.000000Z\",\n        \"id\": 1,\n        \"ticket\": {\n            \"id\": 1,\n            \"title\": \"Sample Ticket\",\n            \"description\": \"This is a sample ticket description.\",\n            \"price\": 100000,\n            \"created_at\": \"2025-08-17T17:17:20.000000Z\",\n            \"updated_at\": \"2025-08-17T17:17:20.000000Z\"\n        },\n        \"invoice\": {\n            \"id\": 1,\n            \"order_id\": \"ORD-1755451093-edf1834ed8a9c2b2\",\n            \"transaction_id\": \"2036bb63-599f-4d4f-a0be-52f737ad4ab2\",\n            \"pdf_url\": null,\n            \"status\": \"pending\",\n            \"payment_link_url\": null,\n            \"gross_amount\": 104000,\n            \"paid_date\": null,\n            \"created_at\": \"2025-08-17T17:18:16.000000Z\",\n            \"updated_at\": \"2025-08-17T17:18:16.000000Z\",\n            \"invoiceable_type\": \"App\\\\Models\\\\VirtualAccount\",\n            \"invoiceable_id\": 1,\n            \"invoiceable\": {\n                \"id\": 1,\n                \"bank_code\": \"bni\",\n                \"va_prefix\": null,\n                \"va_number\": \"9883168522429483\",\n                \"created_at\": \"2025-08-17T17:18:16.000000Z\",\n                \"updated_at\": \"2025-08-17T17:18:16.000000Z\"\n            }\n        }\n    }\n}"
+								}
+							]
+						}
+					]
+				},
+				{
+					"name": "Liability Free",
+					"item": [
+						{
+							"name": "Create Liability Free",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "submission_location",
+											"value": "Jurnal Japanese Animated Video",
+											"type": "text"
+										},
+										{
+											"key": "submitted_journal_link",
+											"value": "https://google.com",
+											"type": "text"
+										},
+										{
+											"key": "free_of_plagiarism_path",
+											"type": "file",
+											"src": "/Users/mac/Downloads/Application Form - Infosys Solusi Terpadu.doc (1) (1) (1).pdf"
+										},
+										{
+											"key": "free_of_plagiarism_naspub_path",
+											"type": "file",
+											"src": "/Users/mac/Downloads/Application Form - Infosys Solusi Terpadu.doc (1) (1).pdf"
+										},
+										{
+											"key": "thesis_cover_letter_path",
+											"type": "file",
+											"src": "/Users/mac/Downloads/Catatan Evaluasi Nala AI GMP Versi 1.pdf"
+										},
+										{
+											"key": "thesis_introduction_path",
+											"type": "file",
+											"src": "/Users/mac/Downloads/Get_Started_With_Smallpdf.pdf"
+										},
+										{
+											"key": "thesis_chapter_1_path",
+											"type": "file",
+											"src": "/Users/mac/Downloads/Get_Started_With_Smallpdf.pdf"
+										},
+										{
+											"key": "thesis_chapter_2_path",
+											"type": "file",
+											"src": "/Users/mac/Downloads/Get_Started_With_Smallpdf.pdf"
+										},
+										{
+											"key": "thesis_chapter_3_path",
+											"type": "file",
+											"src": "/Users/mac/Downloads/Catatan Evaluasi Nala AI GMP Versi 1.pdf"
+										},
+										{
+											"key": "thesis_chapter_4_path",
+											"type": "file",
+											"src": "/Users/mac/Downloads/Catatan Evaluasi Nala AI GMP Versi 1.pdf"
+										},
+										{
+											"key": "thesis_chapter_5_path",
+											"type": "file",
+											"src": "/Users/mac/Downloads/Get_Started_With_Smallpdf.pdf"
+										},
+										{
+											"key": "thesis_chapter_other_path",
+											"type": "file",
+											"src": "/Users/mac/Downloads/Get_Started_With_Smallpdf.pdf"
+										},
+										{
+											"key": "thesis_approval_sheet_path",
+											"type": "file",
+											"src": "/Users/mac/Downloads/Catatan Evaluasi Nala AI GMP Versi 1.pdf"
+										},
+										{
+											"key": "thesis_liability_letter_path",
+											"type": "file",
+											"src": "/Users/mac/Downloads/Catatan Evaluasi Nala AI GMP Versi 1.pdf"
+										},
+										{
+											"key": "alumni_donation_path",
+											"type": "file",
+											"src": "/Users/mac/Downloads/Catatan Evaluasi Nala AI GMP Versi 1.pdf"
+										},
+										{
+											"key": "judiciary_evidence_path",
+											"type": "file",
+											"src": "/Users/mac/Downloads/Get_Started_With_Smallpdf.pdf"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{base_url}}/api/user/1/liability-frees",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"user",
+										"1",
+										"liability-frees"
+									]
+								}
+							},
+							"response": [
+								{
+									"name": "Success",
+									"originalRequest": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Accept",
+												"value": "application/json",
+												"type": "text"
+											}
+										],
+										"body": {
+											"mode": "formdata",
+											"formdata": [
+												{
+													"key": "submission_location",
+													"value": "https://youtube.com",
+													"type": "text"
+												},
+												{
+													"key": "submitted_journal_link",
+													"value": "https://google.com",
+													"type": "text"
+												},
+												{
+													"key": "free_of_plagiarism_path",
+													"type": "file",
+													"src": "/Users/mac/Downloads/Application Form - Infosys Solusi Terpadu.doc (1) (1) (1).pdf"
+												},
+												{
+													"key": "free_of_plagiarism_naspub_path",
+													"type": "file",
+													"src": "/Users/mac/Downloads/Application Form - Infosys Solusi Terpadu.doc (1) (1).pdf"
+												},
+												{
+													"key": "thesis_cover_letter_path",
+													"type": "file",
+													"src": "/Users/mac/Downloads/Catatan Evaluasi Nala AI GMP Versi 1.pdf"
+												},
+												{
+													"key": "thesis_introduction_path",
+													"type": "file",
+													"src": "/Users/mac/Downloads/Get_Started_With_Smallpdf.pdf"
+												},
+												{
+													"key": "thesis_chapter_1_path",
+													"type": "file",
+													"src": "/Users/mac/Downloads/Get_Started_With_Smallpdf.pdf"
+												},
+												{
+													"key": "thesis_chapter_2_path",
+													"type": "file",
+													"src": "/Users/mac/Downloads/Get_Started_With_Smallpdf.pdf"
+												},
+												{
+													"key": "thesis_chapter_3_path",
+													"type": "file",
+													"src": "/Users/mac/Downloads/Catatan Evaluasi Nala AI GMP Versi 1.pdf"
+												},
+												{
+													"key": "thesis_chapter_4_path",
+													"type": "file",
+													"src": "/Users/mac/Downloads/Catatan Evaluasi Nala AI GMP Versi 1.pdf"
+												},
+												{
+													"key": "thesis_chapter_5_path",
+													"type": "file",
+													"src": "/Users/mac/Downloads/Get_Started_With_Smallpdf.pdf"
+												},
+												{
+													"key": "thesis_chapter_other_path",
+													"type": "file",
+													"src": "/Users/mac/Downloads/Get_Started_With_Smallpdf.pdf"
+												},
+												{
+													"key": "thesis_approval_sheet_path",
+													"type": "file",
+													"src": "/Users/mac/Downloads/Catatan Evaluasi Nala AI GMP Versi 1.pdf"
+												},
+												{
+													"key": "thesis_liability_letter_path",
+													"type": "file",
+													"src": "/Users/mac/Downloads/Catatan Evaluasi Nala AI GMP Versi 1.pdf"
+												},
+												{
+													"key": "alumni_donation_path",
+													"type": "file",
+													"src": "/Users/mac/Downloads/Catatan Evaluasi Nala AI GMP Versi 1.pdf"
+												},
+												{
+													"key": "judiciary_evidence_path",
+													"type": "file",
+													"src": "/Users/mac/Downloads/Get_Started_With_Smallpdf.pdf"
+												}
+											]
+										},
+										"url": {
+											"raw": "{{base_url}}/api/user/1/liability-frees",
+											"host": [
+												"{{base_url}}"
+											],
+											"path": [
+												"api",
+												"user",
+												"1",
+												"liability-frees"
+											]
+										}
+									},
+									"status": "Created",
+									"code": 201,
+									"_postman_previewlanguage": null,
+									"header": [
+										{
+											"key": "Host",
+											"value": "127.0.0.1:8000"
+										},
+										{
+											"key": "Connection",
+											"value": "close"
+										},
+										{
+											"key": "X-Powered-By",
+											"value": "PHP/8.3.14"
+										},
+										{
+											"key": "Cache-Control",
+											"value": "no-cache, private"
+										},
+										{
+											"key": "Date",
+											"value": "Tue, 23 Sep 2025 15:36:25 GMT"
+										},
+										{
+											"key": "Content-Type",
+											"value": "application/json"
+										},
+										{
+											"key": "Access-Control-Allow-Origin",
+											"value": "*"
+										}
+									],
+									"cookie": [],
+									"body": "{\n    \"status\": 201,\n    \"message\": \"Liability Free created successfully\",\n    \"data\": {\n        \"id\": 11,\n        \"user_id\": 1,\n        \"free_of_plagiarism_path\": \"liability-frees/free-of-plagiarism/PBlJG19AyyczPLlhQaHJxWUpO9XeD9zlsLNRgBH3.pdf\",\n        \"free_of_plagiarism_naspub_path\": \"liability-frees/free-of-plagiarism-naspub/cFVXcqudkbz83XkbOEcb13brYRpEKQRv0NX74XTp.pdf\",\n        \"submission_location\": \"https://youtube.com\",\n        \"submitted_journal_link\": \"https://google.com\",\n        \"thesis_cover_letter_path\": \"liability-frees/thesis-cover-letter/eej9Xw86VRGxNKwtiPRPVtZltNMxuSeVQHSEtOtU.pdf\",\n        \"thesis_introduction_path\": \"liability-frees/thesis-introduction/CgYREGAQB7XErYKIEL1WVx5QoCq7lhhDRAsmy0Yh.pdf\",\n        \"thesis_chapter_1_path\": \"liability-frees/thesis-chapter-1/8mBOT9QRY1MSvR1lj8pc8EqLVZBRTUNhfCJVt0Jf.pdf\",\n        \"thesis_chapter_2_path\": \"liability-frees/thesis-chapter-2/GINMhFJzIFrJPhocJOZOiRH8fpdQKEaqF3KD3sjU.pdf\",\n        \"thesis_chapter_3_path\": \"liability-frees/thesis-chapter-3/TE0OSGXbOwVznSGQIyF5hrEplgjU16d4JEK66MxS.pdf\",\n        \"thesis_chapter_4_path\": \"liability-frees/thesis-chapter-4/6zPUavjMlimbiMNRLBrIv6XK1E9y7AdhuoUjDxc2.pdf\",\n        \"thesis_chapter_5_path\": \"liability-frees/thesis-chapter-5/CeP7R9BTFgMbIqbHPE2ylMjjFyuj3tbc9mnoK3Ev.pdf\",\n        \"thesis_chapter_other_path\": \"liability-frees/thesis-chapter-other/n6fxrOEvWkSbmiON5ZIkjCbaka6idGTc0p0l8DMU.pdf\",\n        \"thesis_approval_sheet_path\": \"liability-frees/thesis-approval-sheet/Tq7ojFipSKfQ8yM128Qiwv9vmFCKaH7mb2lev7Si.pdf\",\n        \"thesis_liability_letter_path\": \"liability-frees/thesis-liability-letter/HGEN6zUq9AJgn1IaeHcnzvOHQALSv8ldm4uOuuoE.pdf\",\n        \"alumni_donation_path\": \"liability-frees/alumni-donation/odyAM6RVIABrdJ9T7ey1uJExzbpTUXOt0mFOJbFv.pdf\",\n        \"judiciary_evidence_path\": \"liability-frees/judiciary-evidence/OZuFARARF2gn3ycB3kHHbYBg33sBSfpQCxIDWEuL.pdf\",\n        \"created_at\": \"2025-09-23T15:36:25.000000Z\",\n        \"updated_at\": \"2025-09-23T15:36:25.000000Z\",\n        \"free_of_plagiarism_url\": \"http://127.0.0.1:8000/storage/liability-frees/free-of-plagiarism/PBlJG19AyyczPLlhQaHJxWUpO9XeD9zlsLNRgBH3.pdf\",\n        \"free_of_plagiarism_naspub_url\": \"http://127.0.0.1:8000/storage/liability-frees/free-of-plagiarism-naspub/cFVXcqudkbz83XkbOEcb13brYRpEKQRv0NX74XTp.pdf\",\n        \"thesis_cover_letter_url\": \"http://127.0.0.1:8000/storage/liability-frees/thesis-cover-letter/eej9Xw86VRGxNKwtiPRPVtZltNMxuSeVQHSEtOtU.pdf\",\n        \"thesis_introduction_url\": \"http://127.0.0.1:8000/storage/liability-frees/thesis-introduction/CgYREGAQB7XErYKIEL1WVx5QoCq7lhhDRAsmy0Yh.pdf\",\n        \"thesis_chapter_1_url\": \"http://127.0.0.1:8000/storage/liability-frees/thesis-chapter-1/8mBOT9QRY1MSvR1lj8pc8EqLVZBRTUNhfCJVt0Jf.pdf\",\n        \"thesis_chapter_2_url\": \"http://127.0.0.1:8000/storage/liability-frees/thesis-chapter-2/GINMhFJzIFrJPhocJOZOiRH8fpdQKEaqF3KD3sjU.pdf\",\n        \"thesis_chapter_3_url\": \"http://127.0.0.1:8000/storage/liability-frees/thesis-chapter-3/TE0OSGXbOwVznSGQIyF5hrEplgjU16d4JEK66MxS.pdf\",\n        \"thesis_chapter_4_url\": \"http://127.0.0.1:8000/storage/liability-frees/thesis-chapter-4/6zPUavjMlimbiMNRLBrIv6XK1E9y7AdhuoUjDxc2.pdf\",\n        \"thesis_chapter_5_url\": \"http://127.0.0.1:8000/storage/liability-frees/thesis-chapter-5/CeP7R9BTFgMbIqbHPE2ylMjjFyuj3tbc9mnoK3Ev.pdf\",\n        \"thesis_chapter_other_url\": \"http://127.0.0.1:8000/storage/liability-frees/thesis-chapter-other/n6fxrOEvWkSbmiON5ZIkjCbaka6idGTc0p0l8DMU.pdf\",\n        \"thesis_approval_sheet_url\": \"http://127.0.0.1:8000/storage/liability-frees/thesis-approval-sheet/Tq7ojFipSKfQ8yM128Qiwv9vmFCKaH7mb2lev7Si.pdf\",\n        \"thesis_liability_letter_url\": \"http://127.0.0.1:8000/storage/liability-frees/thesis-liability-letter/HGEN6zUq9AJgn1IaeHcnzvOHQALSv8ldm4uOuuoE.pdf\",\n        \"alumni_donation_url\": \"http://127.0.0.1:8000/storage/liability-frees/alumni-donation/odyAM6RVIABrdJ9T7ey1uJExzbpTUXOt0mFOJbFv.pdf\",\n        \"judiciary_evidence_url\": \"http://127.0.0.1:8000/storage/liability-frees/judiciary-evidence/OZuFARARF2gn3ycB3kHHbYBg33sBSfpQCxIDWEuL.pdf\"\n    }\n}"
+								}
+							]
+						},
+						{
+							"name": "Get Liability Free",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "submission_location",
+											"value": "Jurnal Japanese Animated Video",
+											"type": "text"
+										},
+										{
+											"key": "submitted_journal_link",
+											"value": "https://google.com",
+											"type": "text"
+										},
+										{
+											"key": "free_of_plagiarism_path",
+											"type": "file",
+											"src": "/Users/mac/Downloads/Application Form - Infosys Solusi Terpadu.doc (1) (1) (1).pdf"
+										},
+										{
+											"key": "free_of_plagiarism_naspub_path",
+											"type": "file",
+											"src": "/Users/mac/Downloads/Application Form - Infosys Solusi Terpadu.doc (1) (1).pdf"
+										},
+										{
+											"key": "thesis_cover_letter_path",
+											"type": "file",
+											"src": "/Users/mac/Downloads/Catatan Evaluasi Nala AI GMP Versi 1.pdf"
+										},
+										{
+											"key": "thesis_introduction_path",
+											"type": "file",
+											"src": "/Users/mac/Downloads/Get_Started_With_Smallpdf.pdf"
+										},
+										{
+											"key": "thesis_chapter_1_path",
+											"type": "file",
+											"src": "/Users/mac/Downloads/Get_Started_With_Smallpdf.pdf"
+										},
+										{
+											"key": "thesis_chapter_2_path",
+											"type": "file",
+											"src": "/Users/mac/Downloads/Get_Started_With_Smallpdf.pdf"
+										},
+										{
+											"key": "thesis_chapter_3_path",
+											"type": "file",
+											"src": "/Users/mac/Downloads/Catatan Evaluasi Nala AI GMP Versi 1.pdf"
+										},
+										{
+											"key": "thesis_chapter_4_path",
+											"type": "file",
+											"src": "/Users/mac/Downloads/Catatan Evaluasi Nala AI GMP Versi 1.pdf"
+										},
+										{
+											"key": "thesis_chapter_5_path",
+											"type": "file",
+											"src": "/Users/mac/Downloads/Get_Started_With_Smallpdf.pdf"
+										},
+										{
+											"key": "thesis_chapter_other_path",
+											"type": "file",
+											"src": "/Users/mac/Downloads/Get_Started_With_Smallpdf.pdf"
+										},
+										{
+											"key": "thesis_approval_sheet_path",
+											"type": "file",
+											"src": "/Users/mac/Downloads/Catatan Evaluasi Nala AI GMP Versi 1.pdf"
+										},
+										{
+											"key": "thesis_liability_letter_path",
+											"type": "file",
+											"src": "/Users/mac/Downloads/Catatan Evaluasi Nala AI GMP Versi 1.pdf"
+										},
+										{
+											"key": "alumni_donation_path",
+											"type": "file",
+											"src": "/Users/mac/Downloads/Catatan Evaluasi Nala AI GMP Versi 1.pdf"
+										},
+										{
+											"key": "judiciary_evidence_path",
+											"type": "file",
+											"src": "/Users/mac/Downloads/Get_Started_With_Smallpdf.pdf"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{base_url}}/api/user/1/liability-frees",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"user",
+										"1",
+										"liability-frees"
+									]
+								}
+							},
+							"response": [
+								{
+									"name": "Success",
+									"originalRequest": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Accept",
+												"value": "application/json",
+												"type": "text"
+											}
+										],
+										"body": {
+											"mode": "formdata",
+											"formdata": [
+												{
+													"key": "submission_location",
+													"value": "Jurnal Japanese Animated Video",
+													"type": "text"
+												},
+												{
+													"key": "submitted_journal_link",
+													"value": "https://google.com",
+													"type": "text"
+												},
+												{
+													"key": "free_of_plagiarism_path",
+													"type": "file",
+													"src": "/Users/mac/Downloads/Application Form - Infosys Solusi Terpadu.doc (1) (1) (1).pdf"
+												},
+												{
+													"key": "free_of_plagiarism_naspub_path",
+													"type": "file",
+													"src": "/Users/mac/Downloads/Application Form - Infosys Solusi Terpadu.doc (1) (1).pdf"
+												},
+												{
+													"key": "thesis_cover_letter_path",
+													"type": "file",
+													"src": "/Users/mac/Downloads/Catatan Evaluasi Nala AI GMP Versi 1.pdf"
+												},
+												{
+													"key": "thesis_introduction_path",
+													"type": "file",
+													"src": "/Users/mac/Downloads/Get_Started_With_Smallpdf.pdf"
+												},
+												{
+													"key": "thesis_chapter_1_path",
+													"type": "file",
+													"src": "/Users/mac/Downloads/Get_Started_With_Smallpdf.pdf"
+												},
+												{
+													"key": "thesis_chapter_2_path",
+													"type": "file",
+													"src": "/Users/mac/Downloads/Get_Started_With_Smallpdf.pdf"
+												},
+												{
+													"key": "thesis_chapter_3_path",
+													"type": "file",
+													"src": "/Users/mac/Downloads/Catatan Evaluasi Nala AI GMP Versi 1.pdf"
+												},
+												{
+													"key": "thesis_chapter_4_path",
+													"type": "file",
+													"src": "/Users/mac/Downloads/Catatan Evaluasi Nala AI GMP Versi 1.pdf"
+												},
+												{
+													"key": "thesis_chapter_5_path",
+													"type": "file",
+													"src": "/Users/mac/Downloads/Get_Started_With_Smallpdf.pdf"
+												},
+												{
+													"key": "thesis_chapter_other_path",
+													"type": "file",
+													"src": "/Users/mac/Downloads/Get_Started_With_Smallpdf.pdf"
+												},
+												{
+													"key": "thesis_approval_sheet_path",
+													"type": "file",
+													"src": "/Users/mac/Downloads/Catatan Evaluasi Nala AI GMP Versi 1.pdf"
+												},
+												{
+													"key": "thesis_liability_letter_path",
+													"type": "file",
+													"src": "/Users/mac/Downloads/Catatan Evaluasi Nala AI GMP Versi 1.pdf"
+												},
+												{
+													"key": "alumni_donation_path",
+													"type": "file",
+													"src": "/Users/mac/Downloads/Catatan Evaluasi Nala AI GMP Versi 1.pdf"
+												},
+												{
+													"key": "judiciary_evidence_path",
+													"type": "file",
+													"src": "/Users/mac/Downloads/Get_Started_With_Smallpdf.pdf"
+												}
+											]
+										},
+										"url": {
+											"raw": "{{base_url}}/api/user/1/liability-frees",
+											"host": [
+												"{{base_url}}"
+											],
+											"path": [
+												"api",
+												"user",
+												"1",
+												"liability-frees"
+											]
+										}
+									},
+									"status": "OK",
+									"code": 200,
+									"_postman_previewlanguage": null,
+									"header": [
+										{
+											"key": "Host",
+											"value": "127.0.0.1:8000"
+										},
+										{
+											"key": "Connection",
+											"value": "close"
+										},
+										{
+											"key": "X-Powered-By",
+											"value": "PHP/8.3.14"
+										},
+										{
+											"key": "Cache-Control",
+											"value": "no-cache, private"
+										},
+										{
+											"key": "Date",
+											"value": "Tue, 23 Sep 2025 16:16:33 GMT"
+										},
+										{
+											"key": "Content-Type",
+											"value": "application/json"
+										},
+										{
+											"key": "Access-Control-Allow-Origin",
+											"value": "*"
+										}
+									],
+									"cookie": [],
+									"body": "{\n    \"status\": 200,\n    \"message\": \"Liability Free retrieved successfully\",\n    \"data\": {\n        \"id\": 11,\n        \"user_id\": 1,\n        \"free_of_plagiarism_path\": \"liability-frees/free-of-plagiarism/PBlJG19AyyczPLlhQaHJxWUpO9XeD9zlsLNRgBH3.pdf\",\n        \"free_of_plagiarism_naspub_path\": \"liability-frees/free-of-plagiarism-naspub/cFVXcqudkbz83XkbOEcb13brYRpEKQRv0NX74XTp.pdf\",\n        \"submission_location\": \"https://youtube.com\",\n        \"submitted_journal_link\": \"https://google.com\",\n        \"thesis_cover_letter_path\": \"liability-frees/thesis-cover-letter/eej9Xw86VRGxNKwtiPRPVtZltNMxuSeVQHSEtOtU.pdf\",\n        \"thesis_introduction_path\": \"liability-frees/thesis-introduction/CgYREGAQB7XErYKIEL1WVx5QoCq7lhhDRAsmy0Yh.pdf\",\n        \"thesis_chapter_1_path\": \"liability-frees/thesis-chapter-1/8mBOT9QRY1MSvR1lj8pc8EqLVZBRTUNhfCJVt0Jf.pdf\",\n        \"thesis_chapter_2_path\": \"liability-frees/thesis-chapter-2/GINMhFJzIFrJPhocJOZOiRH8fpdQKEaqF3KD3sjU.pdf\",\n        \"thesis_chapter_3_path\": \"liability-frees/thesis-chapter-3/TE0OSGXbOwVznSGQIyF5hrEplgjU16d4JEK66MxS.pdf\",\n        \"thesis_chapter_4_path\": \"liability-frees/thesis-chapter-4/6zPUavjMlimbiMNRLBrIv6XK1E9y7AdhuoUjDxc2.pdf\",\n        \"thesis_chapter_5_path\": \"liability-frees/thesis-chapter-5/CeP7R9BTFgMbIqbHPE2ylMjjFyuj3tbc9mnoK3Ev.pdf\",\n        \"thesis_chapter_other_path\": \"liability-frees/thesis-chapter-other/n6fxrOEvWkSbmiON5ZIkjCbaka6idGTc0p0l8DMU.pdf\",\n        \"thesis_approval_sheet_path\": \"liability-frees/thesis-approval-sheet/Tq7ojFipSKfQ8yM128Qiwv9vmFCKaH7mb2lev7Si.pdf\",\n        \"thesis_liability_letter_path\": \"liability-frees/thesis-liability-letter/HGEN6zUq9AJgn1IaeHcnzvOHQALSv8ldm4uOuuoE.pdf\",\n        \"alumni_donation_path\": \"liability-frees/alumni-donation/odyAM6RVIABrdJ9T7ey1uJExzbpTUXOt0mFOJbFv.pdf\",\n        \"judiciary_evidence_path\": \"liability-frees/judiciary-evidence/OZuFARARF2gn3ycB3kHHbYBg33sBSfpQCxIDWEuL.pdf\",\n        \"created_at\": \"2025-09-23T15:36:25.000000Z\",\n        \"updated_at\": \"2025-09-23T15:36:25.000000Z\",\n        \"free_of_plagiarism_url\": \"http://127.0.0.1:8000/storage/liability-frees/free-of-plagiarism/PBlJG19AyyczPLlhQaHJxWUpO9XeD9zlsLNRgBH3.pdf\",\n        \"free_of_plagiarism_naspub_url\": \"http://127.0.0.1:8000/storage/liability-frees/free-of-plagiarism-naspub/cFVXcqudkbz83XkbOEcb13brYRpEKQRv0NX74XTp.pdf\",\n        \"thesis_cover_letter_url\": \"http://127.0.0.1:8000/storage/liability-frees/thesis-cover-letter/eej9Xw86VRGxNKwtiPRPVtZltNMxuSeVQHSEtOtU.pdf\",\n        \"thesis_introduction_url\": \"http://127.0.0.1:8000/storage/liability-frees/thesis-introduction/CgYREGAQB7XErYKIEL1WVx5QoCq7lhhDRAsmy0Yh.pdf\",\n        \"thesis_chapter_1_url\": \"http://127.0.0.1:8000/storage/liability-frees/thesis-chapter-1/8mBOT9QRY1MSvR1lj8pc8EqLVZBRTUNhfCJVt0Jf.pdf\",\n        \"thesis_chapter_2_url\": \"http://127.0.0.1:8000/storage/liability-frees/thesis-chapter-2/GINMhFJzIFrJPhocJOZOiRH8fpdQKEaqF3KD3sjU.pdf\",\n        \"thesis_chapter_3_url\": \"http://127.0.0.1:8000/storage/liability-frees/thesis-chapter-3/TE0OSGXbOwVznSGQIyF5hrEplgjU16d4JEK66MxS.pdf\",\n        \"thesis_chapter_4_url\": \"http://127.0.0.1:8000/storage/liability-frees/thesis-chapter-4/6zPUavjMlimbiMNRLBrIv6XK1E9y7AdhuoUjDxc2.pdf\",\n        \"thesis_chapter_5_url\": \"http://127.0.0.1:8000/storage/liability-frees/thesis-chapter-5/CeP7R9BTFgMbIqbHPE2ylMjjFyuj3tbc9mnoK3Ev.pdf\",\n        \"thesis_chapter_other_url\": \"http://127.0.0.1:8000/storage/liability-frees/thesis-chapter-other/n6fxrOEvWkSbmiON5ZIkjCbaka6idGTc0p0l8DMU.pdf\",\n        \"thesis_approval_sheet_url\": \"http://127.0.0.1:8000/storage/liability-frees/thesis-approval-sheet/Tq7ojFipSKfQ8yM128Qiwv9vmFCKaH7mb2lev7Si.pdf\",\n        \"thesis_liability_letter_url\": \"http://127.0.0.1:8000/storage/liability-frees/thesis-liability-letter/HGEN6zUq9AJgn1IaeHcnzvOHQALSv8ldm4uOuuoE.pdf\",\n        \"alumni_donation_url\": \"http://127.0.0.1:8000/storage/liability-frees/alumni-donation/odyAM6RVIABrdJ9T7ey1uJExzbpTUXOt0mFOJbFv.pdf\",\n        \"judiciary_evidence_url\": \"http://127.0.0.1:8000/storage/liability-frees/judiciary-evidence/OZuFARARF2gn3ycB3kHHbYBg33sBSfpQCxIDWEuL.pdf\"\n    }\n}"
+								}
+							]
+						}
+					]
+				},
+				{
+					"name": "Feedback",
+					"item": [
+						{
+							"name": "Get Feedbacks",
+							"request": {
+								"method": "GET",
+								"header": []
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Get Profile",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/authentication/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"authentication",
+								"1"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "Success (Admin)",
+							"originalRequest": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/api/authentication/3",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"authentication",
+										"3"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": null,
+							"header": [
+								{
+									"key": "Host",
+									"value": "127.0.0.1:8000"
+								},
+								{
+									"key": "Connection",
+									"value": "close"
+								},
+								{
+									"key": "X-Powered-By",
+									"value": "PHP/8.3.14"
+								},
+								{
+									"key": "Cache-Control",
+									"value": "no-cache, private"
+								},
+								{
+									"key": "Date",
+									"value": "Sun, 14 Sep 2025 18:36:21 GMT"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Access-Control-Allow-Origin",
+									"value": "*"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"status\": 200,\n    \"message\": \"User retrieved successfully\",\n    \"data\": {\n        \"id\": 3,\n        \"name\": \"admin\",\n        \"email\": \"admin@trash-mail.com\",\n        \"mobile_number\": \"89993332220\",\n        \"email_verified_at\": null,\n        \"created_at\": \"2025-09-14T18:32:28.000000Z\",\n        \"updated_at\": \"2025-09-14T18:32:28.000000Z\",\n        \"roles\": [\n            {\n                \"id\": 1,\n                \"name\": \"admin\",\n                \"guard_name\": \"web\",\n                \"created_at\": \"2025-09-14T18:10:53.000000Z\",\n                \"updated_at\": \"2025-09-14T18:10:53.000000Z\",\n                \"pivot\": {\n                    \"model_type\": \"App\\\\Models\\\\User\",\n                    \"model_id\": 3,\n                    \"role_id\": 1\n                }\n            }\n        ]\n    }\n}"
+						},
+						{
+							"name": "Success (Customer)",
+							"originalRequest": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/api/authentication/1",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"authentication",
+										"1"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": null,
+							"header": [
+								{
+									"key": "Host",
+									"value": "127.0.0.1:8000"
+								},
+								{
+									"key": "Connection",
+									"value": "close"
+								},
+								{
+									"key": "X-Powered-By",
+									"value": "PHP/8.3.14"
+								},
+								{
+									"key": "Cache-Control",
+									"value": "no-cache, private"
+								},
+								{
+									"key": "Date",
+									"value": "Sun, 14 Sep 2025 18:38:10 GMT"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Access-Control-Allow-Origin",
+									"value": "*"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"status\": 200,\n    \"message\": \"User retrieved successfully\",\n    \"data\": {\n        \"id\": 1,\n        \"name\": \"user1\",\n        \"student_number\": \"12345678909876\",\n        \"email\": \"user1@trash-mail.com\",\n        \"mobile_number\": \"89993332221\",\n        \"email_verified_at\": null,\n        \"created_at\": \"2025-08-31T08:03:04.000000Z\",\n        \"updated_at\": \"2025-08-31T08:03:04.000000Z\",\n        \"roles\": [\n            {\n                \"id\": 2,\n                \"name\": \"customer\",\n                \"guard_name\": \"web\",\n                \"created_at\": \"2025-09-14T18:10:53.000000Z\",\n                \"updated_at\": \"2025-09-14T18:10:53.000000Z\",\n                \"pivot\": {\n                    \"model_type\": \"App\\\\Models\\\\User\",\n                    \"model_id\": 1,\n                    \"role_id\": 2\n                }\n            }\n        ]\n    }\n}"
+						}
+					]
+				},
+				{
+					"name": "Logout",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/authentication/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"authentication",
+								"1"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "Success",
+							"originalRequest": {
+								"method": "DELETE",
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/api/authentication/1",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"authentication",
+										"1"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": null,
+							"header": [
+								{
+									"key": "Host",
+									"value": "127.0.0.1:8000"
+								},
+								{
+									"key": "Connection",
+									"value": "close"
+								},
+								{
+									"key": "X-Powered-By",
+									"value": "PHP/8.3.14"
+								},
+								{
+									"key": "Cache-Control",
+									"value": "no-cache, private"
+								},
+								{
+									"key": "Date",
+									"value": "Sat, 23 Aug 2025 17:57:33 GMT"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Access-Control-Allow-Origin",
+									"value": "*"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"status\": 200,\n    \"message\": \"Logout successful\",\n    \"data\": null\n}"
+						}
+					]
+				}
+			],
+			"auth": {
+				"type": "bearer",
+				"bearer": [
+					{
+						"key": "token",
+						"value": "3|hDHTZv1SheypcmHZXpf7YK74eVJCbUEHT9SNOYKK110cd34c",
+						"type": "string"
+					}
+				]
+			},
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"packages": {},
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"packages": {},
+						"exec": [
+							""
+						]
+					}
+				}
+			]
+		},
+		{
+			"name": "Admin",
+			"item": [
+				{
+					"name": "User Ticket",
+					"item": [
+						{
+							"name": "Update Verification Status",
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/api/user-tickets/1/update-verification-status",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"user-tickets",
+										"1",
+										"update-verification-status"
+									]
+								}
+							},
+							"response": [
+								{
+									"name": "Success",
+									"originalRequest": {
+										"method": "PUT",
+										"header": [
+											{
+												"key": "Accept",
+												"value": "application/json",
+												"type": "text"
+											}
+										],
+										"url": {
+											"raw": "{{base_url}}/api/user-tickets/2/update-verification-status",
+											"host": [
+												"{{base_url}}"
+											],
+											"path": [
+												"api",
+												"user-tickets",
+												"2",
+												"update-verification-status"
+											]
+										}
+									},
+									"status": "OK",
+									"code": 200,
+									"_postman_previewlanguage": null,
+									"header": [
+										{
+											"key": "Host",
+											"value": "127.0.0.1:8000"
+										},
+										{
+											"key": "Connection",
+											"value": "close"
+										},
+										{
+											"key": "X-Powered-By",
+											"value": "PHP/8.3.14"
+										},
+										{
+											"key": "Cache-Control",
+											"value": "no-cache, private"
+										},
+										{
+											"key": "Date",
+											"value": "Mon, 15 Sep 2025 17:24:20 GMT"
+										},
+										{
+											"key": "Content-Type",
+											"value": "application/json"
+										},
+										{
+											"key": "Access-Control-Allow-Origin",
+											"value": "*"
+										}
+									],
+									"cookie": [],
+									"body": "{\n    \"status\": 200,\n    \"message\": \"User ticket verification status updated successfully\",\n    \"data\": {\n        \"id\": 2,\n        \"ticket_id\": 1,\n        \"user_id\": 1,\n        \"training_schedule_id\": 4,\n        \"invoice_id\": 2,\n        \"paid_at\": \"2025-09-15 16:56:20\",\n        \"approved_by_admin_at\": \"2025-09-15T17:24:20.875385Z\",\n        \"created_at\": \"2025-09-15T16:55:46.000000Z\",\n        \"updated_at\": \"2025-09-15T17:24:20.000000Z\"\n    }\n}"
+								}
+							]
+						},
+						{
+							"name": "Update Article Revision Status",
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"article_revision_status\": \"approved\" // approved, revise\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/api/user-ticket-details/1/update-article-revision-status",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"user-ticket-details",
+										"1",
+										"update-article-revision-status"
+									]
+								}
+							},
+							"response": [
+								{
+									"name": "Success",
+									"originalRequest": {
+										"method": "PUT",
+										"header": [
+											{
+												"key": "Accept",
+												"value": "application/json",
+												"type": "text"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n    \"article_revision_status\": \"approved\" // approved, revise\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{base_url}}/api/user-ticket-details/1/update-article-revision-status",
+											"host": [
+												"{{base_url}}"
+											],
+											"path": [
+												"api",
+												"user-ticket-details",
+												"1",
+												"update-article-revision-status"
+											]
+										}
+									},
+									"status": "OK",
+									"code": 200,
+									"_postman_previewlanguage": null,
+									"header": [
+										{
+											"key": "Host",
+											"value": "127.0.0.1:8000"
+										},
+										{
+											"key": "Connection",
+											"value": "close"
+										},
+										{
+											"key": "X-Powered-By",
+											"value": "PHP/8.3.14"
+										},
+										{
+											"key": "Cache-Control",
+											"value": "no-cache, private"
+										},
+										{
+											"key": "Date",
+											"value": "Sun, 21 Sep 2025 16:43:09 GMT"
+										},
+										{
+											"key": "Content-Type",
+											"value": "application/json"
+										},
+										{
+											"key": "Access-Control-Allow-Origin",
+											"value": "*"
+										}
+									],
+									"cookie": [],
+									"body": "{\n    \"status\": 200,\n    \"message\": \"Article require revision updated successfully\",\n    \"data\": {\n        \"id\": 1,\n        \"user_ticket_id\": 1,\n        \"article_title\": \"test title\",\n        \"payment_evidence_path\": \"payment-evidences/QXrH0m90gzwMntahntWEKqwlBzvLWxhx1lKcGIZn.pdf\",\n        \"statement_letter_path\": \"statement-letters/wfwfrEkF7lBwVZQSVK3uiYsdhagsfNj3CohrGtD8.pdf\",\n        \"article_path\": \"articles/cyppRbQPCBxfDxTyN4uiTgXPtddBEQukkVZ44MJZ.pdf\",\n        \"article_revision_status\": \"approved\",\n        \"article_revision_evidence_path\": null,\n        \"loa_path\": \"loa-files/01K5PJGTAK0Q4YH8YR746THXQH.pdf\",\n        \"created_at\": \"2025-09-18T16:57:34.000000Z\",\n        \"updated_at\": \"2025-09-21T16:43:09.000000Z\",\n        \"payment_evidence_url\": \"http://127.0.0.1:8000/api/payment-evidences/QXrH0m90gzwMntahntWEKqwlBzvLWxhx1lKcGIZn.pdf\",\n        \"statement_letter_url\": \"http://127.0.0.1:8000/api/statement-letters/wfwfrEkF7lBwVZQSVK3uiYsdhagsfNj3CohrGtD8.pdf\",\n        \"article_url\": \"http://127.0.0.1:8000/api/articles/cyppRbQPCBxfDxTyN4uiTgXPtddBEQukkVZ44MJZ.pdf\",\n        \"article_revision_evidence_url\": null,\n        \"loa_url\": \"http://127.0.0.1:8000/storage/loa-files/01K5PJGTAK0Q4YH8YR746THXQH.pdf\",\n        \"user_ticket\": {\n            \"id\": 1,\n            \"ticket_id\": 1,\n            \"user_id\": 32,\n            \"training_schedule_id\": 4,\n            \"invoice_id\": 11,\n            \"paid_at\": \"2025-09-18 16:44:42\",\n            \"approved_by_admin_at\": \"2025-09-18 17:20:18\",\n            \"created_at\": \"2025-09-18T16:33:06.000000Z\",\n            \"updated_at\": \"2025-09-18T17:20:18.000000Z\"\n        }\n    }\n}"
+								}
+							]
+						},
+						{
+							"name": "Update Presence",
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "urlencoded",
+									"urlencoded": []
+								},
+								"url": {
+									"raw": "{{base_url}}/api/user-tickets/1/presences/1",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"user-tickets",
+										"1",
+										"presences",
+										"1"
+									]
+								}
+							},
+							"response": [
+								{
+									"name": "Success",
+									"originalRequest": {
+										"method": "PUT",
+										"header": [
+											{
+												"key": "Accept",
+												"value": "application/json",
+												"type": "text"
+											}
+										],
+										"body": {
+											"mode": "formdata",
+											"formdata": []
+										},
+										"url": {
+											"raw": "{{base_url}}/api/user-tickets/1/presences/1",
+											"host": [
+												"{{base_url}}"
+											],
+											"path": [
+												"api",
+												"user-tickets",
+												"1",
+												"presences",
+												"1"
+											]
+										}
+									},
+									"status": "OK",
+									"code": 200,
+									"_postman_previewlanguage": null,
+									"header": [
+										{
+											"key": "Host",
+											"value": "127.0.0.1:8000"
+										},
+										{
+											"key": "Connection",
+											"value": "close"
+										},
+										{
+											"key": "X-Powered-By",
+											"value": "PHP/8.3.14"
+										},
+										{
+											"key": "Cache-Control",
+											"value": "no-cache, private"
+										},
+										{
+											"key": "Date",
+											"value": "Sun, 31 Aug 2025 10:23:32 GMT"
+										},
+										{
+											"key": "Content-Type",
+											"value": "application/json"
+										},
+										{
+											"key": "Access-Control-Allow-Origin",
+											"value": "*"
+										}
+									],
+									"cookie": [],
+									"body": "{\n    \"status\": 200,\n    \"message\": \"Presence updated successfully\",\n    \"data\": {\n        \"id\": 1,\n        \"training_schedule_id\": 4,\n        \"user_ticket_id\": 1,\n        \"attended_at\": \"2025-08-31T10:23:32.000000Z\",\n        \"created_at\": \"2025-08-31T17:17:12.000000Z\",\n        \"updated_at\": \"2025-08-31T10:23:32.000000Z\"\n    }\n}"
+								}
+							]
+						},
+						{
+							"name": "Store Presence",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "urlencoded",
+									"urlencoded": [
+										{
+											"key": "training_schedule_id",
+											"value": "",
+											"type": "text"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{base_url}}/api/user-tickets/1/presences",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"user-tickets",
+										"1",
+										"presences"
+									]
+								}
+							},
+							"response": [
+								{
+									"name": "Error",
+									"originalRequest": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Accept",
+												"value": "application/json",
+												"type": "text"
+											}
+										],
+										"body": {
+											"mode": "urlencoded",
+											"urlencoded": [
+												{
+													"key": "training_schedule_id",
+													"value": "",
+													"type": "text"
+												}
+											]
+										},
+										"url": {
+											"raw": "{{base_url}}/api/user-tickets/1/presences",
+											"host": [
+												"{{base_url}}"
+											],
+											"path": [
+												"api",
+												"user-tickets",
+												"1",
+												"presences"
+											]
+										}
+									},
+									"status": "Bad Request",
+									"code": 400,
+									"_postman_previewlanguage": null,
+									"header": [
+										{
+											"key": "Host",
+											"value": "127.0.0.1:8000"
+										},
+										{
+											"key": "Connection",
+											"value": "close"
+										},
+										{
+											"key": "X-Powered-By",
+											"value": "PHP/8.3.14"
+										},
+										{
+											"key": "Cache-Control",
+											"value": "no-cache, private"
+										},
+										{
+											"key": "Date",
+											"value": "Sun, 21 Sep 2025 14:42:50 GMT"
+										},
+										{
+											"key": "Content-Type",
+											"value": "application/json"
+										},
+										{
+											"key": "Access-Control-Allow-Origin",
+											"value": "*"
+										}
+									],
+									"cookie": [],
+									"body": "{\n    \"status\": 400,\n    \"message\": \"Presence record already exists for this training schedule.\"\n}"
+								},
+								{
+									"name": "Success",
+									"originalRequest": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Accept",
+												"value": "application/json",
+												"type": "text"
+											}
+										],
+										"body": {
+											"mode": "urlencoded",
+											"urlencoded": [
+												{
+													"key": "training_schedule_id",
+													"value": "",
+													"type": "text"
+												}
+											]
+										},
+										"url": {
+											"raw": "{{base_url}}/api/user-tickets/1/presences",
+											"host": [
+												"{{base_url}}"
+											],
+											"path": [
+												"api",
+												"user-tickets",
+												"1",
+												"presences"
+											]
+										}
+									},
+									"status": "Created",
+									"code": 201,
+									"_postman_previewlanguage": null,
+									"header": [
+										{
+											"key": "Host",
+											"value": "127.0.0.1:8000"
+										},
+										{
+											"key": "Connection",
+											"value": "close"
+										},
+										{
+											"key": "X-Powered-By",
+											"value": "PHP/8.3.14"
+										},
+										{
+											"key": "Cache-Control",
+											"value": "no-cache, private"
+										},
+										{
+											"key": "Date",
+											"value": "Sun, 21 Sep 2025 14:43:39 GMT"
+										},
+										{
+											"key": "Content-Type",
+											"value": "application/json"
+										},
+										{
+											"key": "Access-Control-Allow-Origin",
+											"value": "*"
+										}
+									],
+									"cookie": [],
+									"body": "{\n    \"status\": 201,\n    \"message\": \"Presence created successfully\",\n    \"data\": {\n        \"id\": 2,\n        \"user_ticket_id\": 1,\n        \"attended_at\": \"2025-09-21T14:43:39.000000Z\",\n        \"created_at\": \"2025-09-21T14:43:39.000000Z\",\n        \"updated_at\": \"2025-09-21T14:43:39.000000Z\"\n    }\n}"
+								}
+							]
+						}
+					]
+				},
+				{
+					"name": "User",
+					"item": [
+						{
+							"name": "Get All",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/users?page=1&length=10",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"users"
+									],
+									"query": [
+										{
+											"key": "page",
+											"value": "1"
+										},
+										{
+											"key": "length",
+											"value": "10"
+										},
+										{
+											"key": "name",
+											"value": "test",
+											"disabled": true
+										}
+									]
+								}
+							},
+							"response": [
+								{
+									"name": "Success (with name)",
+									"originalRequest": {
+										"method": "GET",
+										"header": [],
+										"url": {
+											"raw": "{{base_url}}/api/users?page=1&length=10&name=test",
+											"host": [
+												"{{base_url}}"
+											],
+											"path": [
+												"api",
+												"users"
+											],
+											"query": [
+												{
+													"key": "page",
+													"value": "1"
+												},
+												{
+													"key": "length",
+													"value": "10"
+												},
+												{
+													"key": "name",
+													"value": "test"
+												}
+											]
+										}
+									},
+									"status": "OK",
+									"code": 200,
+									"_postman_previewlanguage": null,
+									"header": [
+										{
+											"key": "Host",
+											"value": "127.0.0.1:8000"
+										},
+										{
+											"key": "Connection",
+											"value": "close"
+										},
+										{
+											"key": "X-Powered-By",
+											"value": "PHP/8.3.14"
+										},
+										{
+											"key": "Cache-Control",
+											"value": "no-cache, private"
+										},
+										{
+											"key": "Date",
+											"value": "Sun, 21 Sep 2025 05:05:24 GMT"
+										},
+										{
+											"key": "Content-Type",
+											"value": "application/json"
+										},
+										{
+											"key": "Access-Control-Allow-Origin",
+											"value": "*"
+										}
+									],
+									"cookie": [],
+									"body": "{\n    \"status\": 200,\n    \"message\": \"Users retrieved successfully\",\n    \"data\": [\n        {\n            \"id\": 2,\n            \"name\": \"Test User\",\n            \"student_number\": \"9827377662\",\n            \"email\": \"test@example.com\",\n            \"mobile_number\": \"628108514870\",\n            \"email_verified_at\": \"2025-09-18T16:29:09.000000Z\",\n            \"created_at\": \"2025-09-18T16:29:09.000000Z\",\n            \"updated_at\": \"2025-09-18T16:29:09.000000Z\",\n            \"user_tickets\": []\n        }\n    ],\n    \"meta\": {\n        \"current_page\": 1,\n        \"last_page\": 1,\n        \"per_page\": 10,\n        \"total\": 1\n    }\n}"
+								},
+								{
+									"name": "Success",
+									"originalRequest": {
+										"method": "GET",
+										"header": [],
+										"url": {
+											"raw": "{{base_url}}/api/users?page=1&length=10",
+											"host": [
+												"{{base_url}}"
+											],
+											"path": [
+												"api",
+												"users"
+											],
+											"query": [
+												{
+													"key": "page",
+													"value": "1"
+												},
+												{
+													"key": "length",
+													"value": "10"
+												},
+												{
+													"key": "name",
+													"value": "test",
+													"disabled": true
+												}
+											]
+										}
+									},
+									"status": "OK",
+									"code": 200,
+									"_postman_previewlanguage": null,
+									"header": [
+										{
+											"key": "Host",
+											"value": "127.0.0.1:8000"
+										},
+										{
+											"key": "Connection",
+											"value": "close"
+										},
+										{
+											"key": "X-Powered-By",
+											"value": "PHP/8.3.14"
+										},
+										{
+											"key": "Cache-Control",
+											"value": "no-cache, private"
+										},
+										{
+											"key": "Date",
+											"value": "Sun, 21 Sep 2025 05:05:59 GMT"
+										},
+										{
+											"key": "Content-Type",
+											"value": "application/json"
+										},
+										{
+											"key": "Access-Control-Allow-Origin",
+											"value": "*"
+										}
+									],
+									"cookie": [],
+									"body": "{\n    \"status\": 200,\n    \"message\": \"Users retrieved successfully\",\n    \"data\": [\n        {\n            \"id\": 32,\n            \"name\": \"user1\",\n            \"student_number\": \"12345678909870\",\n            \"email\": \"user1@trash-mail.com\",\n            \"mobile_number\": \"89993332222\",\n            \"email_verified_at\": null,\n            \"created_at\": \"2025-09-18T16:29:56.000000Z\",\n            \"updated_at\": \"2025-09-18T16:29:56.000000Z\",\n            \"user_tickets\": [\n                {\n                    \"id\": 1,\n                    \"ticket_id\": 1,\n                    \"user_id\": 32,\n                    \"training_schedule_id\": 4,\n                    \"invoice_id\": 11,\n                    \"paid_at\": \"2025-09-18 16:44:42\",\n                    \"approved_by_admin_at\": \"2025-09-18 17:20:18\",\n                    \"created_at\": \"2025-09-18T16:33:06.000000Z\",\n                    \"updated_at\": \"2025-09-18T17:20:18.000000Z\",\n                    \"user_ticket_detail\": {\n                        \"id\": 1,\n                        \"user_ticket_id\": 1,\n                        \"article_title\": \"test title\",\n                        \"payment_evidence_path\": \"payment-evidences/QXrH0m90gzwMntahntWEKqwlBzvLWxhx1lKcGIZn.pdf\",\n                        \"statement_letter_path\": \"statement-letters/wfwfrEkF7lBwVZQSVK3uiYsdhagsfNj3CohrGtD8.pdf\",\n                        \"article_path\": \"articles/cyppRbQPCBxfDxTyN4uiTgXPtddBEQukkVZ44MJZ.pdf\",\n                        \"article_revision_status\": \"approved\",\n                        \"article_revision_evidence_path\": \"submission_evidences/hjdWdbeaq6pLL5wzfnJC5DORidPkLoyNFF6dmbbg.jpg\",\n                        \"created_at\": \"2025-09-18T16:57:34.000000Z\",\n                        \"updated_at\": \"2025-09-20T07:22:59.000000Z\",\n                        \"payment_evidence_url\": \"http://127.0.0.1:8000/api/payment-evidences/QXrH0m90gzwMntahntWEKqwlBzvLWxhx1lKcGIZn.pdf\",\n                        \"statement_letter_url\": \"http://127.0.0.1:8000/api/statement-letters/wfwfrEkF7lBwVZQSVK3uiYsdhagsfNj3CohrGtD8.pdf\",\n                        \"article_url\": \"http://127.0.0.1:8000/api/articles/cyppRbQPCBxfDxTyN4uiTgXPtddBEQukkVZ44MJZ.pdf\",\n                        \"article_revision_evidence_url\": \"http://127.0.0.1:8000/api/submission_evidences/hjdWdbeaq6pLL5wzfnJC5DORidPkLoyNFF6dmbbg.jpg\"\n                    }\n                }\n            ]\n        },\n        {\n            \"id\": 2,\n            \"name\": \"Test User\",\n            \"student_number\": \"9827377662\",\n            \"email\": \"test@example.com\",\n            \"mobile_number\": \"628108514870\",\n            \"email_verified_at\": \"2025-09-18T16:29:09.000000Z\",\n            \"created_at\": \"2025-09-18T16:29:09.000000Z\",\n            \"updated_at\": \"2025-09-18T16:29:09.000000Z\",\n            \"user_tickets\": []\n        },\n        {\n            \"id\": 3,\n            \"name\": \"Chelsie Kerluke MD\",\n            \"student_number\": \"0163445824\",\n            \"email\": \"runolfsson.katrine@example.net\",\n            \"mobile_number\": \"622157204487\",\n            \"email_verified_at\": \"2025-09-18T16:29:09.000000Z\",\n            \"created_at\": \"2025-09-18T16:29:09.000000Z\",\n            \"updated_at\": \"2025-09-18T16:29:09.000000Z\",\n            \"user_tickets\": []\n        },\n        {\n            \"id\": 4,\n            \"name\": \"Dr. Darrick McClure II\",\n            \"student_number\": \"5012169066\",\n            \"email\": \"dyost@example.com\",\n            \"mobile_number\": \"623036382909\",\n            \"email_verified_at\": \"2025-09-18T16:29:09.000000Z\",\n            \"created_at\": \"2025-09-18T16:29:09.000000Z\",\n            \"updated_at\": \"2025-09-18T16:29:09.000000Z\",\n            \"user_tickets\": []\n        },\n        {\n            \"id\": 5,\n            \"name\": \"Prof. Easter Breitenberg\",\n            \"student_number\": \"6144528662\",\n            \"email\": \"elisa94@example.net\",\n            \"mobile_number\": \"629563259488\",\n            \"email_verified_at\": \"2025-09-18T16:29:09.000000Z\",\n            \"created_at\": \"2025-09-18T16:29:09.000000Z\",\n            \"updated_at\": \"2025-09-18T16:29:09.000000Z\",\n            \"user_tickets\": []\n        },\n        {\n            \"id\": 6,\n            \"name\": \"Dr. Lane Ankunding DVM\",\n            \"student_number\": \"2078705913\",\n            \"email\": \"wwolff@example.net\",\n            \"mobile_number\": \"623103102844\",\n            \"email_verified_at\": \"2025-09-18T16:29:09.000000Z\",\n            \"created_at\": \"2025-09-18T16:29:09.000000Z\",\n            \"updated_at\": \"2025-09-18T16:29:09.000000Z\",\n            \"user_tickets\": []\n        },\n        {\n            \"id\": 7,\n            \"name\": \"Gertrude Fritsch\",\n            \"student_number\": \"2744723489\",\n            \"email\": \"chuels@example.net\",\n            \"mobile_number\": \"624970249590\",\n            \"email_verified_at\": \"2025-09-18T16:29:09.000000Z\",\n            \"created_at\": \"2025-09-18T16:29:09.000000Z\",\n            \"updated_at\": \"2025-09-18T16:29:09.000000Z\",\n            \"user_tickets\": []\n        },\n        {\n            \"id\": 8,\n            \"name\": \"Prof. Montana Stokes\",\n            \"student_number\": \"4073932392\",\n            \"email\": \"aryanna63@example.com\",\n            \"mobile_number\": \"629821350648\",\n            \"email_verified_at\": \"2025-09-18T16:29:09.000000Z\",\n            \"created_at\": \"2025-09-18T16:29:09.000000Z\",\n            \"updated_at\": \"2025-09-18T16:29:09.000000Z\",\n            \"user_tickets\": []\n        },\n        {\n            \"id\": 9,\n            \"name\": \"Troy Block Jr.\",\n            \"student_number\": \"2797241921\",\n            \"email\": \"fharris@example.com\",\n            \"mobile_number\": \"626987501868\",\n            \"email_verified_at\": \"2025-09-18T16:29:09.000000Z\",\n            \"created_at\": \"2025-09-18T16:29:09.000000Z\",\n            \"updated_at\": \"2025-09-18T16:29:09.000000Z\",\n            \"user_tickets\": []\n        },\n        {\n            \"id\": 10,\n            \"name\": \"Ahmad Predovic\",\n            \"student_number\": \"1690391276\",\n            \"email\": \"michale.ritchie@example.com\",\n            \"mobile_number\": \"625722384135\",\n            \"email_verified_at\": \"2025-09-18T16:29:09.000000Z\",\n            \"created_at\": \"2025-09-18T16:29:09.000000Z\",\n            \"updated_at\": \"2025-09-18T16:29:09.000000Z\",\n            \"user_tickets\": []\n        }\n    ],\n    \"meta\": {\n        \"current_page\": 1,\n        \"last_page\": 2,\n        \"per_page\": 10,\n        \"total\": 11\n    }\n}"
+								}
+							]
+						}
+					]
+				},
+				{
+					"name": "Training Schedule",
+					"item": [
+						{
+							"name": "Get All",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/api/admin/training-schedules",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"admin",
+										"training-schedules"
+									]
+								}
+							},
+							"response": [
+								{
+									"name": "Success",
+									"originalRequest": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Accept",
+												"value": "application/json",
+												"type": "text"
+											}
+										],
+										"url": {
+											"raw": "{{base_url}}/api/admin/training-schedules",
+											"host": [
+												"{{base_url}}"
+											],
+											"path": [
+												"api",
+												"admin",
+												"training-schedules"
+											]
+										}
+									},
+									"status": "OK",
+									"code": 200,
+									"_postman_previewlanguage": null,
+									"header": [
+										{
+											"key": "Host",
+											"value": "127.0.0.1:8000"
+										},
+										{
+											"key": "Connection",
+											"value": "close"
+										},
+										{
+											"key": "X-Powered-By",
+											"value": "PHP/8.3.14"
+										},
+										{
+											"key": "Cache-Control",
+											"value": "no-cache, private"
+										},
+										{
+											"key": "Date",
+											"value": "Sun, 21 Sep 2025 15:03:55 GMT"
+										},
+										{
+											"key": "Content-Type",
+											"value": "application/json"
+										},
+										{
+											"key": "Access-Control-Allow-Origin",
+											"value": "*"
+										}
+									],
+									"cookie": [],
+									"body": "{\n    \"status\": 200,\n    \"message\": \"Training schedules retrieved successfully\",\n    \"data\": [\n        {\n            \"id\": 1,\n            \"batch_number\": \"Batch 1\",\n            \"started_at\": \"2025-08-11T00:01:00.000000Z\",\n            \"subtitle\": \"Senin, 11 Agustus 2025\",\n            \"location\": \"Gedung G15\",\n            \"quota\": 30,\n            \"current_quota\": 0,\n            \"lecturer\": \"Muhammad Khoirul Fuddin\",\n            \"created_at\": \"2025-09-18T16:29:09.000000Z\",\n            \"updated_at\": \"2025-09-18T16:29:09.000000Z\"\n        },\n        {\n            \"id\": 2,\n            \"batch_number\": \"Batch 2\",\n            \"started_at\": \"2025-08-18T00:01:00.000000Z\",\n            \"subtitle\": \"Senin, 18 Agustus 2025\",\n            \"location\": \"Gedung G15\",\n            \"quota\": 30,\n            \"current_quota\": 0,\n            \"lecturer\": \"Muhammad Khoirul Fuddin\",\n            \"created_at\": \"2025-09-18T16:29:09.000000Z\",\n            \"updated_at\": \"2025-09-18T16:29:09.000000Z\"\n        },\n        {\n            \"id\": 3,\n            \"batch_number\": \"Batch 3\",\n            \"started_at\": \"2025-08-25T00:01:00.000000Z\",\n            \"subtitle\": \"Senin, 25 Agustus 2025\",\n            \"location\": \"Gedung G15\",\n            \"quota\": 30,\n            \"current_quota\": 0,\n            \"lecturer\": \"Muhammad Khoirul Fuddin\",\n            \"created_at\": \"2025-09-18T16:29:09.000000Z\",\n            \"updated_at\": \"2025-09-18T16:29:09.000000Z\"\n        },\n        {\n            \"id\": 4,\n            \"batch_number\": \"Batch 4\",\n            \"started_at\": \"2025-12-31T00:01:00.000000Z\",\n            \"subtitle\": \"Rabu, 31 Desember 2025\",\n            \"location\": \"Gedung G15\",\n            \"quota\": 30,\n            \"current_quota\": 1,\n            \"lecturer\": \"Muhammad Khoirul Fuddin\",\n            \"created_at\": \"2025-09-18T16:29:09.000000Z\",\n            \"updated_at\": \"2025-09-18T16:57:34.000000Z\"\n        }\n    ],\n    \"meta\": {\n        \"current_page\": 1,\n        \"last_page\": 1,\n        \"per_page\": 10,\n        \"total\": 4\n    }\n}"
+								}
+							]
+						},
+						{
+							"name": "Get Participants",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/api/admin/training-schedules/4/participants?page=1&length=5",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"admin",
+										"training-schedules",
+										"4",
+										"participants"
+									],
+									"query": [
+										{
+											"key": "page",
+											"value": "1"
+										},
+										{
+											"key": "length",
+											"value": "5"
+										}
+									]
+								}
+							},
+							"response": [
+								{
+									"name": "Success",
+									"originalRequest": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Accept",
+												"value": "application/json",
+												"type": "text"
+											}
+										],
+										"url": {
+											"raw": "{{base_url}}/api/admin/training-schedules/4/participants?page=1&length=5",
+											"host": [
+												"{{base_url}}"
+											],
+											"path": [
+												"api",
+												"admin",
+												"training-schedules",
+												"4",
+												"participants"
+											],
+											"query": [
+												{
+													"key": "page",
+													"value": "1"
+												},
+												{
+													"key": "length",
+													"value": "5"
+												}
+											]
+										}
+									},
+									"status": "OK",
+									"code": 200,
+									"_postman_previewlanguage": null,
+									"header": [
+										{
+											"key": "Host",
+											"value": "127.0.0.1:8000"
+										},
+										{
+											"key": "Connection",
+											"value": "close"
+										},
+										{
+											"key": "X-Powered-By",
+											"value": "PHP/8.3.14"
+										},
+										{
+											"key": "Cache-Control",
+											"value": "no-cache, private"
+										},
+										{
+											"key": "Date",
+											"value": "Sun, 21 Sep 2025 15:16:01 GMT"
+										},
+										{
+											"key": "Content-Type",
+											"value": "application/json"
+										},
+										{
+											"key": "Access-Control-Allow-Origin",
+											"value": "*"
+										}
+									],
+									"cookie": [],
+									"body": "{\n    \"status\": 200,\n    \"message\": \"Training participants retrieved successfully\",\n    \"data\": [\n        {\n            \"id\": 1,\n            \"ticket_id\": 1,\n            \"user_id\": 32,\n            \"training_schedule_id\": 4,\n            \"invoice_id\": 11,\n            \"paid_at\": \"2025-09-18 16:44:42\",\n            \"approved_by_admin_at\": \"2025-09-18 17:20:18\",\n            \"created_at\": \"2025-09-18T16:33:06.000000Z\",\n            \"updated_at\": \"2025-09-18T17:20:18.000000Z\",\n            \"user\": {\n                \"id\": 32,\n                \"name\": \"user1\",\n                \"student_number\": \"12345678909870\",\n                \"email\": \"user1@trash-mail.com\",\n                \"mobile_number\": \"89993332222\",\n                \"email_verified_at\": null,\n                \"created_at\": \"2025-09-18T16:29:56.000000Z\",\n                \"updated_at\": \"2025-09-18T16:29:56.000000Z\"\n            },\n            \"presence\": {\n                \"id\": 2,\n                \"training_schedule_id\": 4,\n                \"user_ticket_id\": 1,\n                \"attended_at\": \"2025-09-21T14:43:39.000000Z\",\n                \"created_at\": \"2025-09-21T14:43:39.000000Z\",\n                \"updated_at\": \"2025-09-21T14:43:39.000000Z\"\n            }\n        }\n    ],\n    \"meta\": {\n        \"current_page\": 1,\n        \"last_page\": 1,\n        \"per_page\": 5,\n        \"total\": 1\n    }\n}"
+								}
+							]
+						}
+					]
+				},
+				{
+					"name": "Get Profile",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/authentication/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"authentication",
+								"1"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "Success (Admin)",
+							"originalRequest": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/api/authentication/3",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"authentication",
+										"3"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": null,
+							"header": [
+								{
+									"key": "Host",
+									"value": "127.0.0.1:8000"
+								},
+								{
+									"key": "Connection",
+									"value": "close"
+								},
+								{
+									"key": "X-Powered-By",
+									"value": "PHP/8.3.14"
+								},
+								{
+									"key": "Cache-Control",
+									"value": "no-cache, private"
+								},
+								{
+									"key": "Date",
+									"value": "Sun, 14 Sep 2025 18:36:21 GMT"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Access-Control-Allow-Origin",
+									"value": "*"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"status\": 200,\n    \"message\": \"User retrieved successfully\",\n    \"data\": {\n        \"id\": 3,\n        \"name\": \"admin\",\n        \"email\": \"admin@trash-mail.com\",\n        \"mobile_number\": \"89993332220\",\n        \"email_verified_at\": null,\n        \"created_at\": \"2025-09-14T18:32:28.000000Z\",\n        \"updated_at\": \"2025-09-14T18:32:28.000000Z\",\n        \"roles\": [\n            {\n                \"id\": 1,\n                \"name\": \"admin\",\n                \"guard_name\": \"web\",\n                \"created_at\": \"2025-09-14T18:10:53.000000Z\",\n                \"updated_at\": \"2025-09-14T18:10:53.000000Z\",\n                \"pivot\": {\n                    \"model_type\": \"App\\\\Models\\\\User\",\n                    \"model_id\": 3,\n                    \"role_id\": 1\n                }\n            }\n        ]\n    }\n}"
+						},
+						{
+							"name": "Success (Customer)",
+							"originalRequest": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/api/authentication/1",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"authentication",
+										"1"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": null,
+							"header": [
+								{
+									"key": "Host",
+									"value": "127.0.0.1:8000"
+								},
+								{
+									"key": "Connection",
+									"value": "close"
+								},
+								{
+									"key": "X-Powered-By",
+									"value": "PHP/8.3.14"
+								},
+								{
+									"key": "Cache-Control",
+									"value": "no-cache, private"
+								},
+								{
+									"key": "Date",
+									"value": "Sun, 14 Sep 2025 18:38:10 GMT"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Access-Control-Allow-Origin",
+									"value": "*"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"status\": 200,\n    \"message\": \"User retrieved successfully\",\n    \"data\": {\n        \"id\": 1,\n        \"name\": \"user1\",\n        \"student_number\": \"12345678909876\",\n        \"email\": \"user1@trash-mail.com\",\n        \"mobile_number\": \"89993332221\",\n        \"email_verified_at\": null,\n        \"created_at\": \"2025-08-31T08:03:04.000000Z\",\n        \"updated_at\": \"2025-08-31T08:03:04.000000Z\",\n        \"roles\": [\n            {\n                \"id\": 2,\n                \"name\": \"customer\",\n                \"guard_name\": \"web\",\n                \"created_at\": \"2025-09-14T18:10:53.000000Z\",\n                \"updated_at\": \"2025-09-14T18:10:53.000000Z\",\n                \"pivot\": {\n                    \"model_type\": \"App\\\\Models\\\\User\",\n                    \"model_id\": 1,\n                    \"role_id\": 2\n                }\n            }\n        ]\n    }\n}"
+						}
+					]
+				}
+			],
+			"auth": {
+				"type": "bearer",
+				"bearer": [
+					{
+						"key": "token",
+						"value": "2|oKBZIhFEgObACdDyVqRQNjVyhu0ODcudWDihEqXab6ce5804",
+						"type": "string"
+					}
+				]
+			},
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"packages": {},
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"packages": {},
+						"exec": [
+							""
+						]
+					}
+				}
+			]
+		},
+		{
+			"name": "Login",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"email\": \"user1@trash-mail.com\",\n    \"password\": \"121212\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/api/authentication",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"authentication"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "Success with Roles",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"user1@trash-mail.com\",\n    \"password\": \"121212\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/authentication",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"authentication"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": null,
+					"header": [
+						{
+							"key": "Host",
+							"value": "127.0.0.1:8000"
+						},
+						{
+							"key": "Connection",
+							"value": "close"
+						},
+						{
+							"key": "X-Powered-By",
+							"value": "PHP/8.3.14"
+						},
+						{
+							"key": "Cache-Control",
+							"value": "no-cache, private"
+						},
+						{
+							"key": "Date",
+							"value": "Sun, 14 Sep 2025 18:37:18 GMT"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						},
+						{
+							"key": "Access-Control-Allow-Origin",
+							"value": "*"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"status\": 200,\n    \"message\": \"Authentication successful\",\n    \"data\": {\n        \"user\": {\n            \"id\": 1,\n            \"name\": \"user1\",\n            \"student_number\": \"12345678909876\",\n            \"email\": \"user1@trash-mail.com\",\n            \"mobile_number\": \"89993332221\",\n            \"email_verified_at\": null,\n            \"created_at\": \"2025-08-31T08:03:04.000000Z\",\n            \"updated_at\": \"2025-08-31T08:03:04.000000Z\",\n            \"roles\": [\n                {\n                    \"id\": 2,\n                    \"name\": \"customer\",\n                    \"guard_name\": \"web\",\n                    \"created_at\": \"2025-09-14T18:10:53.000000Z\",\n                    \"updated_at\": \"2025-09-14T18:10:53.000000Z\",\n                    \"pivot\": {\n                        \"model_type\": \"App\\\\Models\\\\User\",\n                        \"model_id\": 1,\n                        \"role_id\": 2\n                    }\n                }\n            ]\n        },\n        \"token\": \"6|yiuVu91ezUfv4hmbUDfs2JZs6JYmD5wD0lCH18A5a5e5d402\"\n    }\n}"
+				}
+			]
+		},
+		{
+			"name": "Register",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"name\": \"user1\",\n    \"email\": \"user1@trash-mail.com\",\n    \"password\": \"121212\",\n    \"password_confirmation\": \"121212\",\n    \"mobile_number\": \"89993332222\",\n    \"student_number\": \"12345678909870\" \n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/api/users",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"users"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "Success with Roles",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"admin1\",\n    \"email\": \"admin1@trash-mail.com\",\n    \"password\": \"121212\",\n    \"password_confirmation\": \"121212\",\n    \"mobile_number\": \"89993332222\",\n    \"student_number\": \"1234567890982\" \n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/users",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"users"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": null,
+					"header": [
+						{
+							"key": "Host",
+							"value": "127.0.0.1:8000"
+						},
+						{
+							"key": "Connection",
+							"value": "close"
+						},
+						{
+							"key": "X-Powered-By",
+							"value": "PHP/8.3.14"
+						},
+						{
+							"key": "Cache-Control",
+							"value": "no-cache, private"
+						},
+						{
+							"key": "Date",
+							"value": "Sun, 14 Sep 2025 18:39:24 GMT"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						},
+						{
+							"key": "Access-Control-Allow-Origin",
+							"value": "*"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"status\": 200,\n    \"message\": \"Success\",\n    \"data\": {\n        \"user\": {\n            \"name\": \"admin1\",\n            \"student_number\": \"1234567890982\",\n            \"mobile_number\": \"89993332222\",\n            \"email\": \"admin1@trash-mail.com\",\n            \"updated_at\": \"2025-09-14T18:39:24.000000Z\",\n            \"created_at\": \"2025-09-14T18:39:24.000000Z\",\n            \"id\": 4,\n            \"roles\": [\n                {\n                    \"id\": 2,\n                    \"name\": \"customer\",\n                    \"guard_name\": \"web\",\n                    \"created_at\": \"2025-09-14T18:10:53.000000Z\",\n                    \"updated_at\": \"2025-09-14T18:10:53.000000Z\",\n                    \"pivot\": {\n                        \"model_type\": \"App\\\\Models\\\\User\",\n                        \"model_id\": 4,\n                        \"role_id\": 2\n                    }\n                }\n            ]\n        },\n        \"token\": \"7|lMFTAgeVrNGlNkVfAIltlsviwYV5GIcJcGLpS6Trf5283a0a\"\n    }\n}"
+				}
+			]
+		},
+		{
+			"name": "Get Tickets",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/api/tickets?page=1&length=10",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"tickets"
+					],
+					"query": [
+						{
+							"key": "page",
+							"value": "1"
+						},
+						{
+							"key": "length",
+							"value": "10"
+						}
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "Success",
+					"originalRequest": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/tickets?page=1&length=10",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"tickets"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "length",
+									"value": "10"
+								}
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": null,
+					"header": [
+						{
+							"key": "Host",
+							"value": "127.0.0.1:8000"
+						},
+						{
+							"key": "Connection",
+							"value": "close"
+						},
+						{
+							"key": "X-Powered-By",
+							"value": "PHP/8.3.14"
+						},
+						{
+							"key": "Cache-Control",
+							"value": "no-cache, private"
+						},
+						{
+							"key": "Date",
+							"value": "Sun, 17 Aug 2025 06:59:39 GMT"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						},
+						{
+							"key": "Access-Control-Allow-Origin",
+							"value": "*"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"status\": 200,\n    \"message\": \"Tickets retrieved successfully\",\n    \"data\": [\n        {\n            \"id\": 1,\n            \"title\": \"Sample Ticket\",\n            \"description\": \"This is a sample ticket description.\",\n            \"price\": 100000,\n            \"created_at\": \"2025-08-17T06:24:34.000000Z\",\n            \"updated_at\": \"2025-08-17T06:24:34.000000Z\"\n        }\n    ],\n    \"meta\": {\n        \"current_page\": 1,\n        \"last_page\": 1,\n        \"per_page\": 10,\n        \"total\": 1\n    }\n}"
+				}
+			]
+		},
+		{
+			"name": "Get Schedules",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "page",
+						"value": "1",
+						"type": "text"
+					},
+					{
+						"key": "length",
+						"value": "10",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{base_url}}/api/training-schedules",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"training-schedules"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "Success",
+					"originalRequest": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "page",
+								"value": "1",
+								"type": "text"
+							},
+							{
+								"key": "length",
+								"value": "10",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/training-schedules",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"training-schedules"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": null,
+					"header": [
+						{
+							"key": "Host",
+							"value": "127.0.0.1:8000"
+						},
+						{
+							"key": "Connection",
+							"value": "close"
+						},
+						{
+							"key": "X-Powered-By",
+							"value": "PHP/8.3.14"
+						},
+						{
+							"key": "Cache-Control",
+							"value": "no-cache, private"
+						},
+						{
+							"key": "Date",
+							"value": "Sun, 21 Sep 2025 14:11:00 GMT"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						},
+						{
+							"key": "Access-Control-Allow-Origin",
+							"value": "*"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"status\": 200,\n    \"message\": \"Training schedules retrieved successfully\",\n    \"data\": [\n        {\n            \"id\": 4,\n            \"batch_number\": \"Batch 4\",\n            \"started_at\": \"2025-12-31T00:01:00.000000Z\",\n            \"subtitle\": \"Rabu, 31 Desember 2025\",\n            \"location\": \"Gedung G15\",\n            \"quota\": 30,\n            \"current_quota\": 1,\n            \"lecturer\": \"Muhammad Khoirul Fuddin\",\n            \"created_at\": \"2025-09-18T16:29:09.000000Z\",\n            \"updated_at\": \"2025-09-18T16:57:34.000000Z\"\n        }\n    ],\n    \"meta\": {\n        \"current_page\": 1,\n        \"last_page\": 1,\n        \"per_page\": 10,\n        \"total\": 1\n    }\n}"
+				}
+			]
+		},
+		{
+			"name": "API callback",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"va_numbers\": [\n    {\n      \"va_number\": \"316852044557954399\",\n      \"bank\": \"bri\"\n    }\n  ],\n  \"transaction_time\": \"2025-08-31 02:36:13\",\n  \"transaction_status\": \"pending\",\n  \"transaction_id\": \"bd01d778-db0d-4521-a5cb-9f12456ad304\",\n  \"status_message\": \"midtrans payment notification\",\n  \"status_code\": \"201\",\n  \"signature_key\": \"c893eec1ff5565d2cf661a894ebadce85b858750a64dd506f637fd1e0ee91b8c66eb3439858de7e827761bb02651edc2c735b6b59889d634a00882970715a693\",\n  \"payment_type\": \"bank_transfer\",\n  \"payment_amounts\": [],\n  \"order_id\": \"ORD-1756582573-d8bcba37597fede7\",\n  \"merchant_id\": \"G956331685\",\n  \"gross_amount\": \"104000.00\",\n  \"fraud_status\": \"accept\",\n  \"expiry_time\": \"2025-09-01 02:36:13\",\n  \"currency\": \"IDR\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/api/invoices/payment-callback",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"invoices",
+						"payment-callback"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "Success",
+					"originalRequest": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"va_numbers\": [\n    {\n      \"va_number\": \"316852044557954399\",\n      \"bank\": \"bri\"\n    }\n  ],\n  \"transaction_time\": \"2025-08-31 02:36:13\",\n  \"transaction_status\": \"pending\",\n  \"transaction_id\": \"bd01d778-db0d-4521-a5cb-9f12456ad304\",\n  \"status_message\": \"midtrans payment notification\",\n  \"status_code\": \"201\",\n  \"signature_key\": \"c893eec1ff5565d2cf661a894ebadce85b858750a64dd506f637fd1e0ee91b8c66eb3439858de7e827761bb02651edc2c735b6b59889d634a00882970715a693\",\n  \"payment_type\": \"bank_transfer\",\n  \"payment_amounts\": [],\n  \"order_id\": \"ORD-1756582573-d8bcba37597fede7\",\n  \"merchant_id\": \"G956331685\",\n  \"gross_amount\": \"104000.00\",\n  \"fraud_status\": \"accept\",\n  \"expiry_time\": \"2025-09-01 02:36:13\",\n  \"currency\": \"IDR\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/invoices/payment-callback",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"invoices",
+								"payment-callback"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": null,
+					"header": [
+						{
+							"key": "Host",
+							"value": "127.0.0.1:8000"
+						},
+						{
+							"key": "Connection",
+							"value": "close"
+						},
+						{
+							"key": "X-Powered-By",
+							"value": "PHP/8.3.14"
+						},
+						{
+							"key": "Cache-Control",
+							"value": "no-cache, private"
+						},
+						{
+							"key": "Date",
+							"value": "Sat, 30 Aug 2025 19:56:05 GMT"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						},
+						{
+							"key": "Access-Control-Allow-Origin",
+							"value": "*"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"status\": 200,\n    \"message\": \"Bank transfer callback processed\",\n    \"data\": null\n}"
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://127.0.0.1:8000",
+			"type": "string"
+		}
+	]
+}

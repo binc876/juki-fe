@@ -1,0 +1,7 @@
+curl --location --request PUT 'https://ungushing-onward-lawana.ngrok-free.app/api/user-ticket-details/1/update-article-revision-status' \
+--header 'Accept: application/json' \
+--header 'Content-Type: application/json' \
+--header 'Authorization: Bearer 1|NN19ugsObVW1gKcxEJtSXLTzmk5m0whlGP0TuxIh7dca8045' \
+--data '{
+    "article_revision_status": "revise" 
+}'

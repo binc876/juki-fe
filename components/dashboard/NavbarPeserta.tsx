@@ -9,9 +9,9 @@ import { cn } from "@/lib/utils"
 
 const navItems = [
   { name: "Beranda", href: "/beranda" },
-  { name: "Tiketku", href: "/tiketku" },
+  //{ name: "Tiketku", href: "/tiketku" },
   { name: "Pelatihanku", href: "/pelatihanku" },
-  { name: "Bebas Tanggungan", href: "/bebas-tanggungan" },
+  //{ name: "Bebas Tanggungan", href: "/bebas-tanggungan" },
 ]
 
 export default function NavbarPeserta() {
@@ -41,7 +41,7 @@ export default function NavbarPeserta() {
             scrolled ? "text-[#5C7B78]" : "text-white"
           }`}
         >
-          Jupalo.
+          Juki.Hub
         </Link>
 
         {/* Desktop Nav */}
