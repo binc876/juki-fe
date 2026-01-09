@@ -21,7 +21,7 @@ export default function BerhasilDaftar() {
     }, 1000)
 
     const redirectTimeout = setTimeout(() => {
-      router.push('/tiketku')
+      router.push('/beranda')
     }, 5000)
 
     return () => {

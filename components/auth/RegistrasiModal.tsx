@@ -22,19 +22,69 @@ export default function RegistrasiModal({ isOpen, onClose, onSwitchToLogin }: Re
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+
+    // Validasi input
+    if (!form.name.trim()) {
+      alert('Nama lengkap harus diisi!')
+      return
+    }
+    if (form.student_number.length < 5) {
+      alert('Nomor Induk Mahasiswa (NIM) tidak valid!')
+      return
+    }
+    if (form.mobile_number.length < 9) {
+      alert('Nomor WhatsApp tidak valid!')
+      return
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(form.email)) {
+      alert('Format email tidak valid!')
+      return
+    }
+    if (form.password.length < 8) {
+      alert('Password minimal harus 8 karakter!')
+      return
+    }
+    if (form.password !== form.password_confirmation) {
+      alert('Password dan konfirmasi password tidak cocok!')
+      return
+    }
+
     setLoading(true)
 
     try {
-      const res = await api.post('/users', form, {
+      const payload = {
+        fullName: form.name,
+        nim: form.student_number,
+        phone: `0${form.mobile_number}`,
+        email: form.email,
+        password: form.password
+      }
+
+      const res = await api.post('/auth/register', payload, {
         withCredentials: false,
         headers: {
           "Content-Type": "application/json",
         }
       })
       console.log('✅ Registrasi sukses:', res.data)
-      // Simpan token dan data user di localStorage
-      localStorage.setItem('token', res.data.data.token)
-      localStorage.setItem('user', JSON.stringify(res.data.data.user))
+      
+      // Jika response mengembalikan token, simpan (Auto-login)
+      if (res.data.accessToken) {
+        localStorage.setItem('token', res.data.accessToken)
+        if (res.data.refreshToken) {
+          localStorage.setItem('refreshToken', res.data.refreshToken)
+        }
+        
+        try {
+           // Ambil data user setelah register jika auto-login
+           const userRes = await api.get('/profiles/me')
+           localStorage.setItem('user', JSON.stringify(userRes.data))
+        } catch (error) {
+           console.log('Gagal mengambil profile user setelah registrasi', error)
+        }
+      }
+
       setShowAlert(true)
     } catch (err: any) {
       console.log('❌ Registrasi gagal:', err)

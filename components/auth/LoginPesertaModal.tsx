@@ -24,8 +24,19 @@ export default function LoginPesertaModal({ isOpen, onClose, onSwitchToRegistras
     e.preventDefault()
     setError('')
 
+    // Validasi input
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(form.email)) {
+      setError('Format email tidak valid!')
+      return
+    }
+    if (!form.password) {
+      setError('Password harus diisi!')
+      return
+    }
+
     try {
-      const res = await api.post('/authentication', form, {
+      const res = await api.post('/auth/login', form, {
         withCredentials: false,
         headers: {
           "Content-Type": "application/json",
@@ -33,9 +44,19 @@ export default function LoginPesertaModal({ isOpen, onClose, onSwitchToRegistras
       })
       console.log('✅ Login sukses:', res.data)
 
-      // Simpan token dan data user di localStorage
-      localStorage.setItem('token', res.data.data.token)
-      localStorage.setItem('user', JSON.stringify(res.data.data.user))
+      const { accessToken, refreshToken } = res.data
+      
+      // Simpan token di localStorage
+      localStorage.setItem('token', accessToken)
+      localStorage.setItem('refreshToken', refreshToken)
+
+      // Ambil data user setelah login
+      try {
+        const userRes = await api.get('/profiles/me')
+        localStorage.setItem('user', JSON.stringify(userRes.data))
+      } catch (userError) {
+        console.error('Gagal mengambil data user:', userError)
+      }
 
       router.push('/beranda')
       onClose();

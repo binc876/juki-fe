@@ -5,7 +5,7 @@ import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import PublicNavbar from "@/components/dashboard/PublicNavbar";
-// import ListJadwalPelatihan from "@/components/dashboard/ListJadwalPelatihan";
+import ListJadwalPelatihan from "@/components/dashboard/ListJadwalPelatihan";
 import LoginPesertaModal from "@/components/auth/LoginPesertaModal";
 import RegistrasiModal from "@/components/auth/RegistrasiModal";
 
@@ -116,7 +116,7 @@ export default function Home() {
         </div>
         <div className="bg-[#5C7B78] py-10">
           <div className="max-w-5xl mx-auto px-4 text-center text-white">
-            {/* <ListJadwalPelatihan/> */}
+            <ListJadwalPelatihan onRegisterClick={() => setShowRegistrasiModal(true)} />
           </div>
         </div>
       </section>
