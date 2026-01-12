@@ -36,6 +36,7 @@ import JadwalPelatihanView from '@/components/admin/JadwalPelatihanView'
 import VerifikasiView from '@/components/admin/VerifikasiView'
 import LoaView from '@/components/admin/LoaView'
 import ArtikelProsesView from '@/components/admin/ArtikelProsesView'
+import FeedbackView from '@/components/admin/FeedbackView'
 
 // --- Types ---
 interface User {
@@ -337,15 +338,17 @@ export default function AdminPage() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="bg-white/10 border border-white/30 p-6 rounded-2xl">
                 <h3 className="text-lg font-medium text-white/80">Total Peserta</h3>
-                <p className="text-4xl font-bold mt-2">1,240</p>
+                <p className="text-4xl font-bold mt-2">{userStats?.roles?.user || 0}</p>
               </div>
               <div className="bg-white/10 border border-white/30 p-6 rounded-2xl">
                 <h3 className="text-lg font-medium text-white/80">Menunggu Verifikasi</h3>
-                <p className="text-4xl font-bold mt-2 text-yellow-300">45</p>
+                <p className="text-4xl font-bold mt-2 text-yellow-300">
+                  {(userStats?.needs_verification?.payment || 0) + (userStats?.needs_verification?.administrative || 0)}
+                </p>
               </div>
               <div className="bg-white/10 border border-white/30 p-6 rounded-2xl">
                 <h3 className="text-lg font-medium text-white/80">LOA Terbit</h3>
-                <p className="text-4xl font-bold mt-2 text-green-300">890</p>
+                <p className="text-4xl font-bold mt-2 text-green-300">{userStats?.process?.loa_published || 0}</p>
               </div>
             </div>
           </div>
@@ -470,6 +473,8 @@ export default function AdminPage() {
         return <VerifikasiView />
       case 'loa':
         return <LoaView />
+      case 'feedback':
+        return <FeedbackView />
       // ... tab lain tetap sama (placeholder)
       default:
         return (
@@ -498,8 +503,8 @@ export default function AdminPage() {
   return (
     <div className="min-h-screen bg-[#949F93] text-white font-sans selection:bg-white/30">
       
-      {/* Header Admin */}
-      <header className="px-6 md:px-12 py-6 flex items-center justify-between border-b border-white/10">
+      {/* Header Admin Fixed */}
+      <header className="fixed top-0 left-0 w-full z-50 bg-[#949F93]/90 backdrop-blur-md px-6 md:px-12 py-6 flex items-center justify-between border-b border-white/10">
         <div className="flex items-center gap-3">
            {/* Placeholder Avatar User */}
            <div className="w-12 h-12 relative rounded-full overflow-hidden border-2 border-white/50 bg-[#D4C4AF]">
@@ -511,10 +516,10 @@ export default function AdminPage() {
         </div>
       </header>
 
-      <main className="px-6 md:px-12 pb-12 flex flex-col md:flex-row gap-8 md:gap-12 mt-8">
+      <main className="px-6 md:px-12 pb-12 flex flex-col md:flex-row gap-8 md:gap-12 pt-32">
         
         {/* Sidebar Menu */}
-        <aside className="w-full md:w-64 shrink-0 flex flex-col min-h-[600px]">
+        <aside className="w-full md:w-64 shrink-0 flex flex-col md:sticky md:top-28 md:h-[calc(100vh-160px)]">
           <nav className="space-y-2">
             <MenuButton id="dashboard" label="Dashboard" icon={LayoutDashboard} />
             <MenuButton id="users" label="Manajemen Peserta" icon={Users} />
@@ -539,8 +544,8 @@ export default function AdminPage() {
 
         {/* Content Area */}
         <section className="flex-1 relative">
-           {/* Untuk Tab Users dan Trainings backgroundnya transparant agar menyatu dengan design inner components */}
-           {['users', 'trainings'].includes(activeTab) ? renderContent() : (
+           {/* Untuk Tab yang memiliki layout sendiri (header + card), tampilkan langsung tanpa wrapper tambahan */}
+           {['users', 'trainings', 'articles', 'verification', 'loa', 'feedback'].includes(activeTab) ? renderContent() : (
              <div className="border-2 border-white rounded-[32px] min-h-[600px] p-8 md:p-10 relative bg-white/5 backdrop-blur-sm">
                 {renderContent()}
              </div>

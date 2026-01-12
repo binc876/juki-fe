@@ -221,6 +221,13 @@ export default function PelatihankuPage() {
       const userData = res.data.data || res.data
       setProfile(userData)
       
+      // Admin Protection: Admins should not be here
+      const roles = userData.user?.roles || []
+      if (roles.includes('ADMIN') || roles.includes('SUPER_ADMIN')) {
+          router.replace('/admin')
+          return
+      }
+
       const userStatus = userData.user?.trainingFlow?.statusCode || 'PAYMENT_REQUIRED'
       setStatus(userStatus)
       
@@ -417,7 +424,8 @@ export default function PelatihankuPage() {
   // STEP 6: Download LOA
   const handleDownloadLoa = async () => {
     try {
-        await downloadFile('/articles/loa', `LOA_JUKI_${profile?.profile?.fullName.replace(/\s+/g, '_')}.pdf`);
+        const name = profile?.fullName || profile?.profile?.fullName || 'Peserta';
+        await downloadFile('/articles/loa', `LOA_JUKI_${name.replace(/\s+/g, '_')}.pdf`);
     } catch (err) {
         console.error(err)
         showAlert({ title: 'Gagal', message: 'Gagal mendownload LoA. Pastikan file sudah tersedia.', type: 'error' })

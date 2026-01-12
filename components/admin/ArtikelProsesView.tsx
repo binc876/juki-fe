@@ -41,6 +41,12 @@ interface User {
     statusCode: string;
     articleTitle?: string;
     journalCode?: string;
+    ojsAccount?: {
+        username?: string;
+        password?: string;
+        journalLink?: string;
+        journalCode?: string;
+    };
   };
 }
 
@@ -201,49 +207,49 @@ export default function ArtikelProsesView() {
       if (!selectedUser || !loaRef.current) return
       
       try {
+          let linkRect: DOMRect | null = null;
+
           // 1. Generate PDF from DOM
           const canvas = await html2canvas(loaRef.current, { 
-              scale: 2, // Use 2 for higher resolution text
+              scale: 2, 
               backgroundColor: '#ffffff',
               useCORS: true,
               logging: false,
               onclone: (clonedDoc) => {
-                  // Critical fix for "unsupported color function lab" error
+                  // 1. Fix for "lab" color function error
                   const style = clonedDoc.createElement('style');
                   style.innerHTML = `
                       * { 
-                          color: rgb(0, 0, 0) !important;
-                          background-color: rgb(255, 255, 255) !important;
-                          border-color: rgb(200, 200, 200) !important;
+                          color: #000000 !important;
+                          border-color: #000000 !important;
+                          -webkit-font-smoothing: antialiased;
+                          -moz-osx-font-smoothing: grayscale;
                       }
-                      /* Override any CSS variables that might use lab() */
+                      /* Force clean colors on root to stop variable inheritance of lab() */
                       :root {
-                          --color-primary: rgb(92, 123, 120) !important;
-                          --color-secondary: rgb(217, 142, 46) !important;
+                          --background: 255 255 255 !important;
+                          --foreground: 0 0 0 !important;
                       }
+                      .document-root { background-color: #ffffff !important; }
+                      .watermark-container, .watermark-container * { background-color: transparent !important; }
                   `;
                   clonedDoc.head.appendChild(style);
-                  
-                  // Force inline styles on root elements
-                  clonedDoc.documentElement.style.backgroundColor = '#ffffff';
-                  clonedDoc.documentElement.style.color = '#000000';
-                  clonedDoc.body.style.backgroundColor = '#ffffff';
-                  clonedDoc.body.style.color = '#000000';
-                  
-                  // Remove any problematic CSS custom properties
+
+                  // 2. Scan and remove any remaining 'lab(' or 'oklch' from inline styles
                   const allElements = clonedDoc.querySelectorAll('*');
                   allElements.forEach((el: any) => {
                       if (el.style) {
-                          // Replace CSS variables with static values
-                          const computedStyle = window.getComputedStyle(el);
-                          if (computedStyle.color.includes('lab')) {
-                              el.style.color = '#000000';
-                          }
-                          if (computedStyle.backgroundColor.includes('lab')) {
-                              el.style.backgroundColor = '#ffffff';
-                          }
+                          const computed = window.getComputedStyle(el);
+                          if (computed.color?.includes('lab') || computed.color?.includes('oklch')) el.style.color = '#000000';
+                          if (computed.backgroundColor?.includes('lab') || computed.backgroundColor?.includes('oklch')) el.style.backgroundColor = 'transparent';
                       }
                   });
+
+                  // 3. Find link position
+                  const linkEl = clonedDoc.querySelector('.footer-link');
+                  if (linkEl) {
+                      linkRect = linkEl.getBoundingClientRect();
+                  }
               }
           });
           
@@ -254,6 +260,19 @@ export default function ArtikelProsesView() {
           const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
           
           pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight, undefined, 'FAST');
+
+          // MANUALLY ADD LINK OVERLAY
+          if (linkRect && selectedUser.trainingFlow.ojsAccount?.journalLink) {
+              const mmFactor = 210 / (loaRef.current.clientWidth || 794); // A4 width / Standard 96dpi width
+              
+              const x = linkRect.left * mmFactor;
+              const y = linkRect.top * mmFactor;
+              const w = linkRect.width * mmFactor;
+              const h = linkRect.height * mmFactor;
+
+              pdf.link(x, y, w, h, { url: selectedUser.trainingFlow.ojsAccount.journalLink });
+          }
+
           const pdfBlob = pdf.output('blob');
 
           console.log(`Generated PDF Size: ${(pdfBlob.size / 1024 / 1024).toFixed(2)} MB`);
@@ -577,6 +596,7 @@ export default function ArtikelProsesView() {
                               name={selectedUser?.profile.fullName || ''}
                               articleTitle={selectedUser?.trainingFlow.articleTitle || ''}
                               date={new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
+                              ojsLink={selectedUser?.trainingFlow.ojsAccount?.journalLink}
                           />
                       </div>
                       
@@ -598,6 +618,7 @@ export default function ArtikelProsesView() {
                    name={selectedUser.profile.fullName}
                    articleTitle={selectedUser.trainingFlow.articleTitle || 'Judul Artikel'}
                    date={new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
+                   ojsLink={selectedUser.trainingFlow.ojsAccount?.journalLink}
                 />
              )}
           </div>

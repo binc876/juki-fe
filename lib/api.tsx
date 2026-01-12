@@ -66,12 +66,26 @@ export const getErrorMessage = (error: any): string => {
 export const downloadFile = async (url: string, filename?: string) => {
   try {
     const response = await api.get(url, {
-      responseType: 'blob', // Penting agar response diperlakukan sebagai file binary
+      responseType: 'blob',
+      headers: {
+        'Accept': 'application/pdf, image/*, */*'
+      }
     });
 
-    // Buat URL object dari blob
-    const blobUrl = window.URL.createObjectURL(new Blob([response.data]));
+    const blob = response.data;
+
+    // Deteksi Error di dalam Blob (misal jika BE kirim 500 tapi responseType tetap blob)
+    if (blob.size < 2000) {
+      const text = await blob.text();
+      if (text.startsWith('{')) {
+        const parsed = JSON.parse(text);
+        throw new Error(parsed.message || 'Gagal mengunduh file dari server.');
+      }
+    }
+
+    const blobUrl = window.URL.createObjectURL(new Blob([blob]));
     const link = document.createElement('a');
+    link.href = blobUrl;
     link.href = blobUrl;
     
     // Gunakan filename dari parameter atau coba ambil dari header content-disposition jika ada
@@ -104,18 +118,37 @@ export const viewFile = async (url: string) => {
   try {
     const response = await api.get(url, {
       responseType: 'blob',
+      headers: {
+        'Accept': 'application/pdf'
+      }
     });
 
-    const contentType = response.headers['content-type'] || 'application/pdf'; // Default PDF if unknown
-    const blob = new Blob([response.data], { type: contentType });
-    const blobUrl = window.URL.createObjectURL(blob);
+    const blob = response.data;
+
+    // VALIDASI: Jika ukuran file terlalu kecil (misal < 1KB) dan tipenya JSON atau teks, 
+    // kemungkinan besar ini adalah error JSON dari BE yang terbungkus Blob.
+    if (blob.size < 2000) {
+      const text = await blob.text();
+      if (text.startsWith('{') && text.includes('options')) {
+        console.error('❌ BE Error detected: Backend sent StreamableFile as JSON string.', text);
+        throw new Error('Gagal memuat PDF: Back-End mengirimkan format data yang salah (JSON instead of Binary). Mohon periksa LoggingInterceptor di BE.');
+      }
+      if (text.startsWith('{') && text.includes('message')) {
+        const parsed = JSON.parse(text);
+        throw new Error(parsed.message || 'Gagal memuat file.');
+      }
+    }
+
+    const contentType = response.headers['content-type'] || blob.type || 'application/pdf';
+    const blobUrl = window.URL.createObjectURL(new Blob([blob], { type: contentType }));
     
-    // Open in new tab
-    window.open(blobUrl, '_blank');
+    // Buka di tab baru
+    const newTab = window.open(blobUrl, '_blank');
+    if (!newTab) {
+      throw new Error('Pop-up diblokir! Harap izinkan pop-up untuk melihat dokumen.');
+    }
     
-    // Note: Can't easily revoke URL here immediately because the new tab needs it.
-    // Ideally, we'd use a timeout or a dedicated preview modal, but window.open is requested.
-    setTimeout(() => window.URL.revokeObjectURL(blobUrl), 60000); // Revoke after 1 min
+    setTimeout(() => window.URL.revokeObjectURL(blobUrl), 60000);
   } catch (error: any) {
     console.error('View failed:', error);
     throw error;
@@ -141,7 +174,6 @@ const processQueue = (error: any, token: string | null = null) => {
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('token');
   config.headers['ngrok-skip-browser-warning'] = 'true';
-  config.headers.Accept = 'application/json';
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }

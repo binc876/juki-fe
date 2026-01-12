@@ -5,7 +5,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { User, FileText, MessageSquare, Loader2, Download, Eye, Send, LogOut } from 'lucide-react'
-import { api, getErrorMessage } from '@/lib/api'
+import { api, getErrorMessage, viewFile, downloadFile } from '@/lib/api'
 import {
   Dialog,
   DialogContent,
@@ -35,7 +35,16 @@ export default function AkunPage() {
       try {
         if (activeTab === 'profile') {
           const res = await api.get('/profiles/me')
-          setProfile(res.data.data || res.data)
+          const data = res.data.data || res.data
+          
+          // Admin Protection
+          const roles = data.user?.roles || []
+          if (roles.includes('ADMIN') || roles.includes('SUPER_ADMIN')) {
+              router.replace('/admin')
+              return
+          }
+
+          setProfile(data)
         } else if (activeTab === 'documents') {
           const res = await api.get('/attachments/me')
           setDocuments(Array.isArray(res.data) ? res.data : (res.data.data || []))
@@ -84,8 +93,8 @@ export default function AkunPage() {
   return (
     <div className="min-h-screen bg-[#949F93] text-white font-sans selection:bg-white/30">
       
-      {/* Header / Navbar Custom sesuai desain */}
-      <header className="px-6 md:px-12 py-6 flex items-center justify-between">
+      {/* Header / Navbar Fixed */}
+      <header className="fixed top-0 left-0 w-full z-50 bg-[#949F93]/90 backdrop-blur-md px-6 md:px-12 py-6 flex items-center justify-between border-b border-white/10">
         <div className="text-2xl font-bold tracking-wide">Juki.Hub</div>
         
         <nav className="hidden md:flex gap-8 text-sm font-medium">
@@ -103,10 +112,10 @@ export default function AkunPage() {
         </div>
       </header>
 
-      <main className="px-6 md:px-12 pb-12 flex flex-col md:flex-row gap-8 md:gap-16 mt-4">
+      <main className="px-6 md:px-12 pb-12 flex flex-col md:flex-row gap-8 md:gap-16 pt-32">
         
         {/* Sidebar */}
-        <aside className="w-full md:w-64 shrink-0 flex flex-col justify-between min-h-[500px]">
+        <aside className="w-full md:w-64 shrink-0 flex flex-col justify-between md:sticky md:top-24 md:h-[calc(100vh-140px)]">
           <nav className="space-y-4">
             <button
               onClick={() => setActiveTab('profile')}
@@ -177,14 +186,34 @@ export default function AkunPage() {
                         </div>
                         <div className="space-y-0.5">
                           <p className="text-xs md:text-sm text-white/80">Email</p>
-                          <p className="text-base md:text-lg font-bold">{profile.email || '-'}</p>
+                          <p className="text-base md:text-lg font-bold">{profile.user?.email || profile.email || '-'}</p>
                         </div>
-                         <div className="space-y-0.5">
+                        <div className="space-y-0.5">
                           <p className="text-xs md:text-sm text-white/80">WhatsApp</p>
                           <p className="text-base md:text-lg font-bold">{profile.phone || '-'}</p>
                         </div>
+
+                        <div className="space-y-0.5">
+                          <p className="text-xs md:text-sm text-white/80">Status KTM</p>
+                          <div className="flex items-center gap-2 mt-1">
+                             <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase ${profile.user?.attachments?.some((a: any) => a.type === 'KTM') ? 'bg-green-500/20 text-green-200' : 'bg-yellow-500/20 text-yellow-200'}`}>
+                                {profile.user?.attachments?.some((a: any) => a.type === 'KTM') ? 'Sudah Terunggah' : 'Belum Terunggah'}
+                             </span>
+                             {profile.user?.attachments?.find((a: any) => a.type === 'KTM') && (
+                                <button 
+                                  onClick={() => {
+                                    const ktm = profile.user.attachments.find((a: any) => a.type === 'KTM');
+                                    viewFile(`/attachments/${ktm.id}/download`);
+                                  }}
+                                  className="text-xs underline hover:text-white/70"
+                                >
+                                  Lihat KTM
+                                </button>
+                             )}
+                          </div>
+                        </div>
                         
-                        {/* Data Tambahan (Jika ada di API) */}
+                        {/* Data Tambahan */}
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-2 border-t border-white/10 mt-4">
                            <div className="space-y-0.5">
                               <p className="text-xs md:text-sm text-white/80">Tempat Lahir</p>
@@ -216,40 +245,117 @@ export default function AkunPage() {
               {/* CONTENT: DOCUMENTS */}
               {activeTab === 'documents' && (
                 <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-                  <h2 className="text-2xl md:text-3xl font-bold mb-10">Dokumen</h2>
+                  <h2 className="text-2xl md:text-3xl font-bold mb-10">Daftar Dokumen</h2>
 
                   <div className="space-y-10">
-                     {/* Section 1 */}
-                     <div className="space-y-1">
-                        <h3 className="text-xl font-bold">Dokumen Pelatihan</h3>
-                        {documents.filter(d => d.type === 'TRAINING').length > 0 ? (
-                           <div className="grid grid-cols-1 gap-3 pt-2">
-                             {documents.filter(d => d.type === 'TRAINING').map((doc, idx) => (
-                               <div key={idx} className="p-4 bg-white/10 border border-white/40 rounded-xl flex justify-between items-center hover:bg-white/20 transition">
-                                 <span className="font-medium">{doc.filename}</span>
-                                 <button className="text-xs bg-white text-[#949F93] px-4 py-1.5 rounded-lg font-bold">Download</button>
+                     {/* Section 1: Alur Pelatihan */}
+                     <div className="space-y-4">
+                        <div className="flex items-center gap-3 border-b border-white/20 pb-2">
+                           <FileText className="w-5 h-5 text-white/70" />
+                           <h3 className="text-xl font-bold">Riwayat Alur Pelatihan</h3>
+                        </div>
+                        
+                        {documents.some(d => ['LOA', 'ARTICLE', 'PAYMENT'].includes(d.type)) ? (
+                           <div className="grid grid-cols-1 gap-3">
+                             {documents
+                                .filter(d => ['LOA', 'ARTICLE', 'PAYMENT'].includes(d.type))
+                                .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+                                .map((doc, idx) => (
+                               <div key={idx} className="p-4 bg-white/10 border border-white/20 rounded-2xl flex justify-between items-center hover:bg-white/15 transition-all group">
+                                 <div className="flex flex-col">
+                                    <span className="text-[10px] font-bold uppercase tracking-wider text-white/50 mb-0.5">
+                                       {doc.type === 'LOA' ? 'Letter of Acceptance' : doc.type === 'ARTICLE' ? 'Draft Artikel' : 'Bukti Pembayaran'}
+                                    </span>
+                                    <span className="font-medium text-sm md:text-base truncate max-w-[200px] md:max-w-md" title={doc.originalName}>
+                                       {doc.originalName}
+                                    </span>
+                                    <span className="text-[10px] text-white/40 mt-1">
+                                       Diunggah pada {new Date(doc.createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
+                                    </span>
+                                 </div>
+                                 <div className="flex gap-2">
+                                    <button 
+                                       onClick={() => viewFile(`/attachments/${doc.id}/download`)}
+                                       className="text-[10px] md:text-xs bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-xl font-bold border border-white/20 transition-colors flex items-center gap-1"
+                                    >
+                                       <Eye className="w-3 h-3" /> Preview
+                                    </button>
+                                    <button 
+                                       onClick={() => {
+                                          const name = profile?.fullName || 'Peserta';
+                                          const safeName = name.replace(/\s+/g, '_');
+                                          const ext = doc.originalName.split('.').pop();
+                                          let customName = doc.originalName;
+                                          
+                                          if (doc.type === 'LOA') customName = `LOA_JUKI_${safeName}.pdf`;
+                                          else if (doc.type === 'ARTICLE') customName = `Artikel_JUKI_${safeName}.${ext}`;
+                                          else if (doc.type === 'PAYMENT') customName = `Bukti_Bayar_JUKI_${safeName}.${ext}`;
+                                          
+                                          downloadFile(`/attachments/${doc.id}/download`, customName);
+                                       }}
+                                       className="text-[10px] md:text-xs bg-white text-[#949F93] px-4 py-2 rounded-xl font-bold shadow-md hover:bg-opacity-90 transition-all flex items-center gap-1"
+                                    >
+                                       <Download className="w-3 h-3" /> Download
+                                    </button>
+                                 </div>
                                </div>
                              ))}
                            </div>
                         ) : (
-                          <p className="text-white/70 text-sm font-medium">Tidak terdapat dokumen pelatihan yang tersedia</p>
+                          <p className="text-white/50 text-sm italic py-4">Belum ada riwayat dokumen pelatihan.</p>
                         )}
                      </div>
 
-                     {/* Section 2 */}
-                     <div className="space-y-1">
-                        <h3 className="text-xl font-bold">Dokumen Bebas Tanggungan</h3>
-                        {documents.filter(d => d.type === 'LOA').length > 0 ? (
-                            <div className="grid grid-cols-1 gap-3 pt-2">
-                             {documents.filter(d => d.type === 'LOA').map((doc, idx) => (
-                               <div key={idx} className="p-4 bg-white/10 border border-white/40 rounded-xl flex justify-between items-center hover:bg-white/20 transition">
-                                 <span className="font-medium">{doc.filename}</span>
-                                 <button className="text-xs bg-white text-[#949F93] px-4 py-1.5 rounded-lg font-bold">Download</button>
+                     {/* Section 2: Administrasi & Persyaratan */}
+                     <div className="space-y-4">
+                        <div className="flex items-center gap-3 border-b border-white/20 pb-2">
+                           <User className="w-5 h-5 text-white/70" />
+                           <h3 className="text-xl font-bold">Dokumen Administrasi</h3>
+                        </div>
+
+                        {documents.some(d => ['KTM', 'BEBAS_TANGGUNGAN'].includes(d.type)) ? (
+                            <div className="grid grid-cols-1 gap-3">
+                             {documents
+                                .filter(d => ['KTM', 'BEBAS_TANGGUNGAN'].includes(d.type))
+                                .map((doc, idx) => (
+                               <div key={idx} className="p-4 bg-white/10 border border-white/20 rounded-2xl flex justify-between items-center hover:bg-white/15 transition-all">
+                                 <div className="flex flex-col">
+                                    <span className="text-[10px] font-bold uppercase tracking-wider text-white/50 mb-0.5">
+                                       {doc.type === 'KTM' ? 'Kartu Tanda Mahasiswa' : 'Surat Bebas Tanggungan'}
+                                    </span>
+                                    <span className="font-medium text-sm md:text-base">
+                                       {doc.originalName}
+                                    </span>
+                                 </div>
+                                 <div className="flex gap-2">
+                                    <button 
+                                       onClick={() => viewFile(`/attachments/${doc.id}/download`)}
+                                       className="text-xs bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-xl font-bold border border-white/20 transition-colors"
+                                    >
+                                       Lihat
+                                    </button>
+                                    <button 
+                                       onClick={() => {
+                                          const name = profile?.fullName || 'Peserta';
+                                          const safeName = name.replace(/\s+/g, '_');
+                                          const ext = doc.originalName.split('.').pop();
+                                          let customName = doc.originalName;
+                                          
+                                          if (doc.type === 'KTM') customName = `KTM_JUKI_${safeName}.${ext}`;
+                                          else if (doc.type === 'BEBAS_TANGGUNGAN') customName = `Bebas_Tanggungan_JUKI_${safeName}.${ext}`;
+                                          
+                                          downloadFile(`/attachments/${doc.id}/download`, customName);
+                                       }}
+                                       className="text-xs bg-white text-[#949F93] px-4 py-2 rounded-xl font-bold shadow-md"
+                                    >
+                                       Download
+                                    </button>
+                                 </div>
                                </div>
                              ))}
                            </div>
                         ) : (
-                           <p className="text-white/70 text-sm font-medium">Tidak terdapat dokumen bebas tanggungan yang tersedia</p>
+                           <p className="text-white/50 text-sm italic py-4">Dokumen administrasi belum tersedia.</p>
                         )}
                      </div>
                   </div>
