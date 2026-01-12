@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { api } from '@/lib/api';
+import { api, getErrorMessage } from '@/lib/api';
 import { Card, CardContent } from '@/components/ui/card';
 import {
   CalendarDays,
@@ -32,21 +32,33 @@ interface ListJadwalPelatihanProps {
 export default function ListJadwalPelatihan({
   onRegisterClick,
 }: ListJadwalPelatihanProps) {
-  const [trainings, setTrainings] = useState<Training[]>([]);
+  const [allTrainings, setAllTrainings] = useState<Training[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  
+  // Pagination State
+  const [trainingMeta, setTrainingMeta] = useState({ page: 1, limit: 3, total: 0, totalPage: 1 });
+  const [isPaused, setIsPaused] = useState(false);
 
   useEffect(() => {
     const fetchTrainings = async () => {
       try {
         const response = await api.get('/trainings');
-        const data = Array.isArray(response.data)
+        const list = Array.isArray(response.data)
           ? response.data
           : response.data?.data || [];
-        setTrainings(data);
+        
+        setAllTrainings(list);
+        setTrainingMeta({ 
+            page: 1, 
+            limit: 3, 
+            total: list.length, 
+            totalPage: Math.ceil(list.length / 3) 
+        });
+
       } catch (err) {
         console.error(err);
-        setError('Gagal memuat jadwal pelatihan.');
+        setError(getErrorMessage(err));
       } finally {
         setLoading(false);
       }
@@ -55,10 +67,36 @@ export default function ListJadwalPelatihan({
     fetchTrainings();
   }, []);
 
-  if (loading) return <div className="text-white">Memuat jadwal...</div>;
-  if (error) return <div className="text-red-200">{error}</div>;
-  if (trainings.length === 0)
-    return <div className="text-white">Belum ada jadwal pelatihan.</div>;
+  // Helper chunk array
+  const chunkArray = (arr: any[], size: number) => {
+    const chunks = [];
+    for (let i = 0; i < arr.length; i += size) {
+      chunks.push(arr.slice(i, i + size));
+    }
+    return chunks;
+  };
+
+  // Create pages from allTrainings
+  const pages = chunkArray(allTrainings, 3); // 3 items per page
+
+  // Auto-slide effect
+  useEffect(() => {
+    if (allTrainings.length <= 3 || isPaused) return; 
+
+    const interval = setInterval(() => {
+        setTrainingMeta(prev => {
+            const nextPage = prev.page >= prev.totalPage ? 1 : prev.page + 1;
+            return { ...prev, page: nextPage };
+        });
+    }, 5000); 
+
+    return () => clearInterval(interval);
+  }, [allTrainings.length, trainingMeta.totalPage, isPaused]);
+
+  // Handle manual page change
+  const handlePageChange = (newPage: number) => {
+      setTrainingMeta(prev => ({ ...prev, page: newPage }));
+  }
 
   const formatDate = (dateString: string) =>
     new Intl.DateTimeFormat('id-ID', {
@@ -80,150 +118,175 @@ export default function ListJadwalPelatihan({
     )} - ${new Date(end).toLocaleTimeString('id-ID', opt)} WIB`;
   };
 
+  if (loading) return <div className="text-white">Memuat jadwal...</div>;
+  if (error) return <div className="text-red-200">{error}</div>;
+  if (allTrainings.length === 0)
+    return <div className="text-white">Belum ada jadwal pelatihan.</div>;
+
   return (
-    <div className="w-full px-0 mx-0">
-      {/* GRID */}
-      <div className="
-        grid
-        grid-cols-1
-        md:grid-cols-2
-        lg:grid-cols-3
-        gap-6
-        w-full
-        font-poppins
-        place-items-start
-      ">
-        {trainings.map((training) => (
-          <Card
-            key={training.id}
-            onClick={onRegisterClick}
-            className="
-              w-full
-              max-w-[440px]
-              h-[300px]
-              bg-white
-              border-2 border-gray-300
-              rounded-2xl
-              shadow-sm
-              overflow-hidden
-              p-2
-              box-border
-              cursor-pointer
-              transition-all
-              duration-300
-              hover:border-[#5C7B78]
-              hover:shadow-md
-              group
-            "
+    <div className="w-full px-0 mx-0 flex flex-col items-center">
+      <div 
+        className="w-full overflow-hidden"
+        onMouseEnter={() => setIsPaused(true)}
+        onMouseLeave={() => setIsPaused(false)}
+      >
+          <div 
+            className="flex transition-transform duration-700 ease-in-out"
+            style={{ transform: `translateX(-${(trainingMeta.page - 1) * 100}%)` }}
           >
-            <div className="flex flex-col h-full rounded-xl overflow-hidden">
+              {pages.map((pageItems, i) => (
+                  <div key={i} className="w-full shrink-0 px-1">
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 place-items-start">
+                          {pageItems.map((training) => (
+                              <Card
+                                key={training.id}
+                                onClick={onRegisterClick}
+                                className="
+                                  w-full
+                                  max-w-[440px]
+                                  h-[300px]
+                                  bg-white
+                                  border-2 border-gray-300
+                                  rounded-2xl
+                                  shadow-sm
+                                  overflow-hidden
+                                  p-2
+                                  box-border
+                                  cursor-pointer
+                                  transition-all
+                                  duration-300
+                                  hover:border-[#5C7B78]
+                                  hover:shadow-md
+                                  group
+                                "
+                              >
+                                <div className="flex flex-col h-full rounded-xl overflow-hidden">
+                                  {/* HEADER */}
+                                  <div className="
+                                    flex
+                                    items-center
+                                    gap-4
+                                    px-5
+                                    py-3
+                                    h-[90px]
+                                    bg-[#5C7B78]
+                                    text-white
+                                    transition-colors
+                                    group-hover:bg-[#4a6361]
+                                    text-left
+                                  ">
+                                    <CalendarDays className="w-10 h-10 shrink-0" strokeWidth={2.5} />
+                                    <div className="flex flex-col min-w-0">
+                                      <span className="
+                                        text-[11px]
+                                        lg:text-[12px]
+                                        font-medium
+                                        uppercase
+                                        tracking-wider
+                                        text-white/90
+                                        truncate
+                                      ">
+                                        {training.batch ? `${training.batch} | ` : ''}
+                                        {training.title}
+                                      </span>
+                                      <h3 className="
+                                        text-lg
+                                        lg:text-[22px]
+                                        font-bold
+                                        truncate
+                                      ">
+                                        {formatDate(training.startAt)}
+                                      </h3>
+                                    </div>
+                                  </div>
 
-              {/* HEADER */}
-              <div className="
-                flex
-                items-center
-                gap-4
-                px-5
-                py-3
-                h-[90px]
-                bg-[#5C7B78]
-                text-white
-                transition-colors
-                group-hover:bg-[#4a6361]
-              ">
-                <CalendarDays className="w-10 h-10 shrink-0" strokeWidth={2.5} />
-
-                <div className="flex flex-col min-w-0">
-                  <span className="
-                    text-[11px]
-                    lg:text-[12px]
-                    font-medium
-                    uppercase
-                    tracking-wider
-                    text-white/90
-                    truncate
-                  ">
-                    {training.batch ? `${training.batch} | ` : ''}
-                    {training.title}
-                  </span>
-
-                  {/* TANGGAL – 1 LINE ONLY */}
-                  <h3 className="
-                    text-lg
-                    lg:text-[22px]
-                    font-bold
-                    truncate
-                  ">
-                    {formatDate(training.startAt)}
-                  </h3>
-                </div>
-              </div>
-
-              {/* BODY */}
-              <CardContent className="
-                flex-grow
-                px-5
-                py-4
-                bg-white
-                text-gray-700
-                text-[13px]
-                lg:text-[15px]
-                font-medium
-                flex
-                flex-col
-                justify-center
-              ">
-                <div className="space-y-2">
-                  <div className="flex items-center gap-3 min-w-0">
-                    <MapPin className="w-5 h-5 text-[#5C7B78] shrink-0" />
-                    <span className="truncate">{training.location}</span>
+                                  {/* BODY */}
+                                  <CardContent className="
+                                    flex-grow
+                                    px-5
+                                    py-4
+                                    bg-white
+                                    text-gray-700
+                                    text-[13px]
+                                    lg:text-[15px]
+                                    font-medium
+                                    flex
+                                    flex-col
+                                    justify-center
+                                    text-left
+                                  ">
+                                    <div className="space-y-2">
+                                      <div className="flex items-center gap-3 min-w-0">
+                                        <MapPin className="w-5 h-5 text-[#5C7B78] shrink-0" />
+                                        <span className="truncate">{training.location}</span>
+                                      </div>
+                                      <div className="flex items-center gap-3 min-w-0">
+                                        <Clock className="w-5 h-5 text-[#5C7B78] shrink-0" />
+                                        <span className="truncate">
+                                          {formatTime(training.startAt, training.endAt)}
+                                        </span>
+                                      </div>
+                                      <div className="flex items-center gap-3 min-w-0">
+                                        <FileText className="w-5 h-5 text-[#5C7B78] shrink-0" />
+                                        <span className="truncate">
+                                          Kelompok Jurnal :
+                                          <strong className="text-gray-900">
+                                            {' '}
+                                            {training.journalCode || 'JOESMENT'}
+                                          </strong>
+                                        </span>
+                                      </div>
+                                      <div className="flex items-center gap-3 min-w-0">
+                                        <User className="w-5 h-5 text-[#5C7B78] shrink-0" />
+                                        <span className="truncate">
+                                          Dosen Pembimbing :
+                                          <span className="text-gray-900">
+                                            {' '}
+                                            {training.mentorName || 'Bayu Setiawan'}
+                                          </span>
+                                        </span>
+                                      </div>
+                                      <div className="flex items-center gap-3 pt-1 min-w-0">
+                                        <Users className="w-5 h-5 text-[#5C7B78] shrink-0" />
+                                        <span className="truncate">
+                                          Sisa Kuota :
+                                          <span className="text-[#D35F5F] font-bold">
+                                            {' '}
+                                            {training.quota} Peserta
+                                          </span>
+                                        </span>
+                                      </div>
+                                    </div>
+                                  </CardContent>
+                                </div>
+                              </Card>
+                          ))}
+                      </div>
                   </div>
-
-                  <div className="flex items-center gap-3 min-w-0">
-                    <Clock className="w-5 h-5 text-[#5C7B78] shrink-0" />
-                    <span className="truncate">
-                      {formatTime(training.startAt, training.endAt)}
-                    </span>
-                  </div>
-
-                  <div className="flex items-center gap-3 min-w-0">
-                    <FileText className="w-5 h-5 text-[#5C7B78] shrink-0" />
-                    <span className="truncate">
-                      Kelompok Jurnal :
-                      <strong className="text-gray-900">
-                        {' '}
-                        {training.journalCode || 'JOESMENT'}
-                      </strong>
-                    </span>
-                  </div>
-
-                  <div className="flex items-center gap-3 min-w-0">
-                    <User className="w-5 h-5 text-[#5C7B78] shrink-0" />
-                    <span className="truncate">
-                      Dosen Pembimbing :
-                      <span className="text-gray-900">
-                        {' '}
-                        {training.mentorName || 'Bayu Setiawan'}
-                      </span>
-                    </span>
-                  </div>
-
-                  <div className="flex items-center gap-3 pt-1 min-w-0">
-                    <Users className="w-5 h-5 text-[#5C7B78] shrink-0" />
-                    <span className="truncate">
-                      Sisa Kuota :
-                      <span className="text-[#D35F5F] font-bold">
-                        {' '}
-                        {training.quota} Peserta
-                      </span>
-                    </span>
-                  </div>
-                </div>
-              </CardContent>
-            </div>
-          </Card>
-        ))}
+              ))}
+          </div>
       </div>
+
+      {/* Pagination Controls (Dots) */}
+      {allTrainings.length > 0 && trainingMeta.totalPage > 1 && (
+         <div className="flex justify-center items-center w-full mt-8 gap-3">
+             {Array.from({ length: trainingMeta.totalPage }).map((_, idx) => {
+                 const pageNum = idx + 1;
+                 return (
+                     <button
+                        key={pageNum}
+                        onClick={() => handlePageChange(pageNum)}
+                        className={`w-3 h-3 rounded-full transition-all duration-300 ${
+                            trainingMeta.page === pageNum 
+                            ? 'bg-white w-8' 
+                            : 'bg-white/40 hover:bg-white/60'
+                        }`}
+                        aria-label={`Go to page ${pageNum}`}
+                     />
+                 );
+             })}
+         </div>
+      )}
     </div>
   );
 }

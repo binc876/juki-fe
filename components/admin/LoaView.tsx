@@ -1,15 +1,21 @@
 'use client'
 
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { 
   Search, 
   ChevronLeft, 
   ChevronRight, 
   Award,
   Upload,
-  FileText
+  FileText,
+  Eye,
+  X,
+  AlertTriangle
 } from 'lucide-react'
-import { api } from '@/lib/api'
+import { api, getErrorMessage, downloadFile, viewFile } from '@/lib/api'
+import html2canvas from 'html2canvas'
+import jsPDF from 'jspdf'
+import { LoaDocument } from './LoaDocument'
 import {
   Dialog,
   DialogContent,
@@ -52,13 +58,13 @@ export default function LoaView() {
 
   // Action States
   const [selectedUser, setSelectedUser] = useState<User | null>(null)
+  const loaRef = useRef<HTMLDivElement>(null)
   
   // Review / LOA Actions
   const [isReviewActionOpen, setIsReviewActionOpen] = useState(false)
   const [isUploadLoaOpen, setIsUploadLoaOpen] = useState(false)
   const [reviewActionType, setReviewActionType] = useState<'accept' | 'revision'>('accept')
   const [reviewComment, setReviewComment] = useState('')
-  const [loaFile, setLoaFile] = useState<File | null>(null)
 
   // --- Fetch Stats ---
   const fetchStats = async () => {
@@ -82,15 +88,7 @@ export default function LoaView() {
 
       fetchStats()
 
-      // Fetch users in REVIEW_WAITING (ARTICLE_VERIFIED/REVIEW_REVISION?) or REVIEW_VERIFIED status
-      // Based on flow: After Admin Verifies Article -> User in ARTICLE_VERIFIED -> Admin Reviews -> REVIEW_VERIFIED -> Admin Uploads LOA -> LOA_PUBLISHED
-      // So we need users who are ready for Review or Ready for LOA.
-      // Assuming 'ARTICLE_VERIFIED' means ready for review?
-      // Or maybe 'REVIEW_WAITING'?
-      // Let's filter by relevant statuses.
-      // Based on Postman "Accept Review" endpoint: /admin/review-loa/:userId/review/accept
-      // Based on Postman "Upload LOA" endpoint: /admin/review-loa/:userId/loa/upload
-      
+      // Fetch users who already have LOA published (for re-upload/re-generate)
       const params: Record<string, string | number> = {
         page: meta.page,
         limit: meta.limit,
@@ -113,7 +111,6 @@ export default function LoaView() {
 
     } catch (err: any) {
       console.error('Failed to fetch LOA list:', err)
-      // 401 handled globally
     } finally {
       setLoading(false)
     }
@@ -164,54 +161,100 @@ export default function LoaView() {
       console.error('Review submission failed:', err)
       showAlert({
         title: 'Gagal',
-        message: err.response?.data?.message || 'Gagal mensubmit review.',
+        message: getErrorMessage(err),
         type: 'error'
       })
     }
   }
 
-  // --- Actions: Upload LOA ---
+  // --- Actions: Generate LOA ---
   const handleOpenUploadLoa = (user: User) => {
     setSelectedUser(user)
-    setLoaFile(null)
     setIsUploadLoaOpen(true)
   }
 
   const submitUploadLoa = async () => {
-    if (!selectedUser || !loaFile) {
-        showAlert({
-            title: 'Perhatian',
-            message: 'Mohon pilih file LOA terlebih dahulu.',
-            type: 'warning'
-        })
-        return
-    }
+    if (!selectedUser || !loaRef.current) return
+    
     try {
-      const token = localStorage.getItem('token')
-      const formData = new FormData()
-      formData.append('file', loaFile)
+        // 1. Generate PDF from DOM
+        const canvas = await html2canvas(loaRef.current, { 
+            scale: 2, 
+            backgroundColor: '#ffffff',
+            useCORS: true,
+            logging: false,
+            onclone: (clonedDoc) => {
+                // Critical fix for "unsupported color function lab" error
+                const style = clonedDoc.createElement('style');
+                style.innerHTML = `
+                    * { 
+                        color: rgb(0, 0, 0) !important;
+                        background-color: rgb(255, 255, 255) !important;
+                        border-color: rgb(200, 200, 200) !important;
+                    }
+                    /* Override any CSS variables that might use lab() */
+                    :root {
+                        --color-primary: rgb(92, 123, 120) !important;
+                        --color-secondary: rgb(217, 142, 46) !important;
+                    }
+                `;
+                clonedDoc.head.appendChild(style);
+                
+                // Force inline styles on root elements
+                clonedDoc.documentElement.style.backgroundColor = '#ffffff';
+                clonedDoc.documentElement.style.color = '#000000';
+                clonedDoc.body.style.backgroundColor = '#ffffff';
+                clonedDoc.body.style.color = '#000000';
+                
+                // Remove any problematic CSS custom properties
+                const allElements = clonedDoc.querySelectorAll('*');
+                allElements.forEach((el: any) => {
+                    if (el.style) {
+                        // Replace CSS variables with static values
+                        const computedStyle = window.getComputedStyle(el);
+                        if (computedStyle.color.includes('lab')) {
+                            el.style.color = '#000000';
+                        }
+                        if (computedStyle.backgroundColor.includes('lab')) {
+                            el.style.backgroundColor = '#ffffff';
+                        }
+                    }
+                });
+            }
+        });
+        
+        const imgData = canvas.toDataURL('image/jpeg', 0.95);
+        const pdf = new jsPDF('p', 'mm', 'a4');
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+        
+        pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight, undefined, 'FAST');
+        const pdfBlob = pdf.output('blob');
 
-      await api.post(`/admin/review-loa/${selectedUser.id}/loa/upload`, formData, {
-        headers: { 
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'multipart/form-data'
-        }
-      })
+        if (pdfBlob.size === 0) throw new Error("Generated PDF is empty");
 
-      showAlert({
-        title: 'Berhasil',
-        message: 'LOA berhasil diupload dan dipublikasikan!',
-        type: 'success'
-      })
-      setIsUploadLoaOpen(false)
-      fetchUsers()
+        // 2. Upload to Backend
+        const token = localStorage.getItem('token')
+        const formData = new FormData()
+        formData.append('file', pdfBlob, `LOA_${selectedUser.profile.nim}.pdf`)
+
+        await api.post(`/admin/review-loa/${selectedUser.id}/loa/upload`, formData, {
+          headers: { Authorization: `Bearer ${token}` }
+        })
+
+        showAlert({ title: 'Berhasil', message: 'LOA berhasil diperbarui!', type: 'success' })
+        setIsUploadLoaOpen(false)
+        fetchUsers()
     } catch (err: any) {
-      console.error('LOA upload failed:', err)
-      showAlert({
-        title: 'Gagal',
-        message: err.response?.data?.message || 'Gagal mengupload LOA.',
-        type: 'error'
-      })
+        console.error('LOA Generation Error:', err);
+        const errorMsg = err?.message || 'Gagal generate/upload LOA';
+        showAlert({ 
+            title: 'Gagal', 
+            message: errorMsg.includes('lab') 
+                ? 'Gagal karena masalah format warna. Silakan hubungi admin.'
+                : errorMsg, 
+            type: 'error' 
+        })
     }
   }
 
@@ -273,13 +316,18 @@ export default function LoaView() {
                       <td className="py-6 text-center">{user.trainingFlow?.journalCode || '-'}</td>
                       <td className="py-6 text-center">
                          {loaFile ? (
-                             <a 
-                                href={`${process.env.NEXT_PUBLIC_API_URL}/attachments/admin/${loaFile.id}/download?token=${localStorage.getItem('token')}`}
-                                target="_blank" rel="noreferrer"
-                                className="text-[#5C7B78] font-bold hover:underline flex items-center justify-center gap-1"
+                             <button 
+                                onClick={async () => {
+                                    try {
+                                        await viewFile(`/attachments/admin/${loaFile.id}/download`);
+                                    } catch (err) {
+                                        showAlert({ title: 'Gagal', message: 'Gagal melihat LOA', type: 'error' });
+                                    }
+                                }}
+                                className="text-[#5C7B78] font-bold hover:underline flex items-center justify-center gap-1 mx-auto"
                              >
-                                <Award className="w-4 h-4" /> Download
-                             </a>
+                                <Eye className="w-4 h-4" /> Lihat
+                             </button>
                          ) : <span className="text-gray-400 text-sm">Belum ada file</span>}
                       </td>
                       <td className="py-6 text-center">
@@ -288,7 +336,7 @@ export default function LoaView() {
                               onClick={() => handleOpenUploadLoa(user)}
                               className="border border-[#5C7B78] text-[#5C7B78] px-4 py-1.5 rounded-lg text-xs font-bold hover:bg-[#5C7B78] hover:text-white transition-colors"
                             >
-                              Re-Upload LOA
+                              Re-Generate LOA
                             </button>
                          </div>
                       </td>
@@ -342,45 +390,124 @@ export default function LoaView() {
           </DialogContent>
        </Dialog>
 
-       {/* --- Upload LOA Dialog --- */}
+       {/* --- Generate LOA Modal (Split View) --- */}
        <Dialog open={isUploadLoaOpen} onOpenChange={setIsUploadLoaOpen}>
-          <DialogContent className="max-w-lg p-8 rounded-2xl bg-white">
-             <DialogHeader>
-                <DialogTitle className="text-[#5C7B78] font-bold text-xl text-center mb-2">Upload LOA</DialogTitle>
-                <DialogDescription className="text-center text-gray-500">
-                   Upload file Letter of Acceptance (PDF) untuk {selectedUser?.profile.fullName}.
-                </DialogDescription>
-             </DialogHeader>
-             <div className="space-y-6 mt-4">
-                <div className="border-2 border-dashed border-[#5C7B78]/30 rounded-xl p-8 flex flex-col items-center justify-center text-center bg-[#F9FAFB]">
-                   {loaFile ? (
-                       <div className="flex flex-col items-center">
-                           <FileText className="w-12 h-12 text-[#5C7B78] mb-2" />
-                           <p className="font-bold text-gray-700">{loaFile.name}</p>
-                           <p className="text-xs text-gray-500">{(loaFile.size / 1024).toFixed(2)} KB</p>
-                           <button onClick={() => setLoaFile(null)} className="text-red-500 text-xs font-bold mt-2 hover:underline">Hapus</button>
-                       </div>
-                   ) : (
-                       <>
-                           <Upload className="w-12 h-12 text-gray-400 mb-2" />
-                           <p className="text-gray-500 text-sm">Drag & drop atau klik untuk upload</p>
-                           <input 
-                              type="file" 
-                              accept=".pdf"
-                              className="absolute inset-0 opacity-0 cursor-pointer"
-                              onChange={(e) => e.target.files && setLoaFile(e.target.files[0])}
-                           />
-                       </>
-                   )}
+          <DialogContent className="!max-w-[95vw] md:!max-w-6xl p-0 rounded-[20px] bg-white border-none overflow-hidden h-[90vh] flex flex-col md:flex-row">
+             
+             {/* Left Panel: Control & Data */}
+             <div className="w-full md:w-[400px] flex flex-col border-r border-gray-100 bg-white h-full relative z-10 shrink-0">
+                <div className="p-8 pb-4 border-b border-gray-50">
+                   <DialogTitle className="text-[#5C7B78] font-bold text-2xl mb-2">Terbitkan LOA</DialogTitle>
+                   <DialogDescription className="text-gray-500 text-sm leading-relaxed">
+                      Review data mahasiswa sebelum menerbitkan ulang dokumen resmi.
+                   </DialogDescription>
                 </div>
-                <div className="flex gap-3 pt-2">
-                   <Button variant="outline" onClick={() => setIsUploadLoaOpen(false)} className="flex-1 py-6 rounded-xl text-gray-600 border-gray-300">Batal</Button>
-                   <Button onClick={submitUploadLoa} disabled={!loaFile} className="flex-1 py-6 rounded-xl text-white font-bold bg-[#5C7B78] hover:bg-[#4a6361] disabled:opacity-50">Upload & Publish</Button>
+
+                <div className="flex-1 overflow-y-auto p-8 pt-6 space-y-6 custom-scrollbar">
+                   <div>
+                      <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Detail Penerima</h4>
+                      <div className="space-y-5">
+                         <div className="group">
+                            <label className="text-[10px] font-bold text-[#5C7B78] uppercase mb-1 block">Nama Lengkap</label>
+                            <div className="text-sm font-bold text-gray-800 border-b border-gray-100 pb-2 w-full">{selectedUser?.profile.fullName}</div>
+                         </div>
+                         <div className="group">
+                            <label className="text-[10px] font-bold text-[#5C7B78] uppercase mb-1 block">NIM</label>
+                            <div className="text-sm font-bold text-gray-800 border-b border-gray-100 pb-2 w-full font-mono">{selectedUser?.profile.nim}</div>
+                         </div>
+                         <div className="group">
+                            <label className="text-[10px] font-bold text-[#5C7B78] uppercase mb-1 block">Judul Artikel</label>
+                            <div className="text-sm font-medium text-gray-700 leading-relaxed bg-gray-50 p-3 rounded-lg border border-gray-100">
+                               {selectedUser?.trainingFlow.articleTitle}
+                            </div>
+                         </div>
+                         <div className="group">
+                            <label className="text-[10px] font-bold text-[#5C7B78] uppercase mb-1 block">Jurnal Tujuan</label>
+                            <div className="flex items-center gap-2">
+                               <span className="bg-[#5C7B78] text-white text-xs font-bold px-3 py-1 rounded-full">{selectedUser?.trainingFlow.journalCode}</span>
+                            </div>
+                         </div>
+                      </div>
+                   </div>
+                </div>
+
+                <div className="p-8 pt-4 border-t border-gray-50 bg-white">
+                   <Button 
+                      onClick={submitUploadLoa} 
+                      className="w-full py-6 bg-[#5C7B78] hover:bg-[#4a6361] text-white font-bold text-base rounded-xl shadow-lg hover:shadow-xl transition-all mb-3"
+                   >
+                      Generate & Terbitkan
+                   </Button>
+                   <Button 
+                      variant="ghost" 
+                      onClick={() => setIsUploadLoaOpen(false)} 
+                      className="w-full text-gray-400 hover:text-gray-600 hover:bg-gray-50 rounded-xl"
+                   >
+                      Batal
+                   </Button>
                 </div>
              </div>
+
+             {/* Right Panel: Preview Stage */}
+             <div className="flex-1 bg-[#2D2F31] relative overflow-hidden flex flex-col">
+                <div className="h-14 bg-[#252729] flex items-center justify-between px-6 border-b border-white/5 shrink-0">
+                   <div className="flex items-center gap-2 text-white/50 text-xs font-medium">
+                      <Eye className="w-4 h-4" />
+                      <span>Document Preview</span>
+                   </div>
+                   <div className="text-white/30 text-[10px]">A4 • Scaled 60%</div>
+                </div>
+
+                <div className="flex-1 overflow-auto flex items-start justify-center p-8 bg-[#2D2F31] custom-scrollbar">
+                   <div 
+                      className="relative shadow-2xl shrink-0 transition-transform duration-300"
+                      style={{ 
+                         width: 'calc(210mm * 0.6)', 
+                         height: 'calc(297mm * 0.6)',
+                         marginBottom: '2rem' 
+                      }}
+                   >
+                      <div 
+                         style={{ 
+                            width: '210mm', 
+                            height: '297mm',
+                            transform: 'scale(0.6)',
+                            transformOrigin: 'top left',
+                            position: 'absolute',
+                            top: 0,
+                            left: 0,
+                            backgroundColor: 'white'
+                         }} 
+                      >
+                          <LoaDocument 
+                              name={selectedUser?.profile.fullName || ''}
+                              articleTitle={selectedUser?.trainingFlow.articleTitle || ''}
+                              date={new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
+                          />
+                      </div>
+                      <div className="absolute inset-0 pointer-events-none shadow-[inset_0_0_0_1px_rgba(255,255,255,0.1)] rounded-[1px]"></div>
+                   </div>
+                </div>
+             </div>
+
           </DialogContent>
        </Dialog>
+
+       {/* Hidden LOA Template for High-Resolution Generation */}
+       <div style={{ position: 'absolute', top: '-10000px', left: '-10000px' }}>
+          <div style={{ width: '210mm' }}>
+             {selectedUser && (
+                <LoaDocument 
+                   ref={loaRef}
+                   name={selectedUser.profile.fullName}
+                   articleTitle={selectedUser.trainingFlow.articleTitle || 'Judul Artikel'}
+                   date={new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
+                />
+             )}
+          </div>
+       </div>
 
     </div>
   )
 }
+

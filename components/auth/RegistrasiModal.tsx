@@ -4,7 +4,7 @@
 import { useState } from 'react'
 import Image from 'next/image'
 import { X, Eye, EyeClosed } from 'lucide-react'
-import { api } from '@/lib/api'
+import { api, getErrorMessage } from '@/lib/api'
 import BerhasilDaftar from './BerhasilDaftar'
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
 
@@ -97,31 +97,7 @@ export default function RegistrasiModal({ isOpen, onClose, onSwitchToLogin }: Re
       setShowAlert(true)
     } catch (err: any) {
       console.log('❌ Registrasi gagal:', err)
-      const data = err.response?.data
-      const status = err.response?.status
-      let msg = 'Terjadi kesalahan saat registrasi'
-
-      if (status === 500) {
-        msg = 'Terjadi kesalahan server. Kemungkinan Email atau NIM sudah terdaftar.'
-      } else if (data?.message) {
-        if (typeof data.message === 'string') {
-          msg = data.message
-        } else if (Array.isArray(data.message)) {
-          msg = data.message.join(', ')
-        } else if (typeof data.message === 'object' && Array.isArray(data.message.message)) {
-          // Handle nested NestJS style validation errors
-          msg = data.message.message.join(', ')
-        } else if (typeof data.message === 'object') {
-           // Fallback if structure is different but still an object
-           try {
-             msg = JSON.stringify(data.message)
-           } catch {
-             msg = 'Terjadi kesalahan validasi'
-           }
-        }
-      }
-      
-      setGeneralError(msg)
+      setGeneralError(getErrorMessage(err))
     } finally {
       setLoading(false)
     }

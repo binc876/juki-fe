@@ -11,7 +11,7 @@ import {
   Calendar,
   Clock
 } from 'lucide-react';
-import { api } from '@/lib/api';
+import { api, getErrorMessage } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -185,7 +185,7 @@ export default function JadwalPelatihanView() {
       console.error('Failed to update settings:', err);
       showAlert({
         title: 'Gagal',
-        message: 'Gagal menyimpan pengaturan.',
+        message: getErrorMessage(err),
         type: 'error'
       });
     }
@@ -283,7 +283,7 @@ export default function JadwalPelatihanView() {
       console.error('Failed to save training:', err);
       showAlert({
         title: 'Gagal',
-        message: err.response?.data?.message || 'Gagal menyimpan jadwal pelatihan.',
+        message: getErrorMessage(err),
         type: 'error'
       });
     }

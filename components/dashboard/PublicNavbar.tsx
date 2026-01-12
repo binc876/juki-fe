@@ -55,16 +55,6 @@ export default function PublicNavbar({ onLoginClick, onRegistrasiClick }: Public
           Juki.hub
         </Link>
 
-        {/* Desktop Nav */}
-        <nav 
-          className={`hidden md:flex items-center space-x-4 lg:space-x-6 text-sm lg:text-base font-medium transition-colors ${
-            scrolled ? "text-stone-700" : "text-white"
-          }`}
-        >
-          <Link href="/" className="hover:text-[#5C7B78] transition-colors">Beranda</Link>
-          <Link href="/pelatihanku" className="hover:text-[#5C7B78] transition-colors">Pelatihanku</Link>
-        </nav>
-
         {/* Desktop Buttons */}
         <div className="hidden md:flex items-center space-x-2">
           {isLoggedIn ? (
@@ -110,24 +100,6 @@ export default function PublicNavbar({ onLoginClick, onRegistrasiClick }: Public
       {open && (
         <div className={`md:hidden px-3 sm:px-4 pb-3 sm:pb-4 ${scrolled ? "bg-white" : "bg-[#ffffff95] backdrop-blur-sm"}`}>
           <ul className="space-y-2 text-sm font-medium text-slate-700">
-            <li>
-              <Link 
-                href="/" 
-                onClick={() => setOpen(false)}
-                className="block py-2 hover:text-[#5C7B78] transition-colors"
-              >
-                Beranda
-              </Link>
-            </li>
-            <li>
-              <Link 
-                href="/pelatihanku" 
-                onClick={() => setOpen(false)}
-                className="block py-2 hover:text-[#5C7B78] transition-colors"
-              >
-                Pelatihanku
-              </Link>
-            </li>
             <li>
               {isLoggedIn ? (
                  <Link href="/beranda" onClick={() => setOpen(false)}>

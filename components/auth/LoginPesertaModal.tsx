@@ -5,7 +5,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { X, Eye, EyeClosed } from 'lucide-react'
 import Image from 'next/image'
-import { api } from '@/lib/api'
+import { api, getErrorMessage } from '@/lib/api'
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
 
 interface LoginPesertaModalProps {
@@ -89,11 +89,8 @@ export default function LoginPesertaModal({ isOpen, onClose, onSwitchToRegistras
 
       onClose();
     } catch (err: any) {
-      if (err.response?.status === 401) {
-        setGeneralError('Email atau password salah!')
-      } else {
-        setGeneralError('Terjadi kesalahan. Coba lagi nanti.')
-      }
+      // Gunakan helper standar untuk pesan error
+      setGeneralError(getErrorMessage(err));
     }
   }
 

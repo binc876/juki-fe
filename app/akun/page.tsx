@@ -5,7 +5,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { User, FileText, MessageSquare, Loader2, Download, Eye, Send, LogOut } from 'lucide-react'
-import { api } from '@/lib/api'
+import { api, getErrorMessage } from '@/lib/api'
 import {
   Dialog,
   DialogContent,
@@ -63,7 +63,7 @@ export default function AkunPage() {
       setFeedbacks(Array.isArray(res.data) ? res.data : (res.data.data || []))
     } catch (err) {
       console.error('Gagal mengirim feedback:', err)
-      showAlert({ title: 'Gagal', message: 'Gagal mengirim feedback', type: 'error' })
+      showAlert({ title: 'Gagal', message: getErrorMessage(err), type: 'error' })
     }
   }
 

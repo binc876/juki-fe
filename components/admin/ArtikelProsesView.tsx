@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { 
   Search, 
   ChevronLeft, 
@@ -9,9 +9,13 @@ import {
   Upload,
   Eye,
   FileText,
-  AlertTriangle
+  AlertTriangle,
+  X
 } from 'lucide-react'
-import { api } from '@/lib/api'
+import { api, getErrorMessage, downloadFile, viewFile } from '@/lib/api'
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
+import { LoaDocument } from './LoaDocument';
 import {
   Dialog,
   DialogContent,
@@ -56,10 +60,12 @@ export default function ArtikelProsesView() {
   const [isVerifyModalOpen, setIsVerifyModalOpen] = useState(false)
   const [verifyType, setVerifyType] = useState<'article' | 'review' | null>(null)
   const [verifyComment, setVerifyComment] = useState('')
+  const [reviewAction, setReviewAction] = useState<'accept' | 'revision' | null>(null) // New state
   
   // Upload LOA Modal
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false)
   const [loaFile, setLoaFile] = useState<File | null>(null)
+  const loaRef = useRef<HTMLDivElement>(null)
 
   // --- Fetch Stats ---
   const fetchStats = async () => {
@@ -137,34 +143,51 @@ export default function ArtikelProsesView() {
   const openVerifyModal = (user: User, type: 'article' | 'review') => {
       setSelectedUser(user)
       setVerifyType(type)
-      setVerifyComment(type === 'article' ? 'Artikel telah diverifikasi.' : 'Artikel diterima tanpa revisi.')
+      setVerifyComment(type === 'article' ? 'Artikel telah diverifikasi.' : '')
+      setReviewAction(null) // Reset
       setIsVerifyModalOpen(true)
   }
 
-  const submitVerification = async () => {
+  const submitVerification = async (action?: 'accept' | 'revision') => {
       if (!selectedUser || !verifyType) return
+      
+      // Determine effective action for 'review' type if passed from button click
+      const currentAction = action || reviewAction; 
+
       try {
           const token = localStorage.getItem('token')
           const headers = { Authorization: `Bearer ${token}` }
           
-          const endpoint = verifyType === 'article' 
-            ? `/admin/articles/${selectedUser.id}/verify`
-            : `/admin/review-loa/${selectedUser.id}/review/accept`;
+          let endpoint = '';
+          let payload: any = {}; // Default empty
 
-          const payload = { comment: verifyComment || (verifyType === 'article' ? 'Artikel telah diverifikasi.' : 'Artikel diterima tanpa revisi.') };
+          if (verifyType === 'article') {
+              endpoint = `/admin/articles/${selectedUser.id}/verify`;
+              payload.comment = verifyComment || 'Artikel telah diverifikasi.';
+          } else {
+              // Review Type
+              if (currentAction === 'accept') {
+                  endpoint = `/admin/review-loa/${selectedUser.id}/review/accept`;
+                  // Only add comment if user typed one
+                  if (verifyComment) payload.comment = verifyComment;
+              } else {
+                  endpoint = `/admin/review-loa/${selectedUser.id}/review/revision`;
+                  if (!verifyComment) {
+                      showAlert({ title: 'Perhatian', message: 'Harap berikan catatan revisi.', type: 'warning' });
+                      return;
+                  }
+                  payload.comment = verifyComment;
+              }
+          }
 
+          console.log(`Submitting ${currentAction} to ${endpoint} with`, payload);
           await api.post(endpoint, payload, { headers })
 
-          showAlert({ title: 'Berhasil', message: 'Verifikasi berhasil!', type: 'success' })
+          showAlert({ title: 'Berhasil', message: `Verifikasi ${currentAction === 'revision' ? 'revisi' : 'berhasil'}!`, type: 'success' })
           setIsVerifyModalOpen(false)
           fetchUsers()
       } catch (err: any) {
-          let msg = 'Gagal memverifikasi';
-          if (err.response?.data?.message) {
-              const m = err.response.data.message;
-              msg = typeof m === 'object' ? JSON.stringify(m) : m;
-          }
-          showAlert({ title: 'Gagal', message: msg, type: 'error' })
+          showAlert({ title: 'Gagal', message: getErrorMessage(err), type: 'error' })
       }
   }
 
@@ -175,33 +198,101 @@ export default function ArtikelProsesView() {
   }
 
   const submitUploadLoa = async () => {
-      if (!selectedUser || !loaFile) return
+      if (!selectedUser || !loaRef.current) return
+      
       try {
+          // 1. Generate PDF from DOM
+          const canvas = await html2canvas(loaRef.current, { 
+              scale: 2, // Use 2 for higher resolution text
+              backgroundColor: '#ffffff',
+              useCORS: true,
+              logging: false,
+              onclone: (clonedDoc) => {
+                  // Critical fix for "unsupported color function lab" error
+                  const style = clonedDoc.createElement('style');
+                  style.innerHTML = `
+                      * { 
+                          color: rgb(0, 0, 0) !important;
+                          background-color: rgb(255, 255, 255) !important;
+                          border-color: rgb(200, 200, 200) !important;
+                      }
+                      /* Override any CSS variables that might use lab() */
+                      :root {
+                          --color-primary: rgb(92, 123, 120) !important;
+                          --color-secondary: rgb(217, 142, 46) !important;
+                      }
+                  `;
+                  clonedDoc.head.appendChild(style);
+                  
+                  // Force inline styles on root elements
+                  clonedDoc.documentElement.style.backgroundColor = '#ffffff';
+                  clonedDoc.documentElement.style.color = '#000000';
+                  clonedDoc.body.style.backgroundColor = '#ffffff';
+                  clonedDoc.body.style.color = '#000000';
+                  
+                  // Remove any problematic CSS custom properties
+                  const allElements = clonedDoc.querySelectorAll('*');
+                  allElements.forEach((el: any) => {
+                      if (el.style) {
+                          // Replace CSS variables with static values
+                          const computedStyle = window.getComputedStyle(el);
+                          if (computedStyle.color.includes('lab')) {
+                              el.style.color = '#000000';
+                          }
+                          if (computedStyle.backgroundColor.includes('lab')) {
+                              el.style.backgroundColor = '#ffffff';
+                          }
+                      }
+                  });
+              }
+          });
+          
+          // Use JPEG with high quality
+          const imgData = canvas.toDataURL('image/jpeg', 0.95);
+          const pdf = new jsPDF('p', 'mm', 'a4');
+          const pdfWidth = pdf.internal.pageSize.getWidth();
+          const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+          
+          pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight, undefined, 'FAST');
+          const pdfBlob = pdf.output('blob');
+
+          console.log(`Generated PDF Size: ${(pdfBlob.size / 1024 / 1024).toFixed(2)} MB`);
+
+          // 2. Upload to Backend
           const token = localStorage.getItem('token')
+          
+          if (pdfBlob.size === 0) {
+              throw new Error("Generated PDF is empty");
+          }
+
           const formData = new FormData()
-          formData.append('file', loaFile)
+          formData.append('file', pdfBlob, `LOA_${selectedUser.profile.nim}.pdf`)
 
           await api.post(`/admin/review-loa/${selectedUser.id}/loa/upload`, formData, {
-            headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' }
+            headers: { Authorization: `Bearer ${token}` } 
           })
 
-          showAlert({ title: 'Berhasil', message: 'LOA berhasil diterbitkan!', type: 'success' })
+          showAlert({ title: 'Berhasil', message: 'LOA berhasil digenerate dan diterbitkan!', type: 'success' })
           setIsUploadModalOpen(false)
           fetchUsers()
       } catch (err: any) {
-          let msg = 'Gagal upload LOA';
-          if (err.response?.data?.message) {
-              const m = err.response.data.message;
-              msg = typeof m === 'object' ? JSON.stringify(m) : m;
-          }
-          showAlert({ title: 'Gagal', message: msg, type: 'error' })
+          console.error('LOA Generation Error:', err);
+          showAlert({ 
+              title: 'Gagal', 
+              message: getErrorMessage(err), 
+              type: 'error' 
+          })
       }
   }
 
-  const downloadLoa = (user: User) => {
+  const downloadLoa = async (user: User) => {
       const loa = user.attachments?.find(a => a.type === 'LOA')
       if (loa) {
-          window.open(`${process.env.NEXT_PUBLIC_API_URL}/attachments/admin/${loa.id}/download?token=${localStorage.getItem('token')}`, '_blank')
+          try {
+              await viewFile(`/attachments/admin/${loa.id}/download`);
+          } catch (err) {
+              showAlert({ title: 'Gagal', message: 'Gagal melihat LOA', type: 'error' });
+          }
       }
   }
 
@@ -233,6 +324,9 @@ export default function ArtikelProsesView() {
               return (
                   <button onClick={() => openVerifyModal(user, 'review')} className="bg-[#D98E2E] text-white text-[10px] font-bold px-3 py-1 rounded-full hover:bg-[#b57b2b]">Verifikasi</button>
               )
+          }
+          if (status === 'REVIEW_REVISION') {
+              return <span className="text-[#D98E2E] text-[10px] font-bold">Menunggu Revisi</span>
           }
           return <span className="text-gray-300">-</span>
       }
@@ -364,39 +458,150 @@ export default function ArtikelProsesView() {
                         value={verifyComment}
                         onChange={(e) => setVerifyComment(e.target.value)}
                         className="w-full border border-gray-200 rounded-xl p-3 text-sm focus:ring-2 focus:ring-[#5C7B78] outline-none h-24 resize-none"
-                        placeholder="Masukkan catatan..."
+                        placeholder={verifyType === 'review' ? "Berikan catatan revisi atau pesan penerimaan..." : "Masukkan catatan..."}
                     />
                 </div>
                 <div className="flex gap-4 justify-center">
-                    <Button variant="outline" onClick={() => setIsVerifyModalOpen(false)} className="px-8 py-2 rounded-xl text-gray-500 border-gray-300">Batal</Button>
-                    <Button onClick={submitVerification} className="px-8 py-2 rounded-xl bg-[#5C7B78] text-white hover:bg-[#4a6361]">Ya, Verifikasi</Button>
+                    <Button variant="outline" onClick={() => setIsVerifyModalOpen(false)} className="flex-1 py-2 rounded-xl text-gray-500 border-gray-300">Batal</Button>
+                    
+                    {verifyType === 'article' ? (
+                        <Button onClick={() => submitVerification()} className="flex-1 py-2 rounded-xl bg-[#5C7B78] text-white hover:bg-[#4a6361]">Ya, Verifikasi</Button>
+                    ) : (
+                        <>
+                            <Button onClick={() => submitVerification('revision')} className="flex-1 py-2 rounded-xl bg-[#D98E2E] text-white hover:bg-[#b57b2b]">Minta Revisi</Button>
+                            <Button onClick={() => submitVerification('accept')} className="flex-1 py-2 rounded-xl bg-[#5C7B78] text-white hover:bg-[#4a6361]">Terima Artikel</Button>
+                        </>
+                    )}
                 </div>
              </div>
           </DialogContent>
        </Dialog>
 
-       {/* --- Upload LOA Modal --- */}
+       {/* --- Generate LOA Modal (Remade Split View) --- */}
        <Dialog open={isUploadModalOpen} onOpenChange={setIsUploadModalOpen}>
-          <DialogContent className="max-w-2xl p-0 rounded-[32px] bg-white border-none overflow-hidden">
-             <div className="p-8 pb-4 border-b border-gray-100"><DialogTitle className="text-[#5C7B78] font-bold text-2xl">Data Mahasiswa</DialogTitle></div>
-             <div className="p-8 space-y-6">
-                <div className="grid grid-cols-2 gap-6 text-sm text-gray-600">
-                   <div><p className="font-bold text-[#5C7B78] mb-1">Nama</p><p className="font-medium text-gray-800">{selectedUser?.profile.fullName}</p></div>
-                   <div><p className="font-bold text-[#5C7B78] mb-1">NIM</p><p className="font-medium text-gray-800">{selectedUser?.profile.nim}</p></div>
-                   <div><p className="font-bold text-[#5C7B78] mb-1">Judul Artikel</p><p className="font-medium text-gray-800 truncate">{selectedUser?.trainingFlow.articleTitle}</p></div>
-                   <div><p className="font-bold text-[#5C7B78] mb-1">Kelompok Jurnal</p><p className="font-medium text-gray-800">{selectedUser?.trainingFlow.journalCode}</p></div>
+          <DialogContent className="!max-w-[95vw] md:!max-w-6xl p-0 rounded-[20px] bg-white border-none overflow-hidden h-[90vh] flex flex-col md:flex-row">
+             
+             {/* Left Panel: Control & Data */}
+             <div className="w-full md:w-[400px] flex flex-col border-r border-gray-100 bg-white h-full relative z-10 shrink-0">
+                {/* Header */}
+                <div className="p-8 pb-4 border-b border-gray-50">
+                   <DialogTitle className="text-[#5C7B78] font-bold text-2xl mb-2">Terbitkan LOA</DialogTitle>
+                   <DialogDescription className="text-gray-500 text-sm leading-relaxed">
+                      Review data mahasiswa sebelum menerbitkan dokumen resmi.
+                   </DialogDescription>
                 </div>
-                <div className="pt-4">
-                   <p className="font-bold text-[#5C7B78] mb-3">Upload File LOA</p>
-                   <div className="border-2 border-dashed border-gray-300 rounded-xl p-8 flex flex-col items-center justify-center text-center bg-gray-50 relative group hover:bg-[#5C7B78]/5 hover:border-[#5C7B78] transition-colors">
-                       {loaFile ? (<div className="flex flex-col items-center z-10"><FileText className="w-10 h-10 text-[#5C7B78] mb-2" /><p className="font-bold text-gray-700">{loaFile.name}</p><button onClick={(e) => {e.stopPropagation(); setLoaFile(null);}} className="text-red-500 text-xs font-bold mt-2 hover:underline">Hapus</button></div>) : (<><Upload className="w-10 h-10 text-gray-400 mb-2 group-hover:text-[#5C7B78]" /><p className="text-gray-500 text-sm">Klik atau drag file PDF di sini</p></>)}
-                       <input type="file" accept=".pdf" className="absolute inset-0 opacity-0 cursor-pointer" onChange={(e) => e.target.files && setLoaFile(e.target.files[0])} />
+
+                {/* Data Scrollable Area */}
+                <div className="flex-1 overflow-y-auto p-8 pt-6 space-y-6 custom-scrollbar">
+                   <div>
+                      <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Detail Penerima</h4>
+                      <div className="space-y-5">
+                         <div className="group">
+                            <label className="text-[10px] font-bold text-[#5C7B78] uppercase mb-1 block">Nama Lengkap</label>
+                            <div className="text-sm font-bold text-gray-800 border-b border-gray-100 pb-2 w-full">{selectedUser?.profile.fullName}</div>
+                         </div>
+                         <div className="group">
+                            <label className="text-[10px] font-bold text-[#5C7B78] uppercase mb-1 block">NIM</label>
+                            <div className="text-sm font-bold text-gray-800 border-b border-gray-100 pb-2 w-full font-mono">{selectedUser?.profile.nim}</div>
+                         </div>
+                         <div className="group">
+                            <label className="text-[10px] font-bold text-[#5C7B78] uppercase mb-1 block">Judul Artikel</label>
+                            <div className="text-sm font-medium text-gray-700 leading-relaxed bg-gray-50 p-3 rounded-lg border border-gray-100">
+                               {selectedUser?.trainingFlow.articleTitle}
+                            </div>
+                         </div>
+                         <div className="group">
+                            <label className="text-[10px] font-bold text-[#5C7B78] uppercase mb-1 block">Jurnal Tujuan</label>
+                            <div className="flex items-center gap-2">
+                               <span className="bg-[#5C7B78] text-white text-xs font-bold px-3 py-1 rounded-full">{selectedUser?.trainingFlow.journalCode}</span>
+                            </div>
+                         </div>
+                      </div>
                    </div>
                 </div>
-                <div className="flex gap-4 justify-end mt-4"><Button variant="outline" onClick={() => setIsUploadModalOpen(false)} className="px-8 py-6 rounded-xl text-gray-500 border-gray-300 font-bold">Batal</Button><Button onClick={submitUploadLoa} disabled={!loaFile} className="px-12 py-6 rounded-xl bg-[#5C7B78] text-white hover:bg-[#4a6361] font-bold disabled:opacity-50">Terbitkan</Button></div>
+
+                {/* Footer Actions */}
+                <div className="p-8 pt-4 border-t border-gray-50 bg-white">
+                   <Button 
+                      onClick={submitUploadLoa} 
+                      className="w-full py-6 bg-[#5C7B78] hover:bg-[#4a6361] text-white font-bold text-base rounded-xl shadow-lg hover:shadow-xl transition-all mb-3"
+                   >
+                      Generate & Terbitkan
+                   </Button>
+                   <Button 
+                      variant="ghost" 
+                      onClick={() => setIsUploadModalOpen(false)} 
+                      className="w-full text-gray-400 hover:text-gray-600 hover:bg-gray-50 rounded-xl"
+                   >
+                      Batal
+                   </Button>
+                </div>
              </div>
+
+             {/* Right Panel: Preview Stage */}
+             <div className="flex-1 bg-[#2D2F31] relative overflow-hidden flex flex-col">
+                {/* Toolbar */}
+                <div className="h-14 bg-[#252729] flex items-center justify-between px-6 border-b border-white/5 shrink-0">
+                   <div className="flex items-center gap-2 text-white/50 text-xs font-medium">
+                      <Eye className="w-4 h-4" />
+                      <span>Document Preview</span>
+                   </div>
+                   <div className="text-white/30 text-[10px]">A4 • Scaled 60%</div>
+                </div>
+
+                {/* Scrollable Canvas Area */}
+                <div className="flex-1 overflow-auto flex items-start justify-center p-8 bg-[#2D2F31] custom-scrollbar">
+                   {/* Tight Wrapper: Matches visual size to prevent ghost scrollbars */}
+                   <div 
+                      className="relative shadow-2xl shrink-0 transition-transform duration-300"
+                      style={{ 
+                         width: 'calc(210mm * 0.6)', 
+                         height: 'calc(297mm * 0.6)',
+                         marginBottom: '2rem' 
+                      }}
+                   >
+                      {/* Actual Document: Full size but scaled down */}
+                      <div 
+                         style={{ 
+                            width: '210mm', 
+                            height: '297mm',
+                            transform: 'scale(0.6)',
+                            transformOrigin: 'top left',
+                            position: 'absolute',
+                            top: 0,
+                            left: 0,
+                            backgroundColor: 'white'
+                         }} 
+                      >
+                          <LoaDocument 
+                              name={selectedUser?.profile.fullName || ''}
+                              articleTitle={selectedUser?.trainingFlow.articleTitle || ''}
+                              date={new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
+                          />
+                      </div>
+                      
+                      {/* Overlay for sheen/depth */}
+                      <div className="absolute inset-0 pointer-events-none shadow-[inset_0_0_0_1px_rgba(255,255,255,0.1)] rounded-[1px]"></div>
+                   </div>
+                </div>
+             </div>
+
           </DialogContent>
        </Dialog>
+
+       {/* Hidden LOA Template for High-Resolution Generation (Capturing 1:1 scale) */}
+       <div style={{ position: 'absolute', top: '-10000px', left: '-10000px' }}>
+          <div style={{ width: '210mm' }}>
+             {selectedUser && (
+                <LoaDocument 
+                   ref={loaRef}
+                   name={selectedUser.profile.fullName}
+                   articleTitle={selectedUser.trainingFlow.articleTitle || 'Judul Artikel'}
+                   date={new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
+                />
+             )}
+          </div>
+       </div>
 
     </div>
   )

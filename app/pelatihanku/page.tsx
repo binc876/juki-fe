@@ -1,27 +1,31 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { 
   CheckCircle2, 
   Circle, 
   Upload, 
+  MapPin, 
+  Users, 
   FileText, 
   CalendarDays, 
   Clock, 
-  AlertCircle, 
+  AlertCircle,
+  AlertTriangle,
   Download,
   Loader2,
   ChevronRight,
   ChevronLeft,
   X,
-  User
+  User,
+  Copy
 } from 'lucide-react'
-import { api } from '@/lib/api'
+import { api, getErrorMessage, downloadFile } from '@/lib/api'
 import NavbarPeserta from '@/components/dashboard/NavbarPeserta'
 import { Button } from '@/components/ui/button'
-import { Card } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
 import { useAlert } from '@/components/ui/alert-provider'
 
@@ -30,9 +34,9 @@ type UserStatus =
   | 'PAYMENT_REQUIRED' | 'PAYMENT_WAITING' | 'PAYMENT_VERIFIED'
   | 'ADMINISTRATIVE_REQUIRED' | 'WAITING_ADMINISTRATIVE'
   | 'ARTICLE_WAITING' | 'ARTICLE_VERIFIED'
-  | 'TRAINING_WAITING'
-  | 'REVIEW_WAITING' | 'REVIEW_REVISION'
-  | 'LOA_PUBLISHED';
+  | 'TRAINING_WAITING' | 'TRAINING_VERIFIED' | 'TRAINING_RESCHEDULE'
+  | 'REVIEW_WAITING' | 'REVIEW_REVISION' | 'REVIEW_VERIFIED'
+  | 'LOA_WAITING' | 'LOA_PUBLISHED';
 
 interface Training {
   id: string;
@@ -42,6 +46,9 @@ interface Training {
   location: string;
   quota: number;
   participantsCount: number;
+  batch?: string;
+  journalCode?: string;
+  mentorName?: string;
 }
 
 // --- Helper Mapping Status ke Step ---
@@ -53,15 +60,17 @@ const getStepNumber = (status: UserStatus | string): number => {
       return 1;
     case 'ADMINISTRATIVE_REQUIRED':
     case 'WAITING_ADMINISTRATIVE':
+    case 'ARTICLE_WAITING': // Bridge view is in Step 2
       return 2;
-    case 'ARTICLE_WAITING':
-      return 3;
     case 'ARTICLE_VERIFIED': // Siap pilih jadwal
     case 'TRAINING_WAITING': // Sudah pilih jadwal
       return 4;
+    case 'TRAINING_VERIFIED': // Sudah ikut training -> Review
     case 'REVIEW_WAITING':
     case 'REVIEW_REVISION':
       return 5;
+    case 'REVIEW_VERIFIED': // Review OK -> LOA
+    case 'LOA_WAITING':
     case 'LOA_PUBLISHED':
       return 6;
     default:
@@ -109,10 +118,31 @@ export default function PelatihankuPage() {
 
   const [paymentSettings, setPaymentSettings] = useState<any>(null)
   const [showUploadModal, setShowUploadModal] = useState(false)
+  const [showArticleInput, setShowArticleInput] = useState(false) // New state for modal
 
   const [allTrainings, setAllTrainings] = useState<Training[]>([])
   const [trainingMeta, setTrainingMeta] = useState({ page: 1, limit: 3, total: 0, totalPage: 1 })
   const [myTraining, setMyTraining] = useState<any>(null)
+
+  const formatDate = (dateString: string) =>
+    new Intl.DateTimeFormat('id-ID', {
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    }).format(new Date(dateString));
+
+  const formatTime = (start: string, end: string) => {
+    const opt: Intl.DateTimeFormatOptions = {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+    };
+    return `${new Date(start).toLocaleTimeString(
+      'id-ID',
+      opt
+    )} - ${new Date(end).toLocaleTimeString('id-ID', opt)} WIB`;
+  };
 
   const fetchMyTraining = async () => {
     try {
@@ -184,16 +214,31 @@ export default function PelatihankuPage() {
   }
 
   // --- Fetch Data Utama ---
-  const fetchProfile = async () => {
+  const fetchProfile = useCallback(async (isBackground = false) => {
     try {
-      setLoading(true)
+      if (!isBackground) setLoading(true)
       const res = await api.get('/profiles/me')
       const userData = res.data.data || res.data
       setProfile(userData)
       
       const userStatus = userData.user?.trainingFlow?.statusCode || 'PAYMENT_REQUIRED'
       setStatus(userStatus)
-      setCurrentStep(getStepNumber(userStatus))
+      
+      let newStep = getStepNumber(userStatus);
+      
+      // Fix: If ARTICLE_WAITING and articleTitle exists, user has submitted -> Go to Step 3 (Yeay View)
+      // Otherwise, stay at Step 2 (Bridge View)
+      if (userStatus === 'ARTICLE_WAITING' && userData.user?.trainingFlow?.articleTitle) {
+          newStep = 3;
+      }
+
+      // Prevent regression if user manually advanced (e.g. from Step 2 Bridge to Step 3 Form)
+      // while status is still 'ARTICLE_WAITING'
+      if (userStatus === 'ARTICLE_WAITING' && currentStep > newStep) {
+          // Keep current manual step
+      } else {
+          setCurrentStep(newStep)
+      }
       
       // Jika status memungkinkan pilih jadwal, ambil data
       if (userStatus === 'ARTICLE_VERIFIED' || userStatus === 'TRAINING_RESCHEDULE') {
@@ -209,9 +254,9 @@ export default function PelatihankuPage() {
     } catch (err) {
       console.error('Gagal memuat profil', err)
     } finally {
-      setLoading(false)
+      if (!isBackground) setLoading(false)
     }
-  }
+  }, [currentStep]) // Depend on currentStep to avoid stale closure
 
   const fetchSettings = async () => {
     try {
@@ -237,7 +282,31 @@ export default function PelatihankuPage() {
   useEffect(() => {
     fetchProfile()
     fetchSettings()
-  }, [])
+  }, []) // Initial fetch (fetchProfile is stable enough for initial, but technically better to separate or omit dep if we want run once. Empty is fine for "mount")
+
+  // Polling for Status Updates
+  useEffect(() => {
+    const pollingStatuses = [
+        'PAYMENT_WAITING', 
+        'WAITING_ADMINISTRATIVE', 
+        'ARTICLE_WAITING',
+        'TRAINING_WAITING',
+        'REVIEW_WAITING',
+        'LOA_WAITING'
+    ];
+
+    let intervalId: NodeJS.Timeout;
+
+    if (pollingStatuses.includes(status)) {
+        intervalId = setInterval(() => {
+            fetchProfile(true);
+        }, 5000); // Poll every 5 seconds
+    }
+
+    return () => {
+        if (intervalId) clearInterval(intervalId);
+    };
+  }, [status, fetchProfile]); // Add fetchProfile as dependency
 
   // --- Handlers Action ---
 
@@ -260,12 +329,7 @@ export default function PelatihankuPage() {
       // Reload halaman untuk memastikan status terbaru terambil dengan bersih
       window.location.reload() 
     } catch (err: any) {
-      let msg = 'Gagal upload bukti bayar';
-      if (err.response?.data?.message) {
-          const m = err.response.data.message;
-          msg = typeof m === 'object' ? JSON.stringify(m) : m;
-      }
-      showAlert({ title: 'Gagal', message: msg, type: 'error' })
+      showAlert({ title: 'Gagal', message: getErrorMessage(err), type: 'error' })
     } finally {
       setActionLoading(false)
     }
@@ -279,12 +343,7 @@ export default function PelatihankuPage() {
       await fetchProfile() // Refresh to get new status (ADMINISTRATIVE_REQUIRED)
       setCurrentStep(2)
     } catch (err: any) {
-      let msg = 'Gagal memulai tahap administrasi';
-      if (err.response?.data?.message) {
-          const m = err.response.data.message;
-          msg = typeof m === 'object' ? JSON.stringify(m) : m;
-      }
-      showAlert({ title: 'Gagal', message: msg, type: 'error' })
+      showAlert({ title: 'Gagal', message: getErrorMessage(err), type: 'error' })
     } finally {
       setActionLoading(false)
     }
@@ -298,12 +357,7 @@ export default function PelatihankuPage() {
       showAlert({ title: 'Berhasil', message: 'Data administrasi dikonfirmasi. Mohon tunggu verifikasi admin.', type: 'success' })
       fetchProfile()
     } catch (err: any) {
-      let msg = 'Gagal konfirmasi administrasi';
-      if (err.response?.data?.message) {
-          const m = err.response.data.message;
-          msg = typeof m === 'object' ? JSON.stringify(m) : m;
-      }
-      showAlert({ title: 'Gagal', message: msg, type: 'error' })
+      showAlert({ title: 'Gagal', message: getErrorMessage(err), type: 'error' })
     } finally {
       setActionLoading(false)
     }
@@ -317,14 +371,10 @@ export default function PelatihankuPage() {
     try {
       await api.post('/articles/confirm-submission', { articleTitle })
       showAlert({ title: 'Berhasil', message: 'Judul artikel berhasil disimpan. Mohon tunggu verifikasi admin.', type: 'success' })
+      setShowArticleInput(false) // Close modal
       fetchProfile()
     } catch (err: any) {
-      let msg = 'Gagal submit artikel';
-      if (err.response?.data?.message) {
-          const m = err.response.data.message;
-          msg = typeof m === 'object' ? JSON.stringify(m) : m;
-      }
-      showAlert({ title: 'Gagal', message: msg, type: 'error' })
+      showAlert({ title: 'Gagal', message: getErrorMessage(err), type: 'error' })
     } finally {
       setActionLoading(false)
     }
@@ -336,18 +386,13 @@ export default function PelatihankuPage() {
     setModalAction(() => async () => {
         setActionLoading(true)
         try {
-          // Update endpoint to /join based on latest documentation
-          await api.post(`/trainings/${id}/join`)
+          // Update endpoint to /select as requested
+          await api.post(`/trainings/${id}/select`)
           showAlert({ title: 'Berhasil', message: 'Berhasil memilih jadwal pelatihan!', type: 'success' })
           fetchProfile()
           setShowConfirmModal(false)
         } catch (err: any) {
-          let msg = 'Gagal memilih jadwal';
-          if (err.response?.data?.message) {
-              const m = err.response.data.message;
-              msg = typeof m === 'object' ? JSON.stringify(m) : m;
-          }
-          showAlert({ title: 'Gagal', message: msg, type: 'error' })
+          showAlert({ title: 'Gagal', message: getErrorMessage(err), type: 'error' })
         } finally {
           setActionLoading(false)
         }
@@ -363,12 +408,7 @@ export default function PelatihankuPage() {
       showAlert({ title: 'Berhasil', message: 'Konfirmasi revisi berhasil dikirim.', type: 'success' })
       fetchProfile()
     } catch (err: any) {
-      let msg = 'Gagal konfirmasi revisi';
-      if (err.response?.data?.message) {
-          const m = err.response.data.message;
-          msg = typeof m === 'object' ? JSON.stringify(m) : m;
-      }
-      showAlert({ title: 'Gagal', message: msg, type: 'error' })
+      showAlert({ title: 'Gagal', message: getErrorMessage(err), type: 'error' })
     } finally {
       setActionLoading(false)
     }
@@ -377,12 +417,10 @@ export default function PelatihankuPage() {
   // STEP 6: Download LOA
   const handleDownloadLoa = async () => {
     try {
-        // Karena response PDF stream, kita buka di tab baru atau download blob
-        // Cara termudah: redirect window ke url
-        window.open(`${process.env.NEXT_PUBLIC_API_URL}/articles/loa?token=${localStorage.getItem('token')}`, '_blank')
+        await downloadFile('/articles/loa', `LOA_JUKI_${profile?.profile?.fullName.replace(/\s+/g, '_')}.pdf`);
     } catch (err) {
         console.error(err)
-        showAlert({ title: 'Gagal', message: 'Gagal download LOA', type: 'error' })
+        showAlert({ title: 'Gagal', message: 'Gagal mendownload LoA. Pastikan file sudah tersedia.', type: 'error' })
     }
   }
 
@@ -588,56 +626,54 @@ export default function PelatihankuPage() {
       if (profile?.user?.trainingFlow?.ojsAccount) {
          const ojs = profile.user.trainingFlow.ojsAccount;
          return (
-            <div className="flex flex-col items-center justify-center py-10 text-center space-y-6">
-               <div className="w-24 h-24 bg-[#EFE8D8] rounded-2xl flex items-center justify-center mb-2">
-                  <FileText className="w-12 h-12 text-[#5C7B78]" strokeWidth={1.5} />
+            <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
+               <div className="w-20 h-20 bg-[#EFE8D8] rounded-2xl flex items-center justify-center mb-6">
+                  <FileText className="w-10 h-10 text-[#5C7B78]" strokeWidth={1.5} />
                </div>
                
-               <div className="space-y-2">
-                  <h2 className="text-3xl font-bold text-white">Kamu sudah punya akun OJS!</h2>
-                  <p className="text-white/80 text-sm">Berikut adalah akun OJS yang dapat kamu gunakan</p>
-               </div>
+               <h2 className="text-3xl font-bold text-white mb-2">Kamu sudah punya akun OJS!</h2>
+               <p className="text-white/80 text-sm mb-8">Berikut adalah akun OJS yang dapat kamu gunakan</p>
 
-               <div className="bg-white rounded-2xl p-8 w-full max-w-lg shadow-xl text-left space-y-4">
-                  <div className="grid grid-cols-[120px_10px_1fr] gap-y-3 text-sm md:text-base text-gray-700">
-                     <span className="font-medium text-gray-500">Username</span>
-                     <span>:</span>
-                     <span className="font-bold text-[#5C7B78]">{ojs.username || '-'}</span>
+               <div className="bg-white rounded-3xl p-8 w-full max-w-lg shadow-xl text-left space-y-4 mb-6">
+                  <div className="grid grid-cols-[140px_10px_1fr] gap-y-4 text-sm md:text-base text-gray-700">
+                     <span className="font-bold text-[#5C7B78]">Username</span>
+                     <span className="font-bold text-[#5C7B78]">:</span>
+                     <span className="font-bold text-gray-800">{ojs.username || '-'}</span>
 
-                     <span className="font-medium text-gray-500">Password</span>
-                     <span>:</span>
-                     <span className="font-bold text-[#5C7B78]">{ojs.password || '-'}</span>
+                     <span className="font-bold text-[#5C7B78]">Password</span>
+                     <span className="font-bold text-[#5C7B78]">:</span>
+                     <span className="font-bold text-gray-800">{ojs.password || '-'}</span>
 
-                     <span className="font-medium text-gray-500">Kelompok Jurnal</span>
-                     <span>:</span>
-                     <span className="font-bold text-[#5C7B78]">{profile?.user?.trainingFlow?.journalCode || '-'}</span>
+                     <span className="font-bold text-[#5C7B78]">Kelompok Jurnal</span>
+                     <span className="font-bold text-[#5C7B78]">:</span>
+                     <span className="font-bold text-gray-800 uppercase">{profile?.user?.trainingFlow?.journalCode || ojs.journalCode || '-'}</span>
                   </div>
                </div>
 
                {/* Link Jurnal */}
                {ojs.journalLink && (
-                   <div className="w-full max-w-lg relative mt-4">
+                   <div className="w-full max-w-lg relative mb-8">
                       <input 
                         type="text" 
                         readOnly 
                         value={ojs.journalLink}
-                        className="w-full py-3 pl-5 pr-12 rounded-xl text-sm text-gray-600 bg-white border border-gray-200 outline-none"
+                        className="w-full py-4 pl-6 pr-12 rounded-xl text-gray-600 bg-white shadow-lg outline-none text-center sm:text-left"
                       />
                       <button 
                         onClick={() => {
                            navigator.clipboard.writeText(ojs.journalLink);
                            showAlert({ title: 'Disalin', message: 'Link berhasil disalin', type: 'success' });
                         }}
-                        className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[#5C7B78]"
+                        className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[#5C7B78] transition-colors"
                       >
-                         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+                         <Copy className="w-5 h-5" />
                       </button>
                    </div>
                )}
 
                <Button 
                    onClick={() => setCurrentStep(3)}
-                   className="mt-6 bg-[#5C7B78] hover:bg-[#4a6361] text-white px-10 py-6 rounded-xl font-bold text-lg shadow-lg"
+                   className="w-full max-w-lg bg-[#5C7B78] hover:bg-[#4a6361] text-white py-6 rounded-xl font-bold text-lg shadow-lg"
                >
                    Lanjut Submit Artikel
                </Button>
@@ -708,7 +744,7 @@ export default function PelatihankuPage() {
     // 3. ARTIKEL OJS
     if (currentStep === 3) {
       // 3A. MENUNGGU VERIFIKASI / ARTIKEL SUDAH DISUBMIT (Yeay!!!)
-      if (status === 'ARTICLE_WAITING' || status === 'ARTICLE_VERIFIED' || status === 'TRAINING_WAITING') {
+      if (status === 'ARTICLE_WAITING' && profile?.user?.trainingFlow?.articleTitle) {
          return (
             <div className="flex flex-col items-center justify-center py-16 text-center space-y-6">
                <div className="w-24 h-24 bg-[#EFE8D8] rounded-full flex items-center justify-center mb-2">
@@ -718,57 +754,96 @@ export default function PelatihankuPage() {
                   <h2 className="text-4xl font-bold text-white">Yeay!!!</h2>
                   <p className="text-white/90 max-w-md mx-auto leading-relaxed text-sm md:text-base">
                     Terima kasih sudah submit jurnal kamu di OJS.<br/>
-                    Silahkan lanjut untuk <strong>Ikut Pelatihan</strong>.
+                    Admin sedang memverifikasi artikel kamu, mohon tunggu info selanjutnya.
                   </p>
                   
-                  {/* Button to Next Step manually if needed, though status check usually moves them */}
-                  {/* If status is ARTICLE_VERIFIED, they can actually move to step 4 */}
-                  {(status === 'ARTICLE_VERIFIED' || status === 'ARTICLE_WAITING') && (
-                      <Button 
-                        onClick={() => setCurrentStep(4)}
-                        className="mt-4 bg-[#5C7B78] hover:bg-[#4a6361] text-white px-8 py-6 text-lg rounded-xl shadow-lg"
-                      >
-                        Lanjut Ikut Pelatihan <ChevronRight className="ml-2 w-5 h-5" />
-                      </Button>
-                  )}
+                  <Button 
+                    onClick={() => setCurrentStep(4)}
+                    disabled={status === 'ARTICLE_WAITING'}
+                    className="mt-4 bg-[#5C7B78] hover:bg-[#4a6361] text-white px-8 py-6 text-lg rounded-xl shadow-lg disabled:opacity-70 disabled:cursor-not-allowed"
+                  >
+                    {status === 'ARTICLE_WAITING' ? 'Menunggu Verifikasi Admin...' : 'Lanjut Ikut Pelatihan'} 
+                    {status !== 'ARTICLE_WAITING' && <ChevronRight className="ml-2 w-5 h-5" />}
+                  </Button>
                </div>
             </div>
          )
       }
 
-      // 3B. FORM SUBMIT ARTIKEL (Waktunya Submit Artikel!)
+      // 3B. VIEW ARTICLE SUBMISSION (Header + Card Info + Action Form)
       return (
-        <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
-           <div className="w-24 h-24 bg-[#EFE8D8] rounded-full flex items-center justify-center mb-6">
-              <Clock className="w-12 h-12 text-[#5C7B78]" strokeWidth={1.5} />
+        <div className="flex flex-col items-center justify-center py-8 px-4 text-center space-y-8">
+           
+           {/* PART 1: HEADER */}
+           <div className="space-y-4">
+              <div className="w-20 h-20 bg-[#EFE8D8] rounded-full flex items-center justify-center mx-auto mb-2">
+                 <Clock className="w-10 h-10 text-[#5C7B78]" strokeWidth={1.5} />
+              </div>
+              <h2 className="text-3xl md:text-4xl font-bold text-white">Waktunya Submit Artikel!</h2>
+              <p className="text-white/90 max-w-xl mx-auto leading-relaxed text-sm md:text-base">
+                 Silahkan akses akun OJS menggunakan username dan password yang telah diberikan. 
+                 Lakukan submit artikel sesuai template jurnal kamu di OJS.
+              </p>
            </div>
 
-           <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">Waktunya Submit Artikel!</h2>
-           <p className="text-white/90 max-w-xl mx-auto mb-10 leading-relaxed text-sm md:text-base">
-              Silahkan akses akun OJS menggunakan username dan password yang telah diberikan. 
-              Lakukan submit artikel sesuai template jurnal kamu di OJS, admin akan memantau progres jurnal kamu di OJS.
-           </p>
+           {/* PART 2: CARD KREDENSIAL OJS */}
+           {profile?.user?.trainingFlow?.ojsAccount && (
+              <div className="bg-white rounded-[32px] p-8 w-full max-w-lg shadow-xl text-center space-y-6 animate-in fade-in zoom-in-95 duration-500">
+                 <div className="w-16 h-16 bg-[#F9F7F2] rounded-2xl flex items-center justify-center mx-auto">
+                    <FileText className="w-8 h-8 text-[#5C7B78]" />
+                 </div>
+                 <h3 className="font-bold text-gray-800 text-xl">Kamu sudah punya akun OJS!</h3>
 
-           <div className="w-full max-w-lg bg-white p-8 rounded-[24px] shadow-xl text-left space-y-6">
+                 <div className="text-left space-y-4 bg-[#F9F7F2] p-6 rounded-2xl border border-[#EFE3D4]">
+                    <div className="flex justify-between items-center">
+                       <span className="text-gray-500 font-medium">Username</span>
+                       <span className="font-bold text-gray-800 font-mono select-all">{profile.user.trainingFlow.ojsAccount.username || '-'}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                       <span className="text-gray-500 font-medium">Password</span>
+                       <span className="font-bold text-gray-800 font-mono select-all">{profile.user.trainingFlow.ojsAccount.password || '-'}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                       <span className="text-gray-500 font-medium">Kelompok Jurnal</span>
+                       <span className="font-bold text-gray-800 uppercase">{profile?.user?.trainingFlow?.journalCode || profile.user.trainingFlow.ojsAccount.journalCode || '-'}</span>
+                    </div>
+                 </div>
+
+                 {profile.user.trainingFlow.ojsAccount.journalLink && (
+                    <a 
+                       href={profile.user.trainingFlow.ojsAccount.journalLink}
+                       target="_blank"
+                       rel="noopener noreferrer"
+                       className="flex items-center justify-center gap-2 w-full py-4 bg-[#EFE8D8] hover:bg-[#e5dec5] text-[#5C7B78] font-bold rounded-xl transition-all shadow-sm"
+                    >
+                       Buka Website OJS <ChevronRight className="w-4 h-4" />
+                    </a>
+                 )}
+              </div>
+           )}
+
+           {/* PART 3: ACTION FORM (Wajib Ada untuk Backend) */}
+           <div className="w-full max-w-lg bg-white/10 p-8 rounded-[32px] border border-white/20 backdrop-blur-sm text-left space-y-6">
               <div className="space-y-2">
-                  <label className="text-sm font-bold text-[#5C7B78] ml-1">Judul Artikel (Konfirmasi)</label>
+                  <label className="text-sm font-bold text-white ml-1">Judul Artikel yang Disubmit</label>
                   <input 
                       type="text" 
                       value={articleTitle}
                       onChange={(e) => setArticleTitle(e.target.value)}
-                      className="w-full p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#5C7B78] focus:border-transparent outline-none text-gray-800 font-medium placeholder:text-gray-400 transition-all"
-                      placeholder="Masukkan judul artikel yang telah disubmit..."
+                      className="w-full p-4 bg-white border-none rounded-xl focus:ring-2 focus:ring-[#5C7B78] outline-none text-gray-800 font-medium placeholder:text-gray-400 transition-all"
+                      placeholder="Masukkan judul artikel Anda..."
                   />
               </div>
 
               <Button 
                   onClick={handleSubmitArticle} 
                   disabled={!articleTitle.trim() || actionLoading}
-                  className="w-full bg-[#5C7B78] hover:bg-[#4a6361] text-white font-bold text-lg py-6 rounded-xl shadow-lg transition-transform hover:scale-[1.02] active:scale-[0.98]"
+                  className="w-full bg-[#5C7B78] hover:bg-[#4a6361] text-white font-bold text-lg py-7 rounded-xl shadow-lg transition-transform hover:scale-[1.02] active:scale-[0.98]"
               >
-                  {actionLoading ? 'Menyimpan...' : 'Konfirmasi Sudah Submit'}
+                  {actionLoading ? 'Memproses...' : 'Saya Sudah Submit di OJS'}
               </Button>
            </div>
+
         </div>
       )
     }
@@ -806,38 +881,46 @@ export default function PelatihankuPage() {
                 <h2 className="text-3xl font-bold text-white mb-8">Kamu terdaftar di batch pelatihan ini!</h2>
                 
                 {myTraining ? (
-                    <div className="w-full max-w-xl bg-white rounded-[24px] p-8 shadow-xl text-left relative animate-in fade-in zoom-in-95 duration-500">
-                        <div className="space-y-6">
-                            {/* Batch Label */}
-                            <div className="text-gray-500 text-sm font-medium">
-                                {myTraining.batch || 'Batch Terdaftar'}
+                    <Card className="w-full max-w-2xl bg-white border-2 border-gray-300 rounded-2xl shadow-xl overflow-hidden p-2 animate-in fade-in zoom-in-95 duration-500">
+                        <div className="flex flex-col h-full rounded-xl overflow-hidden">
+                            {/* HEADER */}
+                            <div className="flex items-center gap-4 px-6 py-5 h-[100px] bg-[#5C7B78] text-white text-left">
+                                <CalendarDays className="w-12 h-12 shrink-0" strokeWidth={2.5} />
+                                <div className="flex flex-col min-w-0">
+                                    <span className="text-xs font-medium uppercase tracking-wider text-white/90 truncate">
+                                        {myTraining.batch || 'Batch Terdaftar'} | {myTraining.title}
+                                    </span>
+                                    <h3 className="text-2xl font-bold truncate">
+                                        {myTraining.startAt ? formatDate(myTraining.startAt) : 'Jadwal Ditentukan'}
+                                    </h3>
+                                </div>
                             </div>
 
-                            {/* Date & Title */}
-                            <div>
-                                <h3 className="text-3xl font-bold text-gray-800 mb-1">
-                                    {myTraining.startAt 
-                                        ? new Date(myTraining.startAt).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
-                                        : 'Jadwal Ditentukan'}
-                                </h3>
-                                <p className="text-gray-500 text-sm">
-                                    {myTraining.title}
-                                </p>
-                            </div>
-                            
-                            {/* Footer: Location & Time */}
-                            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pt-4">
-                                <div className="text-[#D15651] font-bold text-lg">
-                                    {myTraining.location || 'Zoom Meeting'}
+                            {/* BODY */}
+                            <CardContent className="px-6 py-6 bg-white text-gray-700 font-medium text-left">
+                                <div className="space-y-4">
+                                    <div className="flex items-center gap-4">
+                                        <MapPin className="w-6 h-6 text-[#5C7B78] shrink-0" />
+                                        <span className="text-lg">{myTraining.location || 'Zoom Meeting'}</span>
+                                    </div>
+                                    <div className="flex items-center gap-4">
+                                        <Clock className="w-6 h-6 text-[#5C7B78] shrink-0" />
+                                        <span className="text-lg">
+                                            {myTraining.startAt ? formatTime(myTraining.startAt, myTraining.endAt) : '-'}
+                                        </span>
+                                    </div>
+                                    <div className="flex items-center gap-4">
+                                        <FileText className="w-6 h-6 text-[#5C7B78] shrink-0" />
+                                        <span>Kelompok Jurnal : <strong className="text-gray-900">{profile?.user?.trainingFlow?.journalCode || '-'}</strong></span>
+                                    </div>
+                                    <div className="flex items-center gap-4">
+                                        <User className="w-6 h-6 text-[#5C7B78] shrink-0" />
+                                        <span>Dosen Pembimbing : <span className="text-gray-900">{myTraining.mentorName || '-'}</span></span>
+                                    </div>
                                 </div>
-                                <div className="bg-[#5C7B78] text-white px-6 py-2 rounded-full font-bold text-sm shadow-sm">
-                                    {myTraining.startAt 
-                                        ? `${new Date(myTraining.startAt).toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'})} - ${new Date(myTraining.endAt).toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'})} WIB`
-                                        : '-'}
-                                </div>
-                            </div>
+                            </CardContent>
                         </div>
-                    </div>
+                    </Card>
                 ) : (
                     <div className="mt-10 text-white/60 italic">Memuat detail jadwal...</div>
                 )}
@@ -883,47 +966,136 @@ export default function PelatihankuPage() {
                   >
                       {pages.map((pageItems, i) => (
                           <div key={i} className="w-full shrink-0 px-1">
-                              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 place-items-start">
                                   {pageItems.map((training) => (
-                                      <div key={training.id} className="bg-white rounded-[20px] p-6 shadow-lg flex flex-col justify-between h-full text-left group hover:-translate-y-1 transition-transform duration-300">
-                                          <div className="space-y-4 mb-6">
-                                              <div className="flex justify-between items-start">
-                                                  <div className="bg-[#5C7B78] text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wide">
-                                                      {training.title}
-                                                  </div>
+                                      <Card
+                                        key={training.id}
+                                        className="
+                                          w-full
+                                          max-w-[440px]
+                                          min-h-[400px]
+                                          bg-white
+                                          border-2 border-gray-300
+                                          rounded-2xl
+                                          shadow-sm
+                                          overflow-hidden
+                                          p-2
+                                          box-border
+                                          transition-all
+                                          duration-300
+                                          hover:border-[#5C7B78]
+                                          hover:shadow-md
+                                          group
+                                        "
+                                      >
+                                        <div className="flex flex-col h-full rounded-xl overflow-hidden">
+                                          {/* HEADER */}
+                                          <div className="
+                                            flex
+                                            items-center
+                                            gap-4
+                                            px-5
+                                            py-3
+                                            h-[90px]
+                                            bg-[#5C7B78]
+                                            text-white
+                                            transition-colors
+                                            group-hover:bg-[#4a6361]
+                                            text-left
+                                          ">
+                                            <CalendarDays className="w-10 h-10 shrink-0" strokeWidth={2.5} />
+                                            <div className="flex flex-col min-w-0">
+                                              <span className="
+                                                text-[11px]
+                                                lg:text-[12px]
+                                                font-medium
+                                                uppercase
+                                                tracking-wider
+                                                text-white/90
+                                                truncate
+                                              ">
+                                                {training.batch ? `${training.batch} | ` : ''}
+                                                {training.title}
+                                              </span>
+                                              <h3 className="
+                                                text-lg
+                                                lg:text-[22px]
+                                                font-bold
+                                                truncate
+                                              ">
+                                                {formatDate(training.startAt)}
+                                              </h3>
+                                            </div>
+                                          </div>
+
+                                          {/* BODY */}
+                                          <CardContent className="
+                                            flex-grow
+                                            px-5
+                                            py-4
+                                            bg-white
+                                            text-gray-700
+                                            text-[13px]
+                                            lg:text-[15px]
+                                            font-medium
+                                            flex
+                                            flex-col
+                                            justify-center
+                                            text-left
+                                          ">
+                                            <div className="space-y-2">
+                                              <div className="flex items-center gap-3 min-w-0">
+                                                <MapPin className="w-5 h-5 text-[#5C7B78] shrink-0" />
+                                                <span className="truncate">{training.location}</span>
+                                              </div>
+                                              <div className="flex items-center gap-3 min-w-0">
+                                                <Clock className="w-5 h-5 text-[#5C7B78] shrink-0" />
+                                                <span className="truncate">
+                                                  {formatTime(training.startAt, training.endAt)}
+                                                </span>
+                                              </div>
+                                              <div className="flex items-center gap-3 min-w-0">
+                                                <FileText className="w-5 h-5 text-[#5C7B78] shrink-0" />
+                                                <span className="truncate">
+                                                  Kelompok Jurnal :
+                                                  <strong className="text-gray-900">
+                                                    {' '}
+                                                    {training.journalCode || 'JOESMENT'}
+                                                  </strong>
+                                                </span>
+                                              </div>
+                                              <div className="flex items-center gap-3 min-w-0">
+                                                <User className="w-5 h-5 text-[#5C7B78] shrink-0" />
+                                                <span className="truncate">
+                                                  Dosen Pembimbing :
+                                                  <span className="text-gray-900">
+                                                    {' '}
+                                                    {training.mentorName || 'Bayu Setiawan'}
+                                                  </span>
+                                                </span>
+                                              </div>
+                                              <div className="flex items-center gap-3 pt-1 min-w-0">
+                                                <Users className="w-5 h-5 text-[#5C7B78] shrink-0" />
+                                                <span className="truncate">
+                                                  Sisa Kuota :
+                                                  <span className="text-[#D35F5F] font-bold">
+                                                    {' '}
+                                                    {training.quota} Peserta
+                                                  </span>
+                                                </span>
                                               </div>
                                               
-                                              <div>
-                                                  <h4 className="text-lg font-bold text-gray-800 flex items-center gap-2">
-                                                      <CalendarDays className="w-5 h-5 text-[#5C7B78]" />
-                                                      {new Date(training.startAt).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'short', year: 'numeric' })}
-                                                  </h4>
-                                                  <div className="flex items-center gap-2 text-gray-500 text-sm mt-1 ml-7">
-                                                      <Clock className="w-4 h-4" />
-                                                      {new Date(training.startAt).toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'})} - {new Date(training.endAt).toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'})} WIB
-                                                  </div>
-                                              </div>
-
-                                              <div className="space-y-2 pt-2">
-                                                  <div className="flex justify-between text-sm">
-                                                      <span className="text-gray-500">Lokasi</span>
-                                                      <span className="font-bold text-gray-800">{training.location}</span>
-                                                  </div>
-                                                  <div className="flex justify-between text-sm">
-                                                      <span className="text-gray-500">Sisa Kuota</span>
-                                                      <span className="font-bold text-[#D98E2E]">{training.quota} Peserta</span>
-                                                  </div>
-                                              </div>
-                                          </div>
-                                          
-                                          <Button 
-                                            onClick={() => handleSelectTraining(training.id)}
-                                            disabled={training.quota <= 0 || actionLoading}
-                                            className="w-full bg-[#5C7B78] hover:bg-[#4a6361] text-white font-bold py-6 rounded-xl shadow-md"
-                                          >
-                                              {isReschedule ? 'Reschedule Jadwal Ini' : 'Saya Pilih Jadwal Ini'}
-                                          </Button>
-                                      </div>
+                                              <Button 
+                                                onClick={() => handleSelectTraining(training.id)}
+                                                disabled={training.quota <= 0 || actionLoading}
+                                                className="w-full bg-[#5C7B78] hover:bg-[#4a6361] text-white font-bold py-6 rounded-xl shadow-md mt-4"
+                                              >
+                                                  {isReschedule ? 'Reschedule Jadwal Ini' : 'Saya Pilih Jadwal Ini'}
+                                              </Button>
+                                            </div>
+                                          </CardContent>
+                                        </div>
+                                      </Card>
                                   ))}
                               </div>
                           </div>
@@ -959,31 +1131,42 @@ export default function PelatihankuPage() {
     // 5. REVIEW
     if (currentStep === 5) {
       return (
-        <div className="space-y-6">
-           <h2 className="text-2xl font-bold text-[#5C7B78]">Review Artikel</h2>
+        <div className="flex flex-col items-center justify-center py-12 px-4 text-center space-y-8">
            
-           {status === 'REVIEW_REVISION' ? (
-              <div className="space-y-4">
-                 <div className="p-6 bg-red-50 border border-red-200 rounded-xl text-red-800">
-                    <h4 className="font-bold flex items-center gap-2"><AlertCircle className="w-5 h-5"/> Perlu Revisi</h4>
-                    <p className="text-sm mt-1">Artikel kamu perlu diperbaiki. Silahkan cek komentar admin, perbaiki di OJS, lalu konfirmasi di bawah.</p>
-                 </div>
-                 <Button 
-                    onClick={handleConfirmRevision} 
-                    disabled={actionLoading}
-                    className="w-full bg-[#5C7B78] hover:bg-[#4a6361]"
-                 >
-                    {actionLoading ? 'Memproses...' : 'Saya Sudah Melakukan Revisi'}
-                 </Button>
+           {/* PART 1: HEADER */}
+           <div className="space-y-4">
+              <div className="w-20 h-20 bg-[#EFE8D8] rounded-full flex items-center justify-center mx-auto mb-2">
+                 <Clock className="w-10 h-10 text-[#5C7B78]" strokeWidth={1.5} />
               </div>
-           ) : (
-              <div className="p-6 bg-yellow-50 border border-yellow-200 rounded-xl flex items-center gap-4 text-yellow-800">
-                <Clock className="w-8 h-8" />
-                <div>
-                   <h4 className="font-bold">Menunggu Review</h4>
-                   <p className="text-sm">Artikelmu sedang direview oleh tim kami. Jika ada revisi, notifikasi akan muncul di sini.</p>
-                </div>
-             </div>
+              <h2 className="text-3xl md:text-4xl font-bold text-white">Waktunya Review Artikel!</h2>
+              <p className="text-white/90 max-w-xl mx-auto leading-relaxed text-sm md:text-base">
+                 Silahkan melakukan review dan revisi artikel di OJS.<br/>
+                 Admin akan memantau progres jurnal kamu di OJS.
+              </p>
+           </div>
+
+           {/* REVISION ALERT (If needed) */}
+           {status === 'REVIEW_REVISION' && (
+              <div className="w-full max-w-lg bg-white/10 p-6 rounded-[24px] border border-white/20 backdrop-blur-sm text-left">
+                 <div className="flex items-start gap-4">
+                    <div className="p-2 bg-red-100 rounded-full shrink-0">
+                       <AlertTriangle className="w-6 h-6 text-red-600" />
+                    </div>
+                    <div className="space-y-2">
+                       <h4 className="font-bold text-white text-lg">Perlu Revisi</h4>
+                       <p className="text-white/80 text-sm">
+                          Artikel kamu perlu diperbaiki. Silahkan cek komentar admin di OJS, perbaiki, lalu konfirmasi di sini jika sudah selesai.
+                       </p>
+                       <Button 
+                          onClick={handleConfirmRevision} 
+                          disabled={actionLoading}
+                          className="mt-2 w-full bg-[#D98E2E] hover:bg-[#b57b2b] text-white font-bold"
+                       >
+                          {actionLoading ? 'Memproses...' : 'Saya Sudah Melakukan Revisi'}
+                       </Button>
+                    </div>
+                 </div>
+              </div>
            )}
         </div>
       )
@@ -991,23 +1174,44 @@ export default function PelatihankuPage() {
 
     // 6. LOA
     if (currentStep === 6) {
+      if (status === 'LOA_PUBLISHED') {
+        return (
+          <div className="flex flex-col items-center justify-center py-12 px-4 text-center space-y-8 animate-in fade-in duration-700">
+              <div className="w-24 h-24 bg-[#EFE8D8] rounded-full flex items-center justify-center mb-2 shadow-sm">
+                  <CheckCircle2 className="w-12 h-12 text-[#5C7B78]" strokeWidth={2} />
+              </div>
+              <div className="space-y-4">
+                  <h2 className="text-4xl md:text-5xl font-bold text-white">LOA Kamu Telah Terbit!</h2>
+                  <p className="text-white/90 max-w-2xl mx-auto leading-relaxed text-sm md:text-lg">
+                      Selamat! Kamu telah menyelesaikan seluruh rangkaian pelatihan dan dinyatakan lolos. 
+                      LOA (Letter of Acceptance) untuk keperluan syarat kelulusanmu sudah tersedia dan bisa kamu unduh kapan saja.
+                  </p>
+              </div>
+              
+              <Button 
+                  onClick={handleDownloadLoa}
+                  className="mt-6 bg-[#5C7B78] hover:bg-[#4a6361] px-12 py-7 text-xl font-bold rounded-2xl shadow-xl transition-transform hover:scale-105"
+              >
+                  <Download className="w-6 h-6 mr-3" />
+                  Download LOA
+              </Button>
+          </div>
+        )
+      }
+
+      // Default: Waiting State (LOA_WAITING)
       return (
-        <div className="space-y-6 text-center py-10">
-            <div className="mx-auto w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mb-4">
-                <CheckCircle2 className="w-10 h-10 text-green-600" />
+        <div className="flex flex-col items-center justify-center py-16 px-4 text-center space-y-8 animate-in fade-in duration-700">
+            <div className="w-24 h-24 bg-[#EFE8D8] rounded-full flex items-center justify-center mb-2">
+                <Clock className="w-12 h-12 text-[#5C7B78]" strokeWidth={1.5} />
             </div>
-            <h2 className="text-3xl font-bold text-[#5C7B78]">Selamat!</h2>
-            <p className="text-gray-600 max-w-md mx-auto">
-                Artikel kamu telah diterima dan dipublikasikan. Kamu sekarang dapat mendownload Letter of Acceptance (LoA) sebagai syarat kelulusan.
-            </p>
-            
-            <Button 
-                onClick={handleDownloadLoa}
-                className="mt-6 bg-[#5C7B78] hover:bg-[#4a6361] px-8 py-6 text-lg rounded-xl shadow-lg"
-            >
-                <Download className="w-6 h-6 mr-2" />
-                Download LoA
-            </Button>
+            <div className="space-y-4">
+                <h2 className="text-4xl md:text-5xl font-bold text-white">Artikel Anda Telah Disetujui!</h2>
+                <p className="text-white/90 max-w-xl mx-auto leading-relaxed text-sm md:text-lg font-medium">
+                    Selamat! Artikel Anda telah berhasil melewati tahap review.<br/>
+                    Saat ini admin sedang menyiapkan dokumen Letter of Acceptance (LoA) Anda. Mohon cek halaman ini secara berkala.
+                </p>
+            </div>
         </div>
       )
     }

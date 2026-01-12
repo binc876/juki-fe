@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { X, Upload, Download, PenLine } from 'lucide-react';
-import { api } from '@/lib/api';
+import { api, getErrorMessage } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -134,7 +134,7 @@ export default function TrainingDetailModal({
       console.error('Delete error:', err);
       showAlert({
         title: 'Gagal',
-        message: err.response?.data?.message || 'Gagal menghapus jadwal',
+        message: getErrorMessage(err),
         type: 'error'
       });
     } finally {
@@ -161,8 +161,7 @@ export default function TrainingDetailModal({
         fetchDetail();
       } catch (err: any) {
           console.error('Attendance error:', err);
-          const msg = err.response?.data?.message || 'Gagal update absensi. Kemungkinan status peserta tidak dapat diubah pada tahap ini.';
-          showAlert({ title: 'Gagal', message: msg, type: 'error' });
+          showAlert({ title: 'Gagal', message: getErrorMessage(err), type: 'error' });
       }
   };
 

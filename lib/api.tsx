@@ -9,6 +9,119 @@ export const api = axios.create({
   withCredentials: false, 
 });
 
+// Helper untuk mengekstrak pesan error yang user-friendly
+export const getErrorMessage = (error: any): string => {
+  if (!error) return 'Terjadi kesalahan tidak dikenal.';
+
+  if (error.response) {
+    let data = error.response.data;
+    const status = error.response.status;
+
+    // 0. Coba parse jika data adalah string JSON (kasus content-type mismatch)
+    if (typeof data === 'string') {
+        try {
+            const parsed = JSON.parse(data);
+            // Jika berhasil parse dan hasilnya object, gunakan itu
+            if (typeof parsed === 'object' && parsed !== null) {
+                data = parsed;
+            }
+        } catch (e) {
+            // Jika bukan JSON, gunakan string tersebut langsung jika pendek (pesan error raw)
+            // Tapi jika string HTML panjang (misal error page nginx), fallback ke status
+            if (data.length < 200 && !data.trim().startsWith('<')) {
+                return data;
+            }
+        }
+    }
+
+    // 1. Cek jika backend mengirim field 'message'
+    if (data?.message) {
+      if (typeof data.message === 'string') return data.message;
+      if (Array.isArray(data.message)) return data.message.join(', ');
+      // Handle nested object (e.g. NestJS class-validator)
+      if (typeof data.message === 'object') {
+          if (Array.isArray(data.message.message)) return data.message.message.join(', ');
+          if (typeof data.message.message === 'string') return data.message.message;
+      }
+      return JSON.stringify(data.message);
+    }
+
+    // 2. Cek field 'error'
+    if (data?.error && typeof data.error === 'string') return data.error;
+
+    // 3. Fallback berdasarkan Status Code jika body kosong atau tidak terbaca
+    if (status === 400) return 'Permintaan tidak valid.';
+    if (status === 401) return 'Email atau password salah / Sesi berakhir.';
+    if (status === 403) return 'Anda tidak memiliki akses untuk aksi ini.';
+    if (status === 404) return 'Data tidak ditemukan.';
+    if (status === 429) return 'Terlalu banyak permintaan, coba lagi nanti.';
+    if (status >= 500) return 'Terjadi kesalahan pada server kami.';
+  }
+
+  // 4. Fallback ke error message bawaan (misal: Network Error)
+  return error.message || 'Terjadi kesalahan jaringan.';
+};
+
+// Helper untuk download file dengan Auth Header
+export const downloadFile = async (url: string, filename?: string) => {
+  try {
+    const response = await api.get(url, {
+      responseType: 'blob', // Penting agar response diperlakukan sebagai file binary
+    });
+
+    // Buat URL object dari blob
+    const blobUrl = window.URL.createObjectURL(new Blob([response.data]));
+    const link = document.createElement('a');
+    link.href = blobUrl;
+    
+    // Gunakan filename dari parameter atau coba ambil dari header content-disposition jika ada
+    let finalFilename = filename || 'download';
+    
+    // Coba extract filename dari content-disposition header (optional enhancement)
+    const contentDisposition = response.headers['content-disposition'];
+    if (!filename && contentDisposition) {
+        const filenameMatch = contentDisposition.match(/filename="?([^"]+)"?/);
+        if (filenameMatch && filenameMatch.length === 2) {
+            finalFilename = filenameMatch[1];
+        }
+    }
+
+    link.setAttribute('download', finalFilename);
+    document.body.appendChild(link);
+    link.click();
+    
+    // Bersihkan
+    link.remove();
+    window.URL.revokeObjectURL(blobUrl);
+  } catch (error: any) {
+    console.error('Download failed:', error);
+    throw error; // Re-throw agar komponen bisa handle error (misal show alert)
+  }
+};
+
+// Helper untuk preview file di tab baru (View Only)
+export const viewFile = async (url: string) => {
+  try {
+    const response = await api.get(url, {
+      responseType: 'blob',
+    });
+
+    const contentType = response.headers['content-type'] || 'application/pdf'; // Default PDF if unknown
+    const blob = new Blob([response.data], { type: contentType });
+    const blobUrl = window.URL.createObjectURL(blob);
+    
+    // Open in new tab
+    window.open(blobUrl, '_blank');
+    
+    // Note: Can't easily revoke URL here immediately because the new tab needs it.
+    // Ideally, we'd use a timeout or a dedicated preview modal, but window.open is requested.
+    setTimeout(() => window.URL.revokeObjectURL(blobUrl), 60000); // Revoke after 1 min
+  } catch (error: any) {
+    console.error('View failed:', error);
+    throw error;
+  }
+};
+
 // Queue untuk menampung request yang gagal saat token sedang direfresh
 let isRefreshing = false;
 let failedQueue: any[] = [];
@@ -58,10 +171,22 @@ api.interceptors.response.use(
 
     // Logging Response Error
     if (process.env.NODE_ENV === 'development') {
-      console.groupCollapsed(`❌ Error: ${err.response?.status || 'Network'} ${err.config?.url}`);
-      console.error('Message:', err.message);
-      console.error('Response Data:', err.response?.data);
-      console.groupEnd();
+      const status = err.response?.status;
+      const url = err.config?.url;
+      
+      // Gunakan warn untuk Client Error (4xx) agar tidak dianggap System Crash
+      if (status && status >= 400 && status < 500) {
+          console.groupCollapsed(`⚠️ API Warning: ${status} ${url}`);
+          console.warn('Message:', err.message);
+          console.warn('Response Data:', err.response?.data);
+          console.groupEnd();
+      } else {
+          // Gunakan error untuk Server Error (5xx) atau Network Error
+          console.groupCollapsed(`❌ API Error: ${status || 'Network'} ${url}`);
+          console.error('Message:', err.message);
+          console.error('Response Data:', err.response?.data);
+          console.groupEnd();
+      }
     }
 
     // Jika error 401

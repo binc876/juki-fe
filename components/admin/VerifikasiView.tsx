@@ -9,7 +9,7 @@ import {
   CreditCard,
   ExternalLink
 } from 'lucide-react'
-import { api } from '@/lib/api'
+import { api, getErrorMessage, downloadFile, viewFile } from '@/lib/api'
 import {
   Dialog,
   DialogContent,
@@ -221,10 +221,9 @@ export default function VerifikasiView() {
       fetchUsers()
     } catch (err: any) {
       console.error('Payment verification failed:', err)
-      const errorMsg = err.response?.data?.message || 'Gagal memproses pembayaran.'
       showAlert({
         title: 'Gagal',
-        message: errorMsg,
+        message: getErrorMessage(err),
         type: 'error'
       })
     }
@@ -259,7 +258,7 @@ export default function VerifikasiView() {
       console.error('OJS creation failed:', err)
       showAlert({
         title: 'Gagal',
-        message: err.response?.data?.message || 'Gagal membuat akun OJS.',
+        message: getErrorMessage(err),
         type: 'error'
       })
     }
@@ -453,14 +452,19 @@ export default function VerifikasiView() {
                           <td className="py-6 text-center">{user.profile?.phone || '-'}</td>
                           <td className="py-6 text-center">
                              {paymentProof ? (
-                                 <a 
-                                    href={`${process.env.NEXT_PUBLIC_API_URL}/attachments/admin/${paymentProof.id}/download?token=${localStorage.getItem('token')}`}
-                                    target="_blank" rel="noreferrer"
-                                    className="text-gray-800 font-medium hover:underline truncate inline-block max-w-[150px]"
+                                 <button 
+                                    onClick={async () => {
+                                        try {
+                                            await viewFile(`/attachments/admin/${paymentProof.id}/download`);
+                                        } catch (err) {
+                                            showAlert({ title: 'Gagal', message: 'Gagal melihat bukti bayar', type: 'error' });
+                                        }
+                                    }}
+                                    className="text-gray-800 font-medium hover:underline inline-block"
                                  >
-                                    {paymentProof.originalName || 'https://BuktiBayar'}
-                                 </a>
-                             ) : <span className="text-gray-400">https://BuktiBayar</span>}
+                                    Lihat Bukti
+                                 </button>
+                             ) : <span className="text-gray-400">BuktiBayar</span>}
                           </td>
                           <td className="py-6 text-center">
                              <div className="flex justify-center gap-3">

@@ -19,9 +19,10 @@ import {
   ChevronRight,
   X,
   FileIcon,
-  Download
+  Download,
+  Eye
 } from 'lucide-react'
-import { api } from '@/lib/api'
+import { api, getErrorMessage, downloadFile, viewFile } from '@/lib/api'
 import {
   Dialog,
   DialogContent,
@@ -274,7 +275,7 @@ export default function AdminPage() {
       setIsDetailOpen(true)
     } catch (err) {
       console.error('Gagal ambil detail:', err)
-      showAlert({ title: 'Gagal', message: 'Gagal mengambil detail user', type: 'error' })
+      showAlert({ title: 'Gagal', message: getErrorMessage(err), type: 'error' })
     }
   }
 
@@ -304,7 +305,7 @@ export default function AdminPage() {
       fetchUsers() // Refresh list
     } catch (err) {
       console.error('Update gagal:', err)
-      showAlert({ title: 'Gagal', message: 'Gagal mengupdate data', type: 'error' })
+      showAlert({ title: 'Gagal', message: getErrorMessage(err), type: 'error' })
     }
   }
 
@@ -643,14 +644,18 @@ export default function AdminPage() {
                                        <span className="text-xs text-gray-500 font-semibold">{doc.type.replace(/_/g, ' ')}</span>
                                     </div>
                                  </div>
-                                 <a 
-                                    href={`${process.env.NEXT_PUBLIC_API_URL}/attachments/admin/${doc.id}/download?token=${localStorage.getItem('token')}`}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="bg-[#5C7B78] hover:bg-[#4a6361] text-white text-xs px-4 py-2 rounded-lg font-bold transition-colors ml-2"
+                                 <button 
+                                    onClick={async () => {
+                                        try {
+                                            await viewFile(`/attachments/admin/${doc.id}/download`);
+                                        } catch (err) {
+                                            showAlert({ title: 'Gagal', message: 'Gagal melihat dokumen', type: 'error' });
+                                        }
+                                    }}
+                                    className="bg-[#5C7B78] hover:bg-[#4a6361] text-white text-xs px-4 py-2 rounded-lg font-bold transition-colors ml-2 flex items-center gap-1"
                                  >
-                                    Download
-                                 </a>
+                                    <Eye className="w-3 h-3" /> Lihat
+                                 </button>
                               </div>
                            ))
                         ) : (
