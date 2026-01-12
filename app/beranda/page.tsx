@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import Link from "next/link";
 import NavbarPeserta from "@/components/dashboard/NavbarPeserta";
-// import ListJadwalPelatihan from "@/components/dashboard/ListJadwalPelatihan";
+import ListJadwalPelatihan from "@/components/dashboard/ListJadwalPelatihan";
 
 export default function Home() {
 
@@ -98,7 +98,7 @@ export default function Home() {
         </div>
         <div className="bg-[#5C7B78] py-10">
           <div className="max-w-5xl mx-auto px-4 text-center text-white">
-            {/* <ListJadwalPelatihan/> */}
+            <ListJadwalPelatihan/>
           </div>
         </div>
       </section>

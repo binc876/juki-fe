@@ -23,6 +23,9 @@ export const metadata: Metadata = {
   description: "Jurnal Karya Ilmiah",
 };
 
+import IdleTimer from "@/components/auth/IdleTimer";
+import { AlertProvider } from "@/components/ui/alert-provider";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -31,9 +34,12 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} ${poppins.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} ${poppins.variable} font-poppins antialiased`}
       >
-        {children}
+        <AlertProvider>
+          <IdleTimer />
+          {children}
+        </AlertProvider>
       </body>
     </html>
   );

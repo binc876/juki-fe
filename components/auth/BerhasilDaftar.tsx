@@ -10,7 +10,11 @@ import {
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 
-export default function BerhasilDaftar() {
+interface BerhasilDaftarProps {
+  onSwitchToLogin?: () => void;
+}
+
+export default function BerhasilDaftar({ onSwitchToLogin }: BerhasilDaftarProps) {
   const router = useRouter()
   const [countdown, setCountdown] = useState(5)
   const [isOpen] = useState(true)
@@ -21,14 +25,19 @@ export default function BerhasilDaftar() {
     }, 1000)
 
     const redirectTimeout = setTimeout(() => {
-      router.push('/beranda')
+      if (onSwitchToLogin) {
+        onSwitchToLogin()
+      } else {
+        // Fallback if no handler provided
+        router.push('/')
+      }
     }, 5000)
 
     return () => {
       clearInterval(countdownInterval)
       clearTimeout(redirectTimeout)
     }
-  }, [router])
+  }, [router, onSwitchToLogin])
 
   return (
     <Dialog open={isOpen}>
@@ -36,8 +45,8 @@ export default function BerhasilDaftar() {
         <DialogHeader>
           <DialogTitle className="text-green-600 text-xl">Registrasi Berhasil!</DialogTitle>
           <DialogDescription className="text-base mt-2">
-            🎉 Selamat datang di <strong>Jupalo</strong>!<br />
-            Kamu akan diarahkan ke halaman <strong>Tiketku</strong> dalam {countdown} detik.
+            🎉 Akunmu berhasil dibuat.<br />
+            Kamu akan diarahkan ke halaman <strong>Login</strong> dalam {countdown} detik.
           </DialogDescription>
         </DialogHeader>
       </DialogContent>

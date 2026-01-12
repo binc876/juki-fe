@@ -9,9 +9,7 @@ import { cn } from "@/lib/utils"
 
 const navItems = [
   { name: "Beranda", href: "/beranda" },
-  { name: "Tiketku", href: "/tiketku" },
   { name: "Pelatihanku", href: "/pelatihanku" },
-  { name: "Bebas Tanggungan", href: "/bebas-tanggungan" },
 ]
 
 export default function NavbarPeserta() {

@@ -10,9 +10,19 @@ interface PublicNavbarProps {
   onRegistrasiClick: () => void;
 }
 
-export default function PublicNavbar({ onLoginClick }: PublicNavbarProps) {
+export default function PublicNavbar({ onLoginClick, onRegistrasiClick }: PublicNavbarProps) {
   const [open, setOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
+
+  // Detect auth status
+  useEffect(() => {
+    const token = localStorage.getItem('token')
+    const timer = setTimeout(() => {
+        setIsLoggedIn(!!token)
+    }, 0)
+    return () => clearTimeout(timer)
+  }, [])
 
   // Detect scroll
   useEffect(() => {
@@ -51,20 +61,37 @@ export default function PublicNavbar({ onLoginClick }: PublicNavbarProps) {
             scrolled ? "text-stone-700" : "text-white"
           }`}
         >
-          <Link href="#beranda" className="hover:text-[#5C7B78] transition-colors">Beranda</Link>
-          <Link href="#jadwal-pelatihan" className="hover:text-[#5C7B78] transition-colors">Jadwal Pelatihan</Link>
-          <Link href="#kontak-kami" className="hover:text-[#5C7B78] transition-colors">Kontak Kami</Link>
+          <Link href="/" className="hover:text-[#5C7B78] transition-colors">Beranda</Link>
+          <Link href="/pelatihanku" className="hover:text-[#5C7B78] transition-colors">Pelatihanku</Link>
         </nav>
 
         {/* Desktop Buttons */}
         <div className="hidden md:flex items-center space-x-2">
-          <Button 
-            variant="outline" 
-            className="text-[#5C7B78] border-[#5C7B78] hover:bg-[#5C7B78] hover:text-white text-xs lg:text-sm px-3 lg:px-4 py-1.5 lg:py-2" 
-            onClick={onLoginClick}
-          >
-            Masuk
-          </Button>
+          {isLoggedIn ? (
+             <Link href="/beranda">
+                <Button 
+                  className="bg-[#5C7B78] text-white hover:bg-[#4a6361] text-xs lg:text-sm px-3 lg:px-4 py-1.5 lg:py-2" 
+                >
+                  Dashboard
+                </Button>
+             </Link>
+          ) : (
+            <>
+              <Button 
+                variant="outline" 
+                className="text-[#5C7B78] border-[#5C7B78] hover:bg-[#5C7B78] hover:text-white text-xs lg:text-sm px-3 lg:px-4 py-1.5 lg:py-2" 
+                onClick={onLoginClick}
+              >
+                Masuk
+              </Button>
+              <Button 
+                className="bg-[#5C7B78] text-white hover:bg-[#4a6361] text-xs lg:text-sm px-3 lg:px-4 py-1.5 lg:py-2" 
+                onClick={onRegistrasiClick}
+              >
+                Daftar
+              </Button>
+            </>
+          )}
         </div>
 
         {/* Mobile menu icon */}
@@ -85,7 +112,7 @@ export default function PublicNavbar({ onLoginClick }: PublicNavbarProps) {
           <ul className="space-y-2 text-sm font-medium text-slate-700">
             <li>
               <Link 
-                href="#beranda" 
+                href="/" 
                 onClick={() => setOpen(false)}
                 className="block py-2 hover:text-[#5C7B78] transition-colors"
               >
@@ -94,33 +121,45 @@ export default function PublicNavbar({ onLoginClick }: PublicNavbarProps) {
             </li>
             <li>
               <Link 
-                href="#jadwal-pelatihan" 
+                href="/pelatihanku" 
                 onClick={() => setOpen(false)}
                 className="block py-2 hover:text-[#5C7B78] transition-colors"
               >
-                Jadwal Pelatihan
+                Pelatihanku
               </Link>
             </li>
             <li>
-              <Link 
-                href="#kontak-kami" 
-                onClick={() => setOpen(false)}
-                className="block py-2 hover:text-[#5C7B78] transition-colors"
-              >
-                Kontak Kami
-              </Link>
-            </li>
-            <li>
-              <Button 
-                variant="outline" 
-                className="w-full mt-2 text-[#5C7B78] border-[#5C7B78] hover:bg-[#5C7B78] hover:text-white text-sm" 
-                onClick={() => {
-                  setOpen(false);
-                  onLoginClick();
-                }}
-              >
-                Masuk
-              </Button>
+              {isLoggedIn ? (
+                 <Link href="/beranda" onClick={() => setOpen(false)}>
+                    <Button 
+                      className="w-full mt-2 bg-[#5C7B78] text-white hover:bg-[#4a6361] text-sm" 
+                    >
+                      Dashboard
+                    </Button>
+                 </Link>
+              ) : (
+                <>
+                  <Button 
+                    variant="outline" 
+                    className="w-full mt-2 text-[#5C7B78] border-[#5C7B78] hover:bg-[#5C7B78] hover:text-white text-sm" 
+                    onClick={() => {
+                      setOpen(false);
+                      onLoginClick();
+                    }}
+                  >
+                    Masuk
+                  </Button>
+                  <Button 
+                    className="w-full mt-2 bg-[#5C7B78] text-white hover:bg-[#4a6361] text-sm" 
+                    onClick={() => {
+                      setOpen(false);
+                      onRegistrasiClick();
+                    }}
+                  >
+                    Daftar
+                  </Button>
+                </>
+              )}
             </li>
           </ul>
         </div>

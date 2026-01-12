@@ -1,10 +1,11 @@
 'use client'
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import PublicNavbar from "@/components/dashboard/PublicNavbar";
+import NavbarPeserta from "@/components/dashboard/NavbarPeserta";
 import ListJadwalPelatihan from "@/components/dashboard/ListJadwalPelatihan";
 import LoginPesertaModal from "@/components/auth/LoginPesertaModal";
 import RegistrasiModal from "@/components/auth/RegistrasiModal";
@@ -12,6 +13,16 @@ import RegistrasiModal from "@/components/auth/RegistrasiModal";
 export default function Home() {  
   const [showLoginModal, setShowLoginModal] = useState(false)
   const [showRegistrasiModal, setShowRegistrasiModal] = useState(false)
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
+
+  useEffect(() => {
+    // Defer state update to avoid synchronous render warning
+    const token = localStorage.getItem('token')
+    const timer = setTimeout(() => {
+        setIsLoggedIn(!!token)
+    }, 0)
+    return () => clearTimeout(timer)
+  }, [])
 
   const handleSwitchToLogin = () => {
     setShowRegistrasiModal(false);
@@ -25,10 +36,14 @@ export default function Home() {
 
   return (
     <>
-    <PublicNavbar 
-      onLoginClick={() => setShowLoginModal(true)} 
-      onRegistrasiClick={() => setShowRegistrasiModal(true)} 
-    />
+    {isLoggedIn ? (
+      <NavbarPeserta />
+    ) : (
+      <PublicNavbar 
+        onLoginClick={() => setShowLoginModal(true)} 
+        onRegistrasiClick={() => setShowRegistrasiModal(true)} 
+      />
+    )}
     <main>
       <section id="beranda" className="relative h-[80vh] w-full">
         <Image

@@ -18,20 +18,26 @@ export default function LoginPesertaModal({ isOpen, onClose, onSwitchToRegistras
   const router = useRouter()
   const [form, setForm] = useState({ email: '', password: '' })
   const [showPassword, setShowPassword] = useState(false)
-  const [error, setError] = useState('')
+  const [errors, setErrors] = useState<Record<string, string>>({})
+  const [generalError, setGeneralError] = useState('')
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
-    setError('')
+    setErrors({})
+    setGeneralError('')
 
-    // Validasi input
+    const newErrors: Record<string, string> = {}
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    
     if (!emailRegex.test(form.email)) {
-      setError('Format email tidak valid!')
-      return
+      newErrors.email = 'Format email tidak valid!'
     }
     if (!form.password) {
-      setError('Password harus diisi!')
+      newErrors.password = 'Password harus diisi!'
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors)
       return
     }
 
@@ -50,7 +56,30 @@ export default function LoginPesertaModal({ isOpen, onClose, onSwitchToRegistras
       localStorage.setItem('token', accessToken)
       localStorage.setItem('refreshToken', refreshToken)
 
-      // Ambil data user setelah login
+      // Decode token untuk cek role
+      try {
+        const base64Url = accessToken.split('.')[1];
+        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+        const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+            return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+        }).join(''));
+        
+        const payload = JSON.parse(jsonPayload);
+        const roles = payload.roles || [];
+
+        if (roles.includes('ADMIN') || roles.includes('SUPER_ADMIN')) {
+           router.push('/admin');
+        } else {
+           // Default User
+           router.push('/beranda');
+        }
+      } catch (decodeError) {
+        console.error('Gagal decode token:', decodeError);
+        // Fallback jika gagal decode
+        router.push('/beranda');
+      }
+
+      // Ambil data user setelah login (background process)
       try {
         const userRes = await api.get('/profiles/me')
         localStorage.setItem('user', JSON.stringify(userRes.data))
@@ -58,13 +87,12 @@ export default function LoginPesertaModal({ isOpen, onClose, onSwitchToRegistras
         console.error('Gagal mengambil data user:', userError)
       }
 
-      router.push('/beranda')
       onClose();
     } catch (err: any) {
       if (err.response?.status === 401) {
-        setError('Email atau password salah!')
+        setGeneralError('Email atau password salah!')
       } else {
-        setError('Terjadi kesalahan. Coba lagi nanti.')
+        setGeneralError('Terjadi kesalahan. Coba lagi nanti.')
       }
     }
   }
@@ -113,31 +141,41 @@ export default function LoginPesertaModal({ isOpen, onClose, onSwitchToRegistras
                         placeholder="Email"
                         value={form.email}
                         onChange={(e) => setForm({ ...form, email: e.target.value })}
-                        className="w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl bg-transparent border border-white text-white placeholder-white/60 outline-none focus:ring-2 focus:ring-white transition-colors text-sm sm:text-base"
-                        required
+                        className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl bg-transparent border text-white placeholder-white/60 outline-none focus:ring-2 transition-colors text-sm sm:text-base ${
+                          errors.email 
+                            ? 'border-red-500 focus:ring-red-500' 
+                            : 'border-white focus:ring-white'
+                        }`}
                       />
+                      {errors.email && <p className="text-red-500 text-xs mt-1 font-semibold">{errors.email}</p>}
                     </div>
 
-                    <div className="relative">
-                      <input
-                        type={showPassword ? 'text' : 'password'}
-                        placeholder="Password"
-                        value={form.password}
-                        onChange={(e) => setForm({ ...form, password: e.target.value })}
-                        className="w-full px-3 sm:px-4 py-2.5 sm:py-3 pr-10 rounded-xl bg-transparent border border-white text-white placeholder-white/60 outline-none focus:ring-2 focus:ring-white transition-colors text-sm sm:text-base"
-                        required
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-[#EFE3D4] hover:text-white cursor-pointer transition-colors"
-                      >
-                        {showPassword ? <EyeClosed className="w-4 h-4 sm:w-5 sm:h-5" /> : <Eye className="w-4 h-4 sm:w-5 sm:h-5" />}
-                      </button>
+                    <div>
+                      <div className="relative">
+                        <input
+                          type={showPassword ? 'text' : 'password'}
+                          placeholder="Password"
+                          value={form.password}
+                          onChange={(e) => setForm({ ...form, password: e.target.value })}
+                          className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 pr-10 rounded-xl bg-transparent border text-white placeholder-white/60 outline-none focus:ring-2 transition-colors text-sm sm:text-base ${
+                            errors.password 
+                              ? 'border-red-500 focus:ring-red-500' 
+                              : 'border-white focus:ring-white'
+                          }`}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword(!showPassword)}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-[#EFE3D4] hover:text-white cursor-pointer transition-colors"
+                        >
+                          {showPassword ? <EyeClosed className="w-4 h-4 sm:w-5 sm:h-5" /> : <Eye className="w-4 h-4 sm:w-5 sm:h-5" />}
+                        </button>
+                      </div>
+                      {errors.password && <p className="text-red-500 text-xs mt-1 font-semibold">{errors.password}</p>}
                     </div>
 
-                    {error && (
-                      <p className='text-red-500 text-xs sm:text-sm'>{error}</p>
+                    {generalError && (
+                      <p className='text-red-500 text-xs sm:text-sm font-semibold'>{generalError}</p>
                     )}
 
                     <button

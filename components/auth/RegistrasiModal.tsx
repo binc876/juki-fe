@@ -15,40 +15,61 @@ interface RegistrasiModalProps {
 }
 
 export default function RegistrasiModal({ isOpen, onClose, onSwitchToLogin }: RegistrasiModalProps) {
-  const [form, setForm] = useState({ name: '', student_number: '', mobile_number: '', email: '', password: '', password_confirmation: '' })
+  const [form, setForm] = useState({ 
+    name: '', 
+    student_number: '', 
+    mobile_number: '', 
+    email: '', 
+    password: '', 
+    password_confirmation: '',
+    birthPlace: '',
+    birthDate: '',
+    gender: ''
+  })
+  const [errors, setErrors] = useState<Record<string, string>>({})
   const [showPassword, setShowPassword] = useState(false)
   const [showAlert, setShowAlert] = useState(false)
   const [loading, setLoading] = useState(false)
 
+  const [generalError, setGeneralError] = useState('')
+
+  const validate = () => {
+    const newErrors: Record<string, string> = {}
+
+    if (!form.name.trim()) newErrors.name = 'Nama lengkap harus diisi!'
+    
+    if (form.student_number.length < 5) newErrors.student_number = 'NIM tidak valid (min. 5 karakter)!'
+    
+    if (form.mobile_number.length < 9) newErrors.mobile_number = 'Nomor WhatsApp tidak valid (min. 9 angka)!'
+    
+    if (!form.birthPlace.trim()) newErrors.birthPlace = 'Tempat lahir harus diisi!'
+
+    if (!form.birthDate) newErrors.birthDate = 'Tanggal lahir harus diisi!'
+
+    if (!form.gender) newErrors.gender = 'Jenis kelamin harus dipilih!'
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(form.email)) newErrors.email = 'Format email tidak valid!'
+    
+    // Validasi Password Kompleks
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/
+    if (!form.password) {
+       newErrors.password = 'Password harus diisi!'
+    } else if (!passwordRegex.test(form.password)) {
+       newErrors.password = 'Password harus mengandung huruf besar, kecil, angka, dan simbol!'
+    }
+    
+    if (form.password !== form.password_confirmation) newErrors.password_confirmation = 'Password tidak cocok!'
+
+    setErrors(newErrors)
+    return Object.keys(newErrors).length === 0
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    setGeneralError('')
 
-    // Validasi input
-    if (!form.name.trim()) {
-      alert('Nama lengkap harus diisi!')
-      return
-    }
-    if (form.student_number.length < 5) {
-      alert('Nomor Induk Mahasiswa (NIM) tidak valid!')
-      return
-    }
-    if (form.mobile_number.length < 9) {
-      alert('Nomor WhatsApp tidak valid!')
-      return
-    }
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    if (!emailRegex.test(form.email)) {
-      alert('Format email tidak valid!')
-      return
-    }
-    if (form.password.length < 8) {
-      alert('Password minimal harus 8 karakter!')
-      return
-    }
-    if (form.password !== form.password_confirmation) {
-      alert('Password dan konfirmasi password tidak cocok!')
-      return
-    }
+    if (!validate()) return
 
     setLoading(true)
 
@@ -58,7 +79,10 @@ export default function RegistrasiModal({ isOpen, onClose, onSwitchToLogin }: Re
         nim: form.student_number,
         phone: `0${form.mobile_number}`,
         email: form.email,
-        password: form.password
+        password: form.password,
+        birthPlace: form.birthPlace,
+        birthDate: new Date(form.birthDate).toISOString(), // Ensure ISO string
+        gender: form.gender
       }
 
       const res = await api.post('/auth/register', payload, {
@@ -69,33 +93,42 @@ export default function RegistrasiModal({ isOpen, onClose, onSwitchToLogin }: Re
       })
       console.log('✅ Registrasi sukses:', res.data)
       
-      // Jika response mengembalikan token, simpan (Auto-login)
-      if (res.data.accessToken) {
-        localStorage.setItem('token', res.data.accessToken)
-        if (res.data.refreshToken) {
-          localStorage.setItem('refreshToken', res.data.refreshToken)
-        }
-        
-        try {
-           // Ambil data user setelah register jika auto-login
-           const userRes = await api.get('/profiles/me')
-           localStorage.setItem('user', JSON.stringify(userRes.data))
-        } catch (error) {
-           console.log('Gagal mengambil profile user setelah registrasi', error)
-        }
-      }
-
+      // Backend sekarang hanya mengembalikan message sukses, user harus login manual.
       setShowAlert(true)
     } catch (err: any) {
       console.log('❌ Registrasi gagal:', err)
-      alert(err.response?.data?.message || 'Terjadi kesalahan saat registrasi')
+      const data = err.response?.data
+      const status = err.response?.status
+      let msg = 'Terjadi kesalahan saat registrasi'
+
+      if (status === 500) {
+        msg = 'Terjadi kesalahan server. Kemungkinan Email atau NIM sudah terdaftar.'
+      } else if (data?.message) {
+        if (typeof data.message === 'string') {
+          msg = data.message
+        } else if (Array.isArray(data.message)) {
+          msg = data.message.join(', ')
+        } else if (typeof data.message === 'object' && Array.isArray(data.message.message)) {
+          // Handle nested NestJS style validation errors
+          msg = data.message.message.join(', ')
+        } else if (typeof data.message === 'object') {
+           // Fallback if structure is different but still an object
+           try {
+             msg = JSON.stringify(data.message)
+           } catch {
+             msg = 'Terjadi kesalahan validasi'
+           }
+        }
+      }
+      
+      setGeneralError(msg)
     } finally {
       setLoading(false)
     }
   }
 
   if (showAlert) {
-    return <BerhasilDaftar />;
+    return <BerhasilDaftar onSwitchToLogin={onSwitchToLogin} />;
   }
 
   return (
@@ -124,82 +157,212 @@ export default function RegistrasiModal({ isOpen, onClose, onSwitchToLogin }: Re
                     <p className="-mt-1 sm:-mt-2 md:-mt-3 text-sm sm:text-base">Daftar sekarang dan ikuti pelatihan jurnal dengan lebih mudah!</p>
 
                     <form className="flex flex-col gap-3 sm:gap-4" onSubmit={handleSubmit}>
-                      <input
-                        type="text"
-                        name='name'
-                        placeholder="Nama Lengkap"
-                        value={form.name}
-                        onChange={(e) => setForm({ ...form, name: e.target.value })}
-                        className="px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl bg-transparent border border-[#5C7B78] text-[#5C7B78] placeholder-[#5C7B78] outline-none focus:ring-2 focus:ring-[#5C7B78] text-sm sm:text-base"
-                      />
-                      <input
-                        type="text"
-                        name="student_number"
-                        placeholder="Nomor Induk Mahasiswa"
-                        value={form.student_number}
-                        onChange={(e) => setForm({ ...form, student_number: e.target.value })}
-                        className="px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl bg-transparent border border-[#5C7B78] text-[#5C7B78] placeholder-[#5C7B78] outline-none focus:ring-2 focus:ring-[#5C7B78] text-sm sm:text-base"
-                      />
-                      <div className="flex items-center border border-[#5C7B78] rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-[#5C7B78]">
-                        <span className="px-2 sm:px-3 text-sm sm:text-base">+62</span>
+                      <div>
                         <input
                           type="text"
-                          name="mobile_number"
-                          placeholder="Nomor WhatsApp"
-                          value={form.mobile_number}
-                          onChange={(e) => {
-                            let value = e.target.value.replace(/\D/g, "")
-                            if (value.startsWith("0")) {
-                              value = value.slice(1)
-                            }
-                            setForm({ ...form, mobile_number: value })
-                          }}
-                          className="flex-1 px-2 sm:px-3 py-2.5 sm:py-3 bg-transparent outline-none text-sm sm:text-base"
+                          name='name'
+                          placeholder="Nama Lengkap"
+                          value={form.name}
+                          onChange={(e) => setForm({ ...form, name: e.target.value })}
+                          className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl bg-transparent border text-[#5C7B78] placeholder-[#5C7B78] outline-none focus:ring-2 text-sm sm:text-base ${
+                            errors.name 
+                              ? 'border-red-500 focus:ring-red-500' 
+                              : 'border-[#5C7B78] focus:ring-[#5C7B78]'
+                          }`}
                         />
+                        {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name}</p>}
                       </div>
 
-                      <input
-                        type="email"
-                        name='email'
-                        placeholder="Email"
-                        value={form.email}
-                        onChange={(e) => setForm({ ...form, email: e.target.value })}
-                        className="px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl bg-transparent border border-[#5C7B78] text-[#5C7B78] placeholder-[#5C7B78] outline-none focus:ring-2 focus:ring-[#5C7B78] text-sm sm:text-base"
-                      />
-                      <div className="relative">
+                      <div>
                         <input
-                          type={showPassword ? 'text' : 'password'}
-                          name='password'
-                          placeholder="Password"
-                          value={form.password}
-                          onChange={(e) => setForm({ ...form, password: e.target.value })}
-                          className="w-full px-3 sm:px-4 py-2.5 sm:py-3 pr-10 rounded-xl bg-transparent border border-[#5C7B78] text-[#5C7B78] placeholder-[#5C7B78] outline-none focus:ring-2 focus:ring-[#5C7B78] text-sm sm:text-base"
+                          type="text"
+                          name="student_number"
+                          placeholder="Nomor Induk Mahasiswa"
+                          value={form.student_number}
+                          onChange={(e) => setForm({ ...form, student_number: e.target.value })}
+                          className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl bg-transparent border text-[#5C7B78] placeholder-[#5C7B78] outline-none focus:ring-2 text-sm sm:text-base ${
+                            errors.student_number 
+                              ? 'border-red-500 focus:ring-red-500' 
+                              : 'border-[#5C7B78] focus:ring-[#5C7B78]'
+                          }`}
                         />
-                        <button
-                          type="button"
-                          onClick={() => setShowPassword(!showPassword)}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 text-[#5C7B78] cursor-pointer"
-                        >
-                          {showPassword ? <EyeClosed className="w-4 h-4 sm:w-5 sm:h-5"/> : <Eye className="w-4 h-4 sm:w-5 sm:h-5"/>}
-                        </button>
+                         {errors.student_number && <p className="text-red-500 text-xs mt-1">{errors.student_number}</p>}
                       </div>
-                      <div className="relative">
+
+                      <div>
+                        <div className={`flex items-center border rounded-xl overflow-hidden focus-within:ring-2 ${
+                            errors.mobile_number 
+                              ? 'border-red-500 focus-within:ring-red-500' 
+                              : 'border-[#5C7B78] focus-within:ring-[#5C7B78]'
+                          }`}>
+                          <span className="px-2 sm:px-3 text-sm sm:text-base">+62</span>
+                          <input
+                            type="text"
+                            name="mobile_number"
+                            placeholder="Nomor WhatsApp"
+                            value={form.mobile_number}
+                            onChange={(e) => {
+                              let value = e.target.value.replace(/\D/g, "")
+                              if (value.startsWith("0")) {
+                                value = value.slice(1)
+                              }
+                              setForm({ ...form, mobile_number: value })
+                            }}
+                            className="flex-1 px-2 sm:px-3 py-2.5 sm:py-3 bg-transparent outline-none text-sm sm:text-base"
+                          />
+                        </div>
+                        {errors.mobile_number && <p className="text-red-500 text-xs mt-1">{errors.mobile_number}</p>}
+                      </div>
+
+                      {/* Baris Tempat & Tanggal Lahir */}
+                      <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+                        <div className="w-full sm:w-1/2">
+                          <input
+                            type="text"
+                            name="birthPlace"
+                            placeholder="Tempat Lahir"
+                            value={form.birthPlace}
+                            onChange={(e) => setForm({ ...form, birthPlace: e.target.value })}
+                            className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl bg-transparent border text-[#5C7B78] placeholder-[#5C7B78] outline-none focus:ring-2 text-sm sm:text-base ${
+                              errors.birthPlace
+                                ? 'border-red-500 focus:ring-red-500'
+                                : 'border-[#5C7B78] focus:ring-[#5C7B78]'
+                            }`}
+                          />
+                          {errors.birthPlace && <p className="text-red-500 text-xs mt-1">{errors.birthPlace}</p>}
+                        </div>
+                        
+                        <div className="w-full sm:w-1/2 relative">
+                          <input
+                            type={form.birthDate ? "date" : "text"}
+                            name="birthDate"
+                            placeholder="Tanggal Lahir"
+                            onFocus={(e) => (e.target.type = "date")}
+                            onBlur={(e) => {
+                              if (!e.target.value) e.target.type = "text";
+                            }}
+                            value={form.birthDate}
+                            onChange={(e) => setForm({ ...form, birthDate: e.target.value })}
+                            className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl bg-transparent border text-[#5C7B78] placeholder-[#5C7B78] outline-none focus:ring-2 text-sm sm:text-base ${
+                              errors.birthDate
+                                ? 'border-red-500 focus:ring-red-500'
+                                : 'border-[#5C7B78] focus:ring-[#5C7B78]'
+                            }`}
+                          />
+                          {/* Icon Kalender (Optional Visual Cue) */}
+                          {!form.birthDate && (
+                             <div className="absolute right-4 top-3 pointer-events-none text-[#5C7B78]">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-calendar"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
+                             </div>
+                          )}
+                          {errors.birthDate && <p className="text-red-500 text-xs mt-1">{errors.birthDate}</p>}
+                        </div>
+                      </div>
+
+                      {/* Dropdown Gender */}
+                      <div>
+                        <select
+                          name="gender"
+                          value={form.gender}
+                          onChange={(e) => setForm({ ...form, gender: e.target.value })}
+                          className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl bg-transparent border text-[#5C7B78] outline-none focus:ring-2 text-sm sm:text-base ${
+                            errors.gender
+                              ? 'border-red-500 focus:ring-red-500'
+                              : 'border-[#5C7B78] focus:ring-[#5C7B78]'
+                          }`}
+                        >
+                          <option value="" disabled className="text-gray-400">Pilih Jenis Kelamin</option>
+                          <option value="MALE" className="text-gray-800">Laki-laki</option>
+                          <option value="FEMALE" className="text-gray-800">Perempuan</option>
+                        </select>
+                         {errors.gender && <p className="text-red-500 text-xs mt-1">{errors.gender}</p>}
+                      </div>
+
+                      <div>
                         <input
-                          type={showPassword ? 'text' : 'password'}
-                          name='password_confirmation'
-                          placeholder="Konfirmasi Password"
-                          value={form.password_confirmation}
-                          onChange={(e) => setForm({ ...form, password_confirmation: e.target.value })}
-                          className="w-full px-3 sm:px-4 py-2.5 sm:py-3 pr-10 rounded-xl bg-transparent border border-[#5C7B78] text-[#5C7B78] placeholder-[#5C7B78] outline-none focus:ring-2 focus:ring-[#5C7B78] text-sm sm:text-base"
+                          type="email"
+                          name='email'
+                          placeholder="Email"
+                          value={form.email}
+                          onChange={(e) => setForm({ ...form, email: e.target.value })}
+                          className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl bg-transparent border text-[#5C7B78] placeholder-[#5C7B78] outline-none focus:ring-2 text-sm sm:text-base ${
+                            errors.email 
+                              ? 'border-red-500 focus:ring-red-500' 
+                              : 'border-[#5C7B78] focus:ring-[#5C7B78]'
+                          }`}
                         />
-                        <button
-                          type="button"
-                          onClick={() => setShowPassword(!showPassword)}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 text-[#5C7B78] cursor-pointer"
-                        >
-                          {showPassword ? <EyeClosed className="w-4 h-4 sm:w-5 sm:h-5"/> : <Eye className="w-4 h-4 sm:w-5 sm:h-5"/>}
-                        </button>
+                        {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
                       </div>
+
+                      <div>
+                        <div className="relative">
+                          <input
+                            type={showPassword ? 'text' : 'password'}
+                            name='password'
+                            placeholder="Password"
+                            value={form.password}
+                            onChange={(e) => setForm({ ...form, password: e.target.value })}
+                            className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 pr-10 rounded-xl bg-transparent border text-[#5C7B78] placeholder-[#5C7B78] outline-none focus:ring-2 text-sm sm:text-base ${
+                              errors.password 
+                                ? 'border-red-500 focus:ring-red-500' 
+                                : 'border-[#5C7B78] focus:ring-[#5C7B78]'
+                            }`}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowPassword(!showPassword)}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-[#5C7B78] cursor-pointer"
+                          >
+                            {showPassword ? <EyeClosed className="w-4 h-4 sm:w-5 sm:h-5"/> : <Eye className="w-4 h-4 sm:w-5 sm:h-5"/>}
+                          </button>
+                        </div>
+                        {errors.password && <p className="text-red-500 text-xs mt-1">{errors.password}</p>}
+                      </div>
+
+                      <div>
+                        <div className="relative">
+                          <input
+                            type={showPassword ? 'text' : 'password'}
+                            name='password_confirmation'
+                            placeholder="Konfirmasi Password"
+                            value={form.password_confirmation}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              setForm({ ...form, password_confirmation: val });
+                              // Real-time validation
+                              if (val !== form.password) {
+                                setErrors(prev => ({ ...prev, password_confirmation: 'Password tidak cocok!' }));
+                              } else {
+                                setErrors(prev => {
+                                  const newErr = { ...prev };
+                                  delete newErr.password_confirmation;
+                                  return newErr;
+                                });
+                              }
+                            }}
+                            className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 pr-10 rounded-xl bg-transparent border text-[#5C7B78] placeholder-[#5C7B78] outline-none focus:ring-2 text-sm sm:text-base ${
+                              errors.password_confirmation 
+                                ? 'border-red-500 focus:ring-red-500' 
+                                : 'border-[#5C7B78] focus:ring-[#5C7B78]'
+                            }`}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowPassword(!showPassword)}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-[#5C7B78] cursor-pointer"
+                          >
+                            {showPassword ? <EyeClosed className="w-4 h-4 sm:w-5 sm:h-5"/> : <Eye className="w-4 h-4 sm:w-5 sm:h-5"/>}
+                          </button>
+                        </div>
+                        {errors.password_confirmation && <p className="text-red-500 text-xs mt-1">{errors.password_confirmation}</p>}
+                      </div>
+                      
+                      {generalError && (
+                        <div className="p-3 rounded-lg bg-red-100 border border-red-200 text-red-700 text-sm">
+                          {generalError}
+                        </div>
+                      )}
+
                       <button
                         type="submit"
                         className="bg-[#5C7B78] hover:bg-[#4e6a67] text-white font-semibold py-2.5 sm:py-3 rounded-xl shadow-md transition-all text-sm sm:text-base"
