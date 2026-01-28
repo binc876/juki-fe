@@ -371,7 +371,7 @@ export default function AdminPage() {
                     placeholder="Cari peserta" 
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && fetchUsers(1, searchQuery)}
+                    onKeyDown={handleSearch}
                     className="w-full bg-white border border-gray-200 rounded-xl pl-12 pr-4 py-3 text-gray-700 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#5C7B78]/20" 
                   />
                 </div>
@@ -418,7 +418,7 @@ export default function AdminPage() {
                         <td className="py-4">{user.email}</td>
                         <td className="py-4">{user.profile?.phone || '-'}</td>
                         <td className="py-4 text-center">
-                           {getStatusBadge(user.trainingFlow?.statusCode || '', user.trainingFlow?.status?.label)}
+                           {getStatusBadge(user.trainingFlow?.statusCode || '')}
                         </td>
                         <td className="py-4 text-center">
                           <button 
@@ -605,7 +605,7 @@ export default function AdminPage() {
                         </div>
                         <div>
                            <p className="text-sm text-gray-500 mb-1">Status</p>
-                           {getStatusBadge(selectedUser.trainingFlow?.statusCode, selectedUser.trainingFlow?.status?.label)}
+                           {getStatusBadge(selectedUser.trainingFlow?.statusCode)}
                         </div>
                      </div>
                   </div>
