@@ -64,6 +64,7 @@ const getStepNumber = (status: UserStatus | string): number => {
       return 2;
     case 'ARTICLE_VERIFIED': // Siap pilih jadwal
     case 'TRAINING_WAITING': // Sudah pilih jadwal
+    case 'TRAINING_RESCHEDULE': // User tidak hadir, harus pilih jadwal lagi (tetap di step 4)
       return 4;
     case 'TRAINING_VERIFIED': // Sudah ikut training -> Review
     case 'REVIEW_WAITING':
@@ -105,6 +106,7 @@ export default function PelatihankuPage() {
   const [profile, setProfile] = useState<any>(null)
   const [status, setStatus] = useState<UserStatus>('PAYMENT_REQUIRED')
   const [currentStep, setCurrentStep] = useState(1)
+  const [actualStep, setActualStep] = useState(1) // Step sebenarnya berdasarkan status backend
   
   // State untuk Action Form
   const [filePayment, setFilePayment] = useState<File | null>(null)
@@ -158,21 +160,33 @@ export default function PelatihankuPage() {
     }
   }
 
-  const fetchTrainings = async () => {
+  const fetchTrainings = async (userProfile?: any) => {
     try {
       // Fetch ALL available trainings
       const res = await api.get('/trainings')
       console.log('Available Trainings (All):', res.data); 
       
       const list = Array.isArray(res.data.data) ? res.data.data : (Array.isArray(res.data) ? res.data : []);
-      setAllTrainings(list)
+      
+      // Filter trainings berdasarkan journalCode user
+      // Gunakan parameter userProfile jika ada, atau fallback ke state profile
+      const currentProfile = userProfile || profile;
+      const userJournalCode = currentProfile?.user?.trainingFlow?.journalCode;
+      const filteredList = userJournalCode 
+        ? list.filter((training: Training) => training.journalCode === userJournalCode)
+        : list;
+      
+      console.log('User Journal Code:', userJournalCode);
+      console.log('Filtered Trainings:', filteredList);
+      
+      setAllTrainings(filteredList)
       
       // Initialize Pagination (Client Side)
       setTrainingMeta({ 
         page: 1, 
         limit: 3, 
-        total: list.length, 
-        totalPage: Math.ceil(list.length / 3) 
+        total: filteredList.length, 
+        totalPage: Math.ceil(filteredList.length / 3) 
       })
     } catch (err) {
       console.error('Gagal memuat jadwal', err)
@@ -239,6 +253,9 @@ export default function PelatihankuPage() {
           newStep = 3;
       }
 
+      // Set actual step (step sebenarnya dari backend)
+      setActualStep(newStep)
+
       // Prevent regression if user manually advanced (e.g. from Step 2 Bridge to Step 3 Form)
       // while status is still 'ARTICLE_WAITING'
       if (userStatus === 'ARTICLE_WAITING' && currentStep > newStep) {
@@ -249,7 +266,7 @@ export default function PelatihankuPage() {
       
       // Jika status memungkinkan pilih jadwal, ambil data
       if (userStatus === 'ARTICLE_VERIFIED' || userStatus === 'TRAINING_RESCHEDULE') {
-        fetchTrainings()
+        fetchTrainings(userData) // Pass userData agar journalCode bisa difilter dengan benar
       }
 
       // Jika sudah pilih jadwal atau lebih lanjut, ambil detail training yang dipilih
@@ -1068,7 +1085,9 @@ export default function PelatihankuPage() {
                                                   Kelompok Jurnal :
                                                   <strong className="text-gray-900">
                                                     {' '}
-                                                    {training.journalCode || 'JOESMENT'}
+                                                    {training.journalCode && ['JIE', 'JOEFI', 'JOESMENT'].includes(training.journalCode) 
+                                                      ? training.journalCode 
+                                                      : '-'}
                                                   </strong>
                                                 </span>
                                               </div>
@@ -1078,7 +1097,7 @@ export default function PelatihankuPage() {
                                                   Dosen Pembimbing :
                                                   <span className="text-gray-900">
                                                     {' '}
-                                                    {training.mentorName || 'Bayu Setiawan'}
+                                                    {training.mentorName || '-'}
                                                   </span>
                                                 </span>
                                               </div>
@@ -1234,36 +1253,69 @@ export default function PelatihankuPage() {
       <main className="w-full pt-28 pb-12 px-4 md:px-0 flex flex-col items-center">
         
         {/* HORIZONTAL STEPPER */}
-        <div className="w-full max-w-5xl mb-12 px-4">
+        <div className="w-full max-w-6xl mb-8 px-4">
             <div className="relative flex justify-between items-start">
                 
                 {/* Connecting Line (Background) */}
                 <div className="absolute top-6 left-[8.33%] right-[8.33%] h-1 bg-[#CBCBCB] -z-0 rounded-full" />
+                
+                {/* Progress Line (Completed) */}
+                <div 
+                    className="absolute top-6 left-[8.33%] h-1 bg-[#5C7B78] -z-0 rounded-full transition-all duration-500"
+                    style={{ width: `${((actualStep - 1) / (steps.length - 1)) * 83.33}%` }}
+                />
 
                 {/* Steps */}
                 {steps.map((step) => {
                     const isActive = currentStep === step.id;
-                    const isCompleted = currentStep > step.id; // Untuk masa depan jika ingin style completed beda
+                    const isCompleted = actualStep > step.id;
+                    const canNavigate = step.id <= actualStep; // Bisa navigate ke step yang sudah dilewati atau step saat ini
                     
                     return (
-                        <div key={step.id} className="relative z-10 flex flex-col items-center group w-1/6">
+                        <button
+                            key={step.id}
+                            onClick={() => canNavigate && setCurrentStep(step.id)}
+                            disabled={!canNavigate}
+                            className={`relative z-10 flex flex-col items-center group w-1/6 ${canNavigate ? 'cursor-pointer' : 'cursor-not-allowed'}`}
+                        >
                             {/* Circle */}
                             <div className={`
                                 w-12 h-12 rounded-full flex items-center justify-center text-xl font-bold transition-all duration-300 shadow-md
-                                ${isActive ? 'bg-[#D15651] text-white scale-110' : 'bg-[#CBCBCB] text-white'}
+                                ${isActive ? 'bg-[#D15651] text-white scale-110' : isCompleted ? 'bg-[#5C7B78] text-white hover:bg-[#4a6361]' : canNavigate ? 'bg-[#5C7B78] text-white hover:bg-[#4a6361]' : 'bg-[#CBCBCB] text-white/70'}
                             `}>
-                                {step.id}
+                                {isCompleted ? (
+                                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                                    </svg>
+                                ) : (
+                                    step.id
+                                )}
                             </div>
                             
                             {/* Label */}
-                            <p className="mt-3 text-center text-white font-bold text-sm md:text-base leading-tight">
+                            <p className={`mt-3 text-center font-bold text-sm md:text-base leading-tight ${canNavigate ? 'text-white' : 'text-white/50'}`}>
                                 {step.label}
                             </p>
-                        </div>
+                        </button>
                     )
                 })}
             </div>
         </div>
+
+        {/* Back to Current Step Button */}
+        {currentStep !== actualStep && (
+            <div className="w-full max-w-6xl mb-6 px-4 flex justify-center">
+                <button
+                    onClick={() => setCurrentStep(actualStep)}
+                    className="flex items-center gap-2 bg-white/20 hover:bg-white/30 text-white font-semibold px-6 py-3 rounded-xl transition-all duration-300 backdrop-blur-sm border border-white/30"
+                >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                    </svg>
+                    Kembali ke Step Saat Ini
+                </button>
+            </div>
+        )}
 
         {/* CONTENT AREA */}
         <div className="w-full max-w-6xl">

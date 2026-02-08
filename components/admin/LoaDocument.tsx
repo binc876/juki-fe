@@ -166,7 +166,7 @@ export const LoaDocument = React.forwardRef<HTMLDivElement, LoaDocumentProps>(
           </div>
 
           {/* FOOTER - Updated with class for PDF identification */}
-          <div style={{ borderTop: '1px solid #ccc', pt: '10px', fontSize: '10pt', position: 'relative', zIndex: 1 }}>
+          <div style={{ borderTop: '1px solid #ccc', paddingTop: '10px', fontSize: '10pt', position: 'relative', zIndex: 1 }}>
             <div style={{ fontWeight: 'bold', color: '#1a4a7c' }}>
               {ojsLink ? (
                 <a 

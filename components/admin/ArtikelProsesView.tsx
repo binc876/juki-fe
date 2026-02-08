@@ -265,10 +265,11 @@ export default function ArtikelProsesView() {
           if (linkRect && selectedUser.trainingFlow.ojsAccount?.journalLink) {
               const mmFactor = 210 / (loaRef.current.clientWidth || 794); // A4 width / Standard 96dpi width
               
-              const x = linkRect.left * mmFactor;
-              const y = linkRect.top * mmFactor;
-              const w = linkRect.width * mmFactor;
-              const h = linkRect.height * mmFactor;
+              const rect = linkRect as DOMRect;
+              const x = rect.left * mmFactor;
+              const y = rect.top * mmFactor;
+              const w = rect.width * mmFactor;
+              const h = rect.height * mmFactor;
 
               pdf.link(x, y, w, h, { url: selectedUser.trainingFlow.ojsAccount.journalLink });
           }

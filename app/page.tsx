@@ -73,7 +73,7 @@ export default function Home() {
         <div className="space-y-4">
           <p className="text-xl text-gray-800 md:text-2xl font-bold">Cara Kerja.</p>
           <Card className="bg-[#5C7B78]">
-            <CardHeader className="flex flex-row items-start gap-4">
+            <CardHeader className="flex flex-row items-start gap-4 py-6">
               <Image
                 src="/1-pencil.png"
                 width={65}
@@ -90,7 +90,7 @@ export default function Home() {
             </CardHeader>
           </Card>
           <Card className="bg-[#5C7B78]">
-            <CardHeader className="flex flex-row items-start gap-4">
+            <CardHeader className="flex flex-row items-start gap-4 py-6">
               <Image
                 src="/2-lamp.png"
                 width={65}
@@ -106,7 +106,7 @@ export default function Home() {
             </CardHeader>
           </Card>
           <Card className="bg-[#5C7B78]">
-            <CardHeader className="flex flex-row items-start gap-4">
+            <CardHeader className="flex flex-row items-start gap-4 py-6">
               <Image
                 src="/3-paper.png"
                 width={65}

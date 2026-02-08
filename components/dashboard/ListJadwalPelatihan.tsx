@@ -136,21 +136,24 @@ export default function ListJadwalPelatihan({
           >
               {pages.map((pageItems, i) => (
                   <div key={i} className="w-full shrink-0 px-1">
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 place-items-start">
+                      {/* Mobile: Horizontal Scroll */}
+                      <div className="md:hidden overflow-x-auto scrollbar-hide">
+                        <div className="flex gap-4 px-4 pb-4">
                           {pageItems.map((training) => (
                               <Card
                                 key={training.id}
                                 onClick={onRegisterClick}
                                 className="
-                                  w-full
-                                  max-w-[440px]
-                                  h-[300px]
+                                  w-[85vw]
+                                  min-w-[280px]
+                                  max-w-[340px]
+                                  min-h-[280px]
                                   bg-white
                                   border-2 border-gray-300
-                                  rounded-2xl
+                                  rounded-xl
                                   shadow-sm
                                   overflow-hidden
-                                  p-2
+                                  p-1.5
                                   box-border
                                   cursor-pointer
                                   transition-all
@@ -158,27 +161,169 @@ export default function ListJadwalPelatihan({
                                   hover:border-[#5C7B78]
                                   hover:shadow-md
                                   group
+                                  shrink-0
                                 "
                               >
-                                <div className="flex flex-col h-full rounded-xl overflow-hidden">
+                                <div className="flex flex-col h-full rounded-lg overflow-hidden">
                                   {/* HEADER */}
                                   <div className="
                                     flex
                                     items-center
-                                    gap-4
-                                    px-5
-                                    py-3
-                                    h-[90px]
+                                    gap-2
+                                    px-3
+                                    py-2.5
+                                    h-[80px]
                                     bg-[#5C7B78]
                                     text-white
                                     transition-colors
                                     group-hover:bg-[#4a6361]
                                     text-left
                                   ">
-                                    <CalendarDays className="w-10 h-10 shrink-0" strokeWidth={2.5} />
-                                    <div className="flex flex-col min-w-0">
+                                    <CalendarDays className="w-8 h-8 shrink-0" strokeWidth={2.5} />
+                                    <div className="flex flex-col min-w-0 flex-1">
                                       <span className="
-                                        text-[11px]
+                                        text-[9px]
+                                        font-medium
+                                        uppercase
+                                        tracking-wider
+                                        text-white/90
+                                        truncate
+                                      ">
+                                        {training.batch ? `${training.batch} | ` : ''}
+                                        {training.title}
+                                      </span>
+                                      <h3 className="
+                                        text-base
+                                        font-bold
+                                        truncate
+                                      ">
+                                        {formatDate(training.startAt)}
+                                      </h3>
+                                    </div>
+                                  </div>
+
+                                  {/* BODY */}
+                                  <CardContent className="
+                                    flex-grow
+                                    px-3
+                                    py-3
+                                    bg-white
+                                    text-gray-700
+                                    text-xs
+                                    font-medium
+                                    flex
+                                    flex-col
+                                    justify-center
+                                    text-left
+                                  ">
+                                    <div className="space-y-1.5">
+                                      <div className="flex items-center gap-2 min-w-0">
+                                        <MapPin className="w-4 h-4 text-[#5C7B78] shrink-0" />
+                                        <span className="truncate">{training.location}</span>
+                                      </div>
+                                      <div className="flex items-center gap-2 min-w-0">
+                                        <Clock className="w-4 h-4 text-[#5C7B78] shrink-0" />
+                                        <span className="truncate">
+                                          {formatTime(training.startAt, training.endAt)}
+                                        </span>
+                                      </div>
+                                      <div className="flex items-center gap-2 min-w-0">
+                                        <FileText className="w-4 h-4 text-[#5C7B78] shrink-0" />
+                                        <span className="truncate">
+                                          Kelompok Jurnal :
+                                          <strong className="text-gray-900">
+                                            {' '}
+                                            {training.journalCode && ['JIE', 'JOEFI', 'JOESMENT'].includes(training.journalCode) 
+                                              ? training.journalCode 
+                                              : '-'}
+                                          </strong>
+                                        </span>
+                                      </div>
+                                      <div className="flex items-center gap-2 min-w-0">
+                                        <User className="w-4 h-4 text-[#5C7B78] shrink-0" />
+                                        <span className="truncate">
+                                          Dosen Pembimbing :
+                                          <span className="text-gray-900">
+                                            {' '}
+                                            {training.mentorName || '-'}
+                                          </span>
+                                        </span>
+                                      </div>
+                                      <div className="flex items-center gap-2 pt-0.5 min-w-0">
+                                        <Users className="w-4 h-4 text-[#5C7B78] shrink-0" />
+                                        <span className="truncate">
+                                          Sisa Kuota :
+                                          <span className="text-[#D35F5F] font-bold">
+                                            {' '}
+                                            {training.quota} Peserta
+                                          </span>
+                                        </span>
+                                      </div>
+                                    </div>
+                                  </CardContent>
+                                </div>
+                              </Card>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Desktop: Grid Layout */}
+                      <div className="hidden md:grid grid-cols-2 lg:grid-cols-3 gap-6 place-items-start">
+                          {pageItems.map((training) => (
+                              <Card
+                                key={training.id}
+                                onClick={onRegisterClick}
+                                className="
+                                  w-full
+                                  max-w-full
+                                  sm:max-w-[440px]
+                                  min-h-[280px]
+                                  sm:h-[300px]
+                                  bg-white
+                                  border-2 border-gray-300
+                                  rounded-xl
+                                  sm:rounded-2xl
+                                  shadow-sm
+                                  overflow-hidden
+                                  p-1.5
+                                  sm:p-2
+                                  box-border
+                                  cursor-pointer
+                                  transition-all
+                                  duration-300
+                                  hover:border-[#5C7B78]
+                                  hover:shadow-md
+                                  group
+                                  mx-auto
+                                "
+                              >
+                                <div className="flex flex-col h-full rounded-lg sm:rounded-xl overflow-hidden">
+                                  {/* HEADER */}
+                                  <div className="
+                                    flex
+                                    items-center
+                                    gap-2
+                                    sm:gap-3
+                                    md:gap-4
+                                    px-3
+                                    sm:px-4
+                                    md:px-5
+                                    py-2.5
+                                    sm:py-3
+                                    h-[80px]
+                                    sm:h-[90px]
+                                    bg-[#5C7B78]
+                                    text-white
+                                    transition-colors
+                                    group-hover:bg-[#4a6361]
+                                    text-left
+                                  ">
+                                    <CalendarDays className="w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 shrink-0" strokeWidth={2.5} />
+                                    <div className="flex flex-col min-w-0 flex-1">
+                                      <span className="
+                                        text-[9px]
+                                        sm:text-[10px]
+                                        md:text-[11px]
                                         lg:text-[12px]
                                         font-medium
                                         uppercase
@@ -190,7 +335,8 @@ export default function ListJadwalPelatihan({
                                         {training.title}
                                       </span>
                                       <h3 className="
-                                        text-lg
+                                        text-base
+                                        sm:text-lg
                                         lg:text-[22px]
                                         font-bold
                                         truncate
@@ -203,11 +349,15 @@ export default function ListJadwalPelatihan({
                                   {/* BODY */}
                                   <CardContent className="
                                     flex-grow
-                                    px-5
-                                    py-4
+                                    px-3
+                                    sm:px-4
+                                    md:px-5
+                                    py-3
+                                    sm:py-4
                                     bg-white
                                     text-gray-700
-                                    text-[13px]
+                                    text-xs
+                                    sm:text-[13px]
                                     lg:text-[15px]
                                     font-medium
                                     flex
@@ -215,39 +365,41 @@ export default function ListJadwalPelatihan({
                                     justify-center
                                     text-left
                                   ">
-                                    <div className="space-y-2">
-                                      <div className="flex items-center gap-3 min-w-0">
-                                        <MapPin className="w-5 h-5 text-[#5C7B78] shrink-0" />
+                                    <div className="space-y-1.5 sm:space-y-2">
+                                      <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+                                        <MapPin className="w-4 h-4 sm:w-5 sm:h-5 text-[#5C7B78] shrink-0" />
                                         <span className="truncate">{training.location}</span>
                                       </div>
-                                      <div className="flex items-center gap-3 min-w-0">
-                                        <Clock className="w-5 h-5 text-[#5C7B78] shrink-0" />
+                                      <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+                                        <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-[#5C7B78] shrink-0" />
                                         <span className="truncate">
                                           {formatTime(training.startAt, training.endAt)}
                                         </span>
                                       </div>
-                                      <div className="flex items-center gap-3 min-w-0">
-                                        <FileText className="w-5 h-5 text-[#5C7B78] shrink-0" />
+                                      <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+                                        <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-[#5C7B78] shrink-0" />
                                         <span className="truncate">
                                           Kelompok Jurnal :
                                           <strong className="text-gray-900">
                                             {' '}
-                                            {training.journalCode || 'JOESMENT'}
+                                            {training.journalCode && ['JIE', 'JOEFI', 'JOESMENT'].includes(training.journalCode) 
+                                              ? training.journalCode 
+                                              : '-'}
                                           </strong>
                                         </span>
                                       </div>
-                                      <div className="flex items-center gap-3 min-w-0">
-                                        <User className="w-5 h-5 text-[#5C7B78] shrink-0" />
+                                      <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+                                        <User className="w-4 h-4 sm:w-5 sm:h-5 text-[#5C7B78] shrink-0" />
                                         <span className="truncate">
                                           Dosen Pembimbing :
                                           <span className="text-gray-900">
                                             {' '}
-                                            {training.mentorName || 'Bayu Setiawan'}
+                                            {training.mentorName || '-'}
                                           </span>
                                         </span>
                                       </div>
-                                      <div className="flex items-center gap-3 pt-1 min-w-0">
-                                        <Users className="w-5 h-5 text-[#5C7B78] shrink-0" />
+                                      <div className="flex items-center gap-2 sm:gap-3 pt-0.5 sm:pt-1 min-w-0">
+                                        <Users className="w-4 h-4 sm:w-5 sm:h-5 text-[#5C7B78] shrink-0" />
                                         <span className="truncate">
                                           Sisa Kuota :
                                           <span className="text-[#D35F5F] font-bold">
