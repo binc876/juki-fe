@@ -266,10 +266,10 @@ export default function ArtikelProsesView() {
               const rect = capturedLinkRect as DOMRect; // Cast here
               const mmFactor = 210 / (loaRef.current.clientWidth || 794);
               
-              const x = linkRect.left * mmFactor;
-              const y = linkRect.top * mmFactor;
-              const w = linkRect.width * mmFactor;
-              const h = linkRect.height * mmFactor;
+              const x = rect.left * mmFactor;
+              const y = rect.top * mmFactor;
+              const w = rect.width * mmFactor;
+              const h = rect.height * mmFactor;
 
               pdf.link(x, y, w, h, { url: selectedUser.trainingFlow.ojsAccount.journalLink });
           }

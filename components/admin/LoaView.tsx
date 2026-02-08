@@ -240,7 +240,6 @@ export default function LoaView() {
             const rect = capturedLinkRect as DOMRect; // Cast here
             const mmFactor = 210 / (loaRef.current.clientWidth || 794);
             
-            const rect = linkRect as DOMRect;
             const x = rect.left * mmFactor;
             const y = rect.top * mmFactor;
             const w = rect.width * mmFactor;
