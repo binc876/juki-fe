@@ -705,6 +705,7 @@ export default function AdminPage() {
                         <td className="py-4">{user.profile?.phone || '-'}</td>
                         <td className="py-4 text-center">
                            {getStatusBadge(user.trainingFlow?.statusCode || '')}
+                           {getStatusBadge(user.trainingFlow?.statusCode || '')}
                         </td>
                         <td className="py-4 text-center">
                           <button 
@@ -891,7 +892,7 @@ export default function AdminPage() {
                         </div>
                         <div>
                            <p className="text-sm text-gray-500 mb-1">Status</p>
-                           {getStatusBadge(selectedUser.trainingFlow?.statusCode, selectedUser.trainingFlow?.status?.label)}
+                           {getStatusBadge(selectedUser.trainingFlow?.statusCode)}
                         </div>
                      </div>
                   </div>

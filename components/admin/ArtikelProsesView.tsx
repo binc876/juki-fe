@@ -207,7 +207,7 @@ export default function ArtikelProsesView() {
       if (!selectedUser || !loaRef.current) return
       
       try {
-          let linkRect: DOMRect | null = null;
+          let capturedLinkRect: DOMRect | null = null;
 
           // 1. Generate PDF from DOM
           const canvas = await html2canvas(loaRef.current, { 
@@ -248,7 +248,7 @@ export default function ArtikelProsesView() {
                   // 3. Find link position
                   const linkEl = clonedDoc.querySelector('.footer-link');
                   if (linkEl) {
-                      linkRect = linkEl.getBoundingClientRect();
+                      capturedLinkRect = linkEl.getBoundingClientRect();
                   }
               }
           });
@@ -262,14 +262,14 @@ export default function ArtikelProsesView() {
           pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight, undefined, 'FAST');
 
           // MANUALLY ADD LINK OVERLAY
-          if (linkRect && selectedUser.trainingFlow.ojsAccount?.journalLink) {
-              const mmFactor = 210 / (loaRef.current.clientWidth || 794); // A4 width / Standard 96dpi width
+          if (capturedLinkRect && selectedUser.trainingFlow.ojsAccount?.journalLink) {
+              const rect = capturedLinkRect as DOMRect; // Cast here
+              const mmFactor = 210 / (loaRef.current.clientWidth || 794);
               
-              const rect = linkRect as DOMRect;
-              const x = rect.left * mmFactor;
-              const y = rect.top * mmFactor;
-              const w = rect.width * mmFactor;
-              const h = rect.height * mmFactor;
+              const x = linkRect.left * mmFactor;
+              const y = linkRect.top * mmFactor;
+              const w = linkRect.width * mmFactor;
+              const h = linkRect.height * mmFactor;
 
               pdf.link(x, y, w, h, { url: selectedUser.trainingFlow.ojsAccount.journalLink });
           }
