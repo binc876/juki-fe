@@ -682,7 +682,7 @@ export default function JadwalPelatihanView() {
                      >
                         <option value="" disabled>Pilih</option>
                         <option value="JIE">JIE</option>
-                        <option value="FOFEI">FOFEI</option>
+                        <option value="JOEFI">JOEFI</option>
                         <option value="JOESMENT">JOESMENT</option>
                      </select>
                      <ChevronLeft className="w-4 h-4 absolute right-3 top-2.5 -rotate-90 pointer-events-none text-gray-500" />

@@ -20,7 +20,8 @@ import {
   X,
   FileIcon,
   Download,
-  Eye
+  Eye,
+  Clock
 } from 'lucide-react'
 import { api, getErrorMessage, downloadFile, viewFile } from '@/lib/api'
 import {
@@ -141,6 +142,11 @@ export default function AdminPage() {
   const [editForm, setEditForm] = useState<any>({})
   const [userStats, setUserStats] = useState<any>(null)
 
+  // --- State Reset Password ---
+  const [isResetPasswordOpen, setIsResetPasswordOpen] = useState(false)
+  const [resetPasswordResult, setResetPasswordResult] = useState<any>(null)
+  const [resetPasswordLoading, setResetPasswordLoading] = useState(false)
+
   // Cek Role Admin via JWT
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -257,16 +263,10 @@ export default function AdminPage() {
   useEffect(() => {
     if (activeTab === 'users') {
       fetchUsers();
+    } else if (activeTab === 'dashboard') {
+      fetchUserStats();
     }
   }, [activeTab, userMeta.page, statusFilter]);
-
-  // Handle Search (dengan Enter agar tidak spam API)
-  const handleSearch = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      setUserMeta(prev => ({ ...prev, page: 1 }));
-      fetchUsers();
-    }
-  };
 
   // --- Detail User ---
   const handleViewDetail = async (userId: string) => {
@@ -299,7 +299,35 @@ export default function AdminPage() {
 
   const handleUpdateUser = async () => {
     try {
-      await api.patch(`/users/${selectedUser.id}`, editForm)
+      // Buat object untuk menyimpan data original
+      const originalData: Record<string, any> = {
+        fullName: selectedUser.profile?.fullName,
+        nim: selectedUser.profile?.nim,
+        email: selectedUser.email,
+        phone: selectedUser.profile?.phone,
+        articleTitle: selectedUser.trainingFlow?.articleTitle,
+        ojsUsername: selectedUser.trainingFlow?.ojsAccount?.username,
+        ojsPassword: selectedUser.trainingFlow?.ojsAccount?.password,
+        journalCode: selectedUser.trainingFlow?.journalCode,
+        journalLink: selectedUser.trainingFlow?.ojsAccount?.journalLink,
+      }
+
+      // Filter hanya field yang berubah
+      const changedFields: Record<string, any> = {}
+      Object.keys(editForm).forEach((key) => {
+        if (editForm[key] !== originalData[key]) {
+          changedFields[key] = editForm[key]
+        }
+      })
+
+      // Jika tidak ada perubahan, tampilkan pesan
+      if (Object.keys(changedFields).length === 0) {
+        showAlert({ title: 'Info', message: 'Tidak ada perubahan data', type: 'warning' })
+        return
+      }
+
+      // Kirim hanya field yang berubah
+      await api.patch(`/users/${selectedUser.id}`, changedFields)
       showAlert({ title: 'Berhasil', message: 'Data berhasil diupdate!', type: 'success' })
       setIsEditOpen(false)
       handleViewDetail(selectedUser.id) // Refresh detail
@@ -308,6 +336,49 @@ export default function AdminPage() {
       console.error('Update gagal:', err)
       showAlert({ title: 'Gagal', message: getErrorMessage(err), type: 'error' })
     }
+  }
+
+  // --- Reset Password ---
+  const handleResetPassword = async () => {
+    if (!selectedUser) return
+    
+    setResetPasswordLoading(true)
+    try {
+      const res = await api.post(`/users/${selectedUser.id}/reset-password`, {})
+      const data = res.data.data || res.data
+      
+      setResetPasswordResult(data)
+      setIsResetPasswordOpen(true)
+      
+      showAlert({ 
+        title: 'Berhasil', 
+        message: 'Password berhasil direset! Silakan copy dan kirim ke peserta.', 
+        type: 'success' 
+      })
+    } catch (err) {
+      console.error('Reset password gagal:', err)
+      showAlert({ title: 'Gagal', message: getErrorMessage(err), type: 'error' })
+    } finally {
+      setResetPasswordLoading(false)
+    }
+  }
+
+  // Copy to Clipboard Helper
+  const copyToClipboard = (text: string, label: string) => {
+    navigator.clipboard.writeText(text)
+    showAlert({ title: 'Berhasil', message: `${label} berhasil di-copy!`, type: 'success' })
+  }
+
+  // Open WhatsApp Web
+  const openWhatsApp = () => {
+    if (!resetPasswordResult?.phone) {
+      showAlert({ title: 'Perhatian', message: 'Nomor WhatsApp tidak tersedia', type: 'warning' })
+      return
+    }
+    
+    const phone = resetPasswordResult.phone.replace(/^0/, '62') // 08xxx -> 628xxx
+    const message = encodeURIComponent(resetPasswordResult.whatsappMessage)
+    window.open(`https://wa.me/${phone}?text=${message}`, '_blank')
   }
 
   // Handle Logout
@@ -333,22 +404,232 @@ export default function AdminPage() {
     switch (activeTab) {
       case 'dashboard':
         return (
-          <div className="space-y-6">
-            <h2 className="text-3xl font-bold mb-6">Dashboard Overview</h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="bg-white/10 border border-white/30 p-6 rounded-2xl">
-                <h3 className="text-lg font-medium text-white/80">Total Peserta</h3>
-                <p className="text-4xl font-bold mt-2">{userStats?.roles?.user || 0}</p>
+          <div className="space-y-6 sm:space-y-8">
+            {/* Header */}
+            <div className="flex flex-col gap-2">
+              <h2 className="text-2xl sm:text-3xl font-bold text-white">Dashboard Overview</h2>
+              <p className="text-white/70 text-sm sm:text-base">Ringkasan statistik sistem pelatihan jurnal</p>
+            </div>
+
+            {/* Stats Cards - Grid Responsive */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+              {/* Card 1: Total Peserta */}
+              <div className="group bg-gradient-to-br from-white/20 to-white/5 backdrop-blur-sm border border-white/30 p-5 sm:p-6 rounded-2xl hover:scale-105 transition-all duration-300 hover:shadow-xl">
+                <div className="flex items-start justify-between mb-4">
+                  <div className="p-3 bg-white/20 rounded-xl group-hover:bg-white/30 transition-colors">
+                    <Users className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
+                  </div>
+                  <span className="text-xs sm:text-sm font-medium text-white/60 bg-white/10 px-2 sm:px-3 py-1 rounded-full">Total</span>
+                </div>
+                <h3 className="text-sm sm:text-base font-medium text-white/80 mb-1">Total Peserta</h3>
+                <p className="text-3xl sm:text-4xl font-bold text-white">{userStats?.roles?.user || 0}</p>
+                <p className="text-xs sm:text-sm text-white/60 mt-2">Peserta terdaftar</p>
               </div>
-              <div className="bg-white/10 border border-white/30 p-6 rounded-2xl">
-                <h3 className="text-lg font-medium text-white/80">Menunggu Verifikasi</h3>
-                <p className="text-4xl font-bold mt-2 text-yellow-300">
+
+              {/* Card 2: Menunggu Verifikasi */}
+              <div className="group bg-gradient-to-br from-yellow-500/30 to-yellow-600/10 backdrop-blur-sm border border-yellow-400/40 p-5 sm:p-6 rounded-2xl hover:scale-105 transition-all duration-300 hover:shadow-xl">
+                <div className="flex items-start justify-between mb-4">
+                  <div className="p-3 bg-yellow-400/20 rounded-xl group-hover:bg-yellow-400/30 transition-colors">
+                    <Clock className="w-6 h-6 sm:w-7 sm:h-7 text-yellow-200" />
+                  </div>
+                  <span className="text-xs sm:text-sm font-medium text-yellow-200 bg-yellow-400/20 px-2 sm:px-3 py-1 rounded-full">Pending</span>
+                </div>
+                <h3 className="text-sm sm:text-base font-medium text-yellow-100 mb-1">Menunggu Verifikasi</h3>
+                <p className="text-3xl sm:text-4xl font-bold text-yellow-200">
                   {(userStats?.needs_verification?.payment || 0) + (userStats?.needs_verification?.administrative || 0)}
                 </p>
+                <p className="text-xs sm:text-sm text-yellow-200/70 mt-2">Perlu tindakan admin</p>
               </div>
-              <div className="bg-white/10 border border-white/30 p-6 rounded-2xl">
-                <h3 className="text-lg font-medium text-white/80">LOA Terbit</h3>
-                <p className="text-4xl font-bold mt-2 text-green-300">{userStats?.process?.loa_published || 0}</p>
+
+              {/* Card 3: Sedang Proses */}
+              <div className="group bg-gradient-to-br from-blue-500/30 to-blue-600/10 backdrop-blur-sm border border-blue-400/40 p-5 sm:p-6 rounded-2xl hover:scale-105 transition-all duration-300 hover:shadow-xl">
+                <div className="flex items-start justify-between mb-4">
+                  <div className="p-3 bg-blue-400/20 rounded-xl group-hover:bg-blue-400/30 transition-colors">
+                    <FileText className="w-6 h-6 sm:w-7 sm:h-7 text-blue-200" />
+                  </div>
+                  <span className="text-xs sm:text-sm font-medium text-blue-200 bg-blue-400/20 px-2 sm:px-3 py-1 rounded-full">Progress</span>
+                </div>
+                <h3 className="text-sm sm:text-base font-medium text-blue-100 mb-1">Sedang Proses</h3>
+                <p className="text-3xl sm:text-4xl font-bold text-blue-200">
+                  {(userStats?.process?.article_verified || 0) + (userStats?.process?.training_waiting || 0) + (userStats?.process?.review_waiting || 0)}
+                </p>
+                <p className="text-xs sm:text-sm text-blue-200/70 mt-2">Dalam tahap pelatihan</p>
+              </div>
+
+              {/* Card 4: LOA Terbit */}
+              <div className="group bg-gradient-to-br from-green-500/30 to-green-600/10 backdrop-blur-sm border border-green-400/40 p-5 sm:p-6 rounded-2xl hover:scale-105 transition-all duration-300 hover:shadow-xl">
+                <div className="flex items-start justify-between mb-4">
+                  <div className="p-3 bg-green-400/20 rounded-xl group-hover:bg-green-400/30 transition-colors">
+                    <Award className="w-6 h-6 sm:w-7 sm:h-7 text-green-200" />
+                  </div>
+                  <span className="text-xs sm:text-sm font-medium text-green-200 bg-green-400/20 px-2 sm:px-3 py-1 rounded-full">Success</span>
+                </div>
+                <h3 className="text-sm sm:text-base font-medium text-green-100 mb-1">LOA Terbit</h3>
+                <p className="text-3xl sm:text-4xl font-bold text-green-200">{userStats?.process?.loa_published || 0}</p>
+                <p className="text-xs sm:text-sm text-green-200/70 mt-2">Peserta selesai</p>
+              </div>
+            </div>
+
+            {/* Detail Stats - Breakdown by Status */}
+            <div className="bg-white/10 backdrop-blur-sm border border-white/30 rounded-2xl p-5 sm:p-6 md:p-8">
+              <h3 className="text-lg sm:text-xl font-bold text-white mb-4 sm:mb-6">Breakdown Status Peserta</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+                {/* Payment */}
+                <div className="bg-white/5 rounded-xl p-4 border border-white/10">
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-sm font-medium text-white/80">Pembayaran</span>
+                    <div className="w-2 h-2 rounded-full bg-yellow-400"></div>
+                  </div>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-white/60">Belum Bayar</span>
+                      <span className="font-bold text-white">{userStats?.process?.payment_required || 0}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-white/60">Menunggu Verifikasi</span>
+                      <span className="font-bold text-white">{userStats?.needs_verification?.payment || 0}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-white/60">Terverifikasi</span>
+                      <span className="font-bold text-white">{userStats?.process?.payment_verified || 0}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Administrative */}
+                <div className="bg-white/5 rounded-xl p-4 border border-white/10">
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-sm font-medium text-white/80">Administratif</span>
+                    <div className="w-2 h-2 rounded-full bg-blue-400"></div>
+                  </div>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-white/60">Perlu Isi Form</span>
+                      <span className="font-bold text-white">{userStats?.process?.administrative_required || 0}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-white/60">Menunggu Verifikasi</span>
+                      <span className="font-bold text-white">{userStats?.needs_verification?.administrative || 0}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Article */}
+                <div className="bg-white/5 rounded-xl p-4 border border-white/10">
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-sm font-medium text-white/80">Artikel</span>
+                    <div className="w-2 h-2 rounded-full bg-purple-400"></div>
+                  </div>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-white/60">Belum Submit</span>
+                      <span className="font-bold text-white">{userStats?.process?.article_waiting || 0}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-white/60">Sudah Submit</span>
+                      <span className="font-bold text-white">{userStats?.process?.article_verified || 0}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Training */}
+                <div className="bg-white/5 rounded-xl p-4 border border-white/10">
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-sm font-medium text-white/80">Pelatihan</span>
+                    <div className="w-2 h-2 rounded-full bg-indigo-400"></div>
+                  </div>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-white/60">Menunggu</span>
+                      <span className="font-bold text-white">{userStats?.process?.training_waiting || 0}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-white/60">Selesai</span>
+                      <span className="font-bold text-white">{userStats?.process?.training_verified || 0}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Review */}
+                <div className="bg-white/5 rounded-xl p-4 border border-white/10">
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-sm font-medium text-white/80">Review</span>
+                    <div className="w-2 h-2 rounded-full bg-pink-400"></div>
+                  </div>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-white/60">Perlu Review</span>
+                      <span className="font-bold text-white">{userStats?.process?.review_waiting || 0}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-white/60">Selesai Review</span>
+                      <span className="font-bold text-white">{userStats?.process?.review_verified || 0}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* LOA */}
+                <div className="bg-white/5 rounded-xl p-4 border border-white/10">
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-sm font-medium text-white/80">LOA</span>
+                    <div className="w-2 h-2 rounded-full bg-green-400"></div>
+                  </div>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-white/60">Menunggu</span>
+                      <span className="font-bold text-white">{userStats?.process?.loa_waiting || 0}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-white/60">Terbit</span>
+                      <span className="font-bold text-green-300">{userStats?.process?.loa_published || 0}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Quick Actions */}
+            <div className="bg-white/10 backdrop-blur-sm border border-white/30 rounded-2xl p-5 sm:p-6 md:p-8">
+              <h3 className="text-lg sm:text-xl font-bold text-white mb-4 sm:mb-6">Quick Actions</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+                <button
+                  onClick={() => setActiveTab('verification')}
+                  className="flex items-center gap-3 sm:gap-4 p-4 bg-white/10 hover:bg-white/20 rounded-xl transition-all border border-white/20 hover:border-white/40 text-left group"
+                >
+                  <div className="p-2 sm:p-3 bg-yellow-400/20 rounded-lg group-hover:bg-yellow-400/30 transition-colors">
+                    <CheckCircle className="w-5 h-5 sm:w-6 sm:h-6 text-yellow-200" />
+                  </div>
+                  <div>
+                    <p className="font-bold text-white text-sm sm:text-base">Verifikasi</p>
+                    <p className="text-xs sm:text-sm text-white/60">Kelola verifikasi peserta</p>
+                  </div>
+                </button>
+
+                <button
+                  onClick={() => setActiveTab('trainings')}
+                  className="flex items-center gap-3 sm:gap-4 p-4 bg-white/10 hover:bg-white/20 rounded-xl transition-all border border-white/20 hover:border-white/40 text-left group"
+                >
+                  <div className="p-2 sm:p-3 bg-blue-400/20 rounded-lg group-hover:bg-blue-400/30 transition-colors">
+                    <CalendarDays className="w-5 h-5 sm:w-6 sm:h-6 text-blue-200" />
+                  </div>
+                  <div>
+                    <p className="font-bold text-white text-sm sm:text-base">Jadwal Pelatihan</p>
+                    <p className="text-xs sm:text-sm text-white/60">Kelola jadwal pelatihan</p>
+                  </div>
+                </button>
+
+                <button
+                  onClick={() => setActiveTab('loa')}
+                  className="flex items-center gap-3 sm:gap-4 p-4 bg-white/10 hover:bg-white/20 rounded-xl transition-all border border-white/20 hover:border-white/40 text-left group"
+                >
+                  <div className="p-2 sm:p-3 bg-green-400/20 rounded-lg group-hover:bg-green-400/30 transition-colors">
+                    <Award className="w-5 h-5 sm:w-6 sm:h-6 text-green-200" />
+                  </div>
+                  <div>
+                    <p className="font-bold text-white text-sm sm:text-base">LOA</p>
+                    <p className="text-xs sm:text-sm text-white/60">Kelola penerbitan LOA</p>
+                  </div>
+                </button>
               </div>
             </div>
           </div>
@@ -371,7 +652,12 @@ export default function AdminPage() {
                     placeholder="Cari peserta" 
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    onKeyDown={handleSearch}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        setUserMeta(prev => ({ ...prev, page: 1 }));
+                        fetchUsers();
+                      }
+                    }}
                     className="w-full bg-white border border-gray-200 rounded-xl pl-12 pr-4 py-3 text-gray-700 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#5C7B78]/20" 
                   />
                 </div>
@@ -418,6 +704,7 @@ export default function AdminPage() {
                         <td className="py-4">{user.email}</td>
                         <td className="py-4">{user.profile?.phone || '-'}</td>
                         <td className="py-4 text-center">
+                           {getStatusBadge(user.trainingFlow?.statusCode || '')}
                            {getStatusBadge(user.trainingFlow?.statusCode || '')}
                         </td>
                         <td className="py-4 text-center">
@@ -755,10 +1042,27 @@ export default function AdminPage() {
                  </div>
 
                  {/* Reset Password Button */}
-                 <div className="flex justify-end">
-                    <button className="bg-[#5C7B78] text-white px-6 py-2 rounded-lg text-sm font-bold hover:opacity-90 shadow-md">
-                       Reset Password
-                    </button>
+                 <div className="pt-3 border-t border-gray-100">
+                    <div className="flex items-center justify-between">
+                       <div>
+                          <h3 className="text-base font-bold text-[#5C7B78]">Reset Password</h3>
+                          <p className="text-xs text-gray-500 mt-1">Password akan di-generate otomatis dan Anda akan mendapatkan pesan WhatsApp yang siap dikirim</p>
+                       </div>
+                       <button 
+                          onClick={handleResetPassword}
+                          disabled={resetPasswordLoading}
+                          className="bg-[#D15651] hover:bg-[#b54641] text-white px-6 py-2.5 rounded-lg text-sm font-bold transition shadow-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                       >
+                          {resetPasswordLoading ? (
+                             <>
+                                <Clock className="w-4 h-4 animate-spin" />
+                                Memproses...
+                             </>
+                          ) : (
+                             'Reset Password'
+                          )}
+                       </button>
+                    </div>
                  </div>
 
                  {/* Section Data Akun OJS - Hanya muncul jika ada data */}
@@ -793,7 +1097,8 @@ export default function AdminPage() {
                             >
                                <option value="">Pilih Kelompok</option>
                                <option value="JIE">JIE</option>
-                               <option value="JUKIS">JUKIS</option>
+                               <option value="JOEFI">JOEFI</option>
+                               <option value="JOESMENT">JOESMENT</option>
                             </select>
                          </div>
                          <div>
@@ -853,6 +1158,114 @@ export default function AdminPage() {
                    Batal
                  </Button>
               </div>
+           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Reset Password Result Modal */}
+      <Dialog open={isResetPasswordOpen} onOpenChange={setIsResetPasswordOpen}>
+        <DialogContent className="max-w-2xl bg-white rounded-3xl p-8 border-none">
+           <div className="space-y-6">
+              {/* Header */}
+              <div className="text-center">
+                 <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-green-100 flex items-center justify-center">
+                    <CheckCircle className="w-8 h-8 text-green-600" />
+                 </div>
+                 <DialogTitle className="text-2xl font-bold text-[#5C7B78] mb-2">
+                    Password Berhasil Direset!
+                 </DialogTitle>
+                 <p className="text-sm text-gray-600">
+                    Silakan copy informasi di bawah dan kirim ke peserta via WhatsApp
+                 </p>
+              </div>
+
+              {resetPasswordResult && (
+                <div className="space-y-4">
+                   {/* Password Baru */}
+                   <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
+                      <label className="text-xs font-bold text-gray-600 mb-2 block">PASSWORD BARU</label>
+                      <div className="flex items-center gap-3">
+                         <code className="flex-1 bg-white px-4 py-3 rounded-lg border border-gray-300 font-mono text-lg font-bold text-[#5C7B78] break-all">
+                            {resetPasswordResult.newPassword}
+                         </code>
+                         <button 
+                            onClick={() => copyToClipboard(resetPasswordResult.newPassword, 'Password')}
+                            className="bg-[#5C7B78] hover:bg-[#4a6361] text-white px-4 py-3 rounded-lg font-bold text-sm transition flex items-center gap-2 shrink-0"
+                         >
+                            <Download className="w-4 h-4" />
+                            Copy
+                         </button>
+                      </div>
+                   </div>
+
+                   {/* Nomor WhatsApp */}
+                   <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
+                      <label className="text-xs font-bold text-gray-600 mb-2 block">NOMOR WHATSAPP</label>
+                      <div className="flex items-center gap-3">
+                         <div className="flex-1 bg-white px-4 py-3 rounded-lg border border-gray-300 font-bold text-gray-800">
+                            {resetPasswordResult.phone || 'Tidak tersedia'}
+                         </div>
+                         {resetPasswordResult.phone && (
+                            <button 
+                               onClick={() => copyToClipboard(resetPasswordResult.phone, 'Nomor WhatsApp')}
+                               className="bg-[#5C7B78] hover:bg-[#4a6361] text-white px-4 py-3 rounded-lg font-bold text-sm transition flex items-center gap-2 shrink-0"
+                            >
+                               <Download className="w-4 h-4" />
+                               Copy
+                            </button>
+                         )}
+                      </div>
+                   </div>
+
+                   {/* Pesan WhatsApp */}
+                   <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
+                      <label className="text-xs font-bold text-gray-600 mb-2 block">PESAN WHATSAPP</label>
+                      <div className="space-y-3">
+                         <textarea 
+                            readOnly
+                            value={resetPasswordResult.whatsappMessage}
+                            className="w-full bg-white px-4 py-3 rounded-lg border border-gray-300 text-sm text-gray-700 resize-none font-mono"
+                            rows={10}
+                         />
+                         <button 
+                            onClick={() => copyToClipboard(resetPasswordResult.whatsappMessage, 'Pesan WhatsApp')}
+                            className="w-full bg-[#5C7B78] hover:bg-[#4a6361] text-white px-4 py-3 rounded-lg font-bold text-sm transition flex items-center justify-center gap-2"
+                         >
+                            <Download className="w-4 h-4" />
+                            Copy Pesan WhatsApp
+                         </button>
+                      </div>
+                   </div>
+
+                   {/* Actions */}
+                   <div className="grid grid-cols-2 gap-4 pt-4">
+                      <button 
+                         onClick={openWhatsApp}
+                         disabled={!resetPasswordResult.phone}
+                         className="bg-[#25D366] hover:bg-[#20ba5a] text-white py-4 rounded-xl font-bold text-base transition shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                      >
+                         <MessageSquare className="w-5 h-5" />
+                         Buka WhatsApp Web
+                      </button>
+                      <button 
+                         onClick={() => {
+                            setIsResetPasswordOpen(false)
+                            setResetPasswordResult(null)
+                         }}
+                         className="border-2 border-gray-300 text-gray-700 hover:bg-gray-50 py-4 rounded-xl font-bold text-base transition"
+                      >
+                         Tutup
+                      </button>
+                   </div>
+
+                   {/* Info Note */}
+                   <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+                      <p className="text-xs text-blue-800">
+                         <span className="font-bold">ℹ️ Catatan:</span> Semua sesi login peserta telah dihapus. Peserta harus login ulang dengan password baru ini.
+                      </p>
+                   </div>
+                </div>
+              )}
            </div>
         </DialogContent>
       </Dialog>
