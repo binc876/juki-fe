@@ -6,7 +6,7 @@ export const api = axios.create({
   headers: {
     'ngrok-skip-browser-warning': 'true'
   },
-  withCredentials: false, 
+  withCredentials: true, 
 });
 
 // Helper untuk mengekstrak pesan error yang user-friendly
