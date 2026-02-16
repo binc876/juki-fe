@@ -5,7 +5,7 @@ const nextConfig: NextConfig = {
     return [
       {
         source: '/api/proxy/:path*',
-        destination: `${process.env.BACKEND_URL || 'https://1376b1a89b60.ngrok-free.app/api/v1'}/:path*`,
+        destination: `https://juki-service.rurustudio.cloud/api/v1/:path*`,
       },
     ];
   },
