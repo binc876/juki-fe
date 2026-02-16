@@ -4,11 +4,11 @@ import axios from 'axios';
 export const api = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL,
   headers: {
+    'Content-Type': 'application/json',
     'ngrok-skip-browser-warning': 'true'
   },
   withCredentials: false,
-  maxRedirects: 5, // Follow redirects
-  timeout: 30000, // 30 second timeout
+  timeout: 30000,
 });
 
 // Helper untuk mengekstrak pesan error yang user-friendly
