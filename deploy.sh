@@ -46,6 +46,11 @@ echo "🔐 Setting permissions..."
 chmod -R 755 .next/
 chmod -R 755 logs/
 
+# Set nginx permissions for static files
+sudo chown -R www-data:www-data .next/static/ || chown -R www-data:www-data .next/static/ || true
+sudo chmod -R 755 .next/static/ || chmod -R 755 .next/static/ || true
+sudo find .next/static/ -type f -exec chmod 644 {} \; || find .next/static/ -type f -exec chmod 644 {} \; || true
+
 # Start the service with ecosystem config
 echo "▶️ Starting service..."
 pm2 start ecosystem.config.js

@@ -1,0 +1,108 @@
+# Corrected Nginx Configuration for juki-hub.rurustudio.cloud
+# Last updated: 2024-08-01
+# This file combines the user's specific settings with recommended fixes.
+
+# HTTP to HTTPS redirect
+server {
+    listen 80;
+    server_name juki-hub.rurustudio.cloud;
+
+    # For certbot (Let's Encrypt) verification
+    location ~ /.well-known/acme-challenge/ {
+        allow all;
+        root /var/www/html; # Or your certbot webroot
+    }
+
+    # Redirect all other HTTP traffic to HTTPS
+    location / {
+        return 301 https://$host$request_uri;
+    }
+}
+
+# Main HTTPS server block
+server {
+    listen 443 ssl http2;
+    server_name juki-hub.rurustudio.cloud;
+
+    # SSL Configuration (using user's provided paths)
+    ssl_certificate /etc/letsencrypt/live/juki-hub.rurustudio.cloud/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/juki-hub.rurustudio.cloud/privkey.pem;
+    include /etc/letsencrypt/options-ssl-nginx.conf;
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
+
+    # Path to the Next.js app's public directory
+    # This should match the 'cwd' from your ecosystem.config.js
+    root /var/www/juki-fe/juki-fe;
+
+    # === CORRECTED LOCATION BLOCK FOR NEXT.JS STATIC FILES ===
+    # This block is crucial for serving JS, CSS, and other static assets.
+    location /_next/static {
+        # The 'alias' directive points to the exact physical path on your server.
+        alias /var/www/juki-fe/juki-fe/.next/static;
+
+        # Caching headers for performance.
+        expires 1y;
+        add_header Cache-Control "public, immutable";
+        access_log off; # Optional: hide these requests from access logs.
+    }
+    
+    # Serve public assets like favicon directly
+    location = /favicon.ico {
+        alias /var/www/juki-fe/juki-fe/public/favicon.ico;
+        expires 1y;
+        access_log off;
+    }
+    
+    # API Proxy (user's configuration)
+    location /api/proxy/ {
+        # Handle preflight requests first
+        if ($request_method = 'OPTIONS') {
+            add_header 'Access-Control-Allow-Origin' '*' always;
+            add_header 'Access-Control-Allow-Methods' 'GET, POST, PUT, DELETE, PATCH, OPTIONS' always;
+            add_header 'Access-Control-Allow-Headers' 'Content-Type, Authorization, ngrok-skip-browser-warning' always;
+            add_header 'Access-Control-Max-Age' 1728000;
+            add_header 'Content-Type' 'text/plain; charset=utf-8';
+            add_header 'Content-Length' 0;
+            return 204;
+        }
+        
+        # Add CORS headers for all requests
+        add_header 'Access-Control-Allow-Origin' '*' always;
+        add_header 'Access-Control-Allow-Methods' 'GET, POST, PUT, DELETE, PATCH, OPTIONS' always;
+        add_header 'Access-Control-Allow-Headers' 'Content-Type, Authorization, ngrok-skip-browser-warning' always;
+        
+        # Preserve request body and headers properly
+        proxy_set_header Content-Type $http_content_type;
+        proxy_set_header Content-Length $http_content_length;
+        
+        rewrite ^/api/proxy/(.*) /api/v1/$1 break;
+        proxy_pass https://juki-service.rurustudio.cloud;
+        proxy_http_version 1.1;
+        proxy_set_header Host juki-service.rurustudio.cloud;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header Connection "";
+        
+        # Timeouts
+        proxy_connect_timeout 60s;
+        proxy_send_timeout 60s;
+        proxy_read_timeout 60s;
+        
+        # Buffer settings
+        proxy_buffering off;
+        proxy_request_buffering off;
+    }
+    
+    # Frontend Next.js - all other requests are proxied to the app
+    location / {
+        proxy_pass http://127.0.0.1:3002;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
