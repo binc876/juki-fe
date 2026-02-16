@@ -42,12 +42,7 @@ export default function LoginPesertaModal({ isOpen, onClose, onSwitchToRegistras
     }
 
     try {
-      const res = await api.post('/auth/login', form, {
-        withCredentials: false,
-        headers: {
-          "Content-Type": "application/json",
-        }
-      })
+      const res = await api.post('/auth/login', form)
       console.log('✅ Login sukses:', res.data)
 
       const { accessToken, refreshToken } = res.data

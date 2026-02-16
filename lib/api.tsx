@@ -6,7 +6,7 @@ export const api = axios.create({
   headers: {
     'ngrok-skip-browser-warning': 'true'
   },
-  withCredentials: false, 
+  withCredentials: true, // Set to true for production
 });
 
 // Helper untuk mengekstrak pesan error yang user-friendly
@@ -177,6 +177,9 @@ api.interceptors.request.use((config) => {
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
+  
+  // Debug: Log semua request untuk troubleshooting
+  console.log(`🚀 API Request: ${config.method?.toUpperCase()} ${config.baseURL}${config.url}`);
   
   // Logging Request (Hanya di mode development biar console bersih di prod)
   if (process.env.NODE_ENV === 'development') {

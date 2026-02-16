@@ -85,12 +85,7 @@ export default function RegistrasiModal({ isOpen, onClose, onSwitchToLogin }: Re
         gender: form.gender
       }
 
-      const res = await api.post('/auth/register', payload, {
-        withCredentials: false,
-        headers: {
-          "Content-Type": "application/json",
-        }
-      })
+      const res = await api.post('/auth/register', payload)
       console.log('✅ Registrasi sukses:', res.data)
       
       // Backend sekarang hanya mengembalikan message sukses, user harus login manual.
