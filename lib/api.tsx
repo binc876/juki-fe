@@ -6,7 +6,7 @@ export const api = axios.create({
   headers: {
     'ngrok-skip-browser-warning': 'true'
   },
-  withCredentials: true, // Set to true for production
+  withCredentials: false, // Set to false to avoid CORS preflight issues
 });
 
 // Helper untuk mengekstrak pesan error yang user-friendly
