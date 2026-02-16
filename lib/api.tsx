@@ -6,7 +6,9 @@ export const api = axios.create({
   headers: {
     'ngrok-skip-browser-warning': 'true'
   },
-  withCredentials: false, // Set to false to avoid CORS preflight issues
+  withCredentials: false,
+  maxRedirects: 5, // Follow redirects
+  timeout: 30000, // 30 second timeout
 });
 
 // Helper untuk mengekstrak pesan error yang user-friendly
@@ -180,6 +182,8 @@ api.interceptors.request.use((config) => {
   
   // Debug: Log semua request untuk troubleshooting
   console.log(`🚀 API Request: ${config.method?.toUpperCase()} ${config.baseURL}${config.url}`);
+  console.log(`🔍 Full URL: ${config.baseURL}${config.url}`);
+  console.log(`📝 Data:`, config.data);
   
   // Logging Request (Hanya di mode development biar console bersih di prod)
   if (process.env.NODE_ENV === 'development') {

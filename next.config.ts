@@ -1,14 +1,17 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  async rewrites() {
-    return [
-      {
-        source: '/api/proxy/:path*',
-        destination: `https://juki-service.rurustudio.cloud/api/v1/:path*`,
-      },
-    ];
-  },
+  // Remove rewrites since nginx handles the proxy
+  // async rewrites() {
+  //   return [
+  //     {
+  //       source: '/api/proxy/:path*',
+  //       destination: `https://juki-service.rurustudio.cloud/api/v1/:path*`,
+  //     },
+  //   ];
+  // },
+  
+  // Keep headers for CORS (though nginx should handle this too)
   async headers() {
     return [
       {
