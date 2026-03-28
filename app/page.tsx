@@ -1,6 +1,8 @@
 'use client'
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -11,6 +13,7 @@ import LoginPesertaModal from "@/components/auth/LoginPesertaModal";
 import RegistrasiModal from "@/components/auth/RegistrasiModal";
 
 export default function Home() {  
+  const router = useRouter()
   const [showLoginModal, setShowLoginModal] = useState(false)
   const [showRegistrasiModal, setShowRegistrasiModal] = useState(false)
   const [isLoggedIn, setIsLoggedIn] = useState(false)
@@ -59,7 +62,20 @@ export default function Home() {
           <p className="mb-8 max-w-xl text-lg md:leading-normal">
             Sistem administrasi pelatihan jurnal yang membantu mahasiswa dalam menyelesaikan jurnal karya ilmiah.
           </p>
-          <Button onClick={() => setShowRegistrasiModal(true)} className="bg-[#5C7B78] font-semibold text-lg py-6 px-10 rounded-xl shadow-md">Daftar Sekarang</Button>
+          {isLoggedIn ? (
+            <Link href="/beranda">
+              <Button className="bg-[#5C7B78] font-semibold text-lg py-6 px-10 rounded-xl shadow-md transition-all hover:scale-105 active:scale-95">
+                Buka Dashboard
+              </Button>
+            </Link>
+          ) : (
+            <Button 
+              onClick={() => setShowRegistrasiModal(true)} 
+              className="bg-[#5C7B78] font-semibold text-lg py-6 px-10 rounded-xl shadow-md transition-all hover:scale-105 active:scale-95"
+            >
+              Daftar Sekarang
+            </Button>
+          )}
         </div>
       </section>
 
@@ -131,7 +147,7 @@ export default function Home() {
         </div>
         <div className="bg-[#5C7B78] py-10">
           <div className="max-w-5xl mx-auto px-4 text-center text-white">
-            <ListJadwalPelatihan onRegisterClick={() => setShowRegistrasiModal(true)} />
+            <ListJadwalPelatihan onRegisterClick={() => isLoggedIn ? router.push('/beranda') : setShowRegistrasiModal(true)} />
           </div>
         </div>
       </section>

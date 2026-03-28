@@ -22,10 +22,10 @@ export default function Home() {
         />
         <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/40 text-center text-white px-4">
           <h1 className="text-3xl md:text-6xl font-bold mb-5">
-            Panggah Lulus Kuliah,<br />Bareng JUKI.
+            JUKI<br />Jurnal Karya Ilmiah.
           </h1>
           <p className="mb-8 max-w-xl text-lg md:leading-normal">
-            Sistem administrasi pelatihan jurnal yang membantu mahasiswa mendapat LOA dengan cepat, mudah, dan bisa dipantau kapan saja.
+            Sistem administrasi pelatihan jurnal yang membantu mahasiswa dalam menyelesaikan jurnal karya ilmiah.
           </p>
         </div>
       </section>

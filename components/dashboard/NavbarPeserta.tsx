@@ -64,7 +64,7 @@ export default function NavbarPeserta() {
             scrolled ? "text-[#5C7B78]" : "text-white"
           }`}
         >
-          JUKI.
+          Juki.hub
         </Link>
 
         {/* Desktop Nav */}
