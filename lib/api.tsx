@@ -116,11 +116,25 @@ export const downloadFile = async (url: string, filename?: string) => {
 
 // Helper untuk preview file di tab baru (View Only)
 export const viewFile = async (url: string) => {
+  // Buka tab kosong segera untuk menghindari pemblokiran pop-up Safari
+  const newTab = window.open('about:blank', '_blank');
+  
+  if (newTab) {
+    newTab.document.title = 'Memuat Dokumen...';
+    newTab.document.body.innerHTML = `
+      <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100vh; font-family:sans-serif; color:#555;">
+        <div style="border:4px solid #f3f3f3; border-top:4px solid #5C7B78; border-radius:50%; width:30px; height:30px; animation:spin 1s linear infinite;"></div>
+        <p style="margin-top:15px; font-weight:bold;">Memuat Dokumen...</p>
+        <style>@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }</style>
+      </div>
+    `;
+  }
+
   try {
     const response = await api.get(url, {
       responseType: 'blob',
       headers: {
-        'Accept': 'application/pdf'
+        'Accept': 'application/pdf, image/*'
       }
     });
 
@@ -130,11 +144,7 @@ export const viewFile = async (url: string) => {
     // kemungkinan besar ini adalah error JSON dari BE yang terbungkus Blob.
     if (blob.size < 2000) {
       const text = await blob.text();
-      if (text.startsWith('{') && text.includes('options')) {
-        console.error('❌ BE Error detected: Backend sent StreamableFile as JSON string.', text);
-        throw new Error('Gagal memuat PDF: Back-End mengirimkan format data yang salah (JSON instead of Binary). Mohon periksa LoggingInterceptor di BE.');
-      }
-      if (text.startsWith('{') && text.includes('message')) {
+      if (text.startsWith('{')) {
         const parsed = JSON.parse(text);
         throw new Error(parsed.message || 'Gagal memuat file.');
       }
@@ -143,15 +153,21 @@ export const viewFile = async (url: string) => {
     const contentType = response.headers['content-type'] || blob.type || 'application/pdf';
     const blobUrl = window.URL.createObjectURL(new Blob([blob], { type: contentType }));
     
-    // Buka di tab baru
-    const newTab = window.open(blobUrl, '_blank');
-    if (!newTab) {
-      throw new Error('Pop-up diblokir! Harap izinkan pop-up untuk melihat dokumen.');
+    // Update tab yang sudah terbuka dengan URL Blob
+    if (newTab) {
+      newTab.location.href = blobUrl;
+    } else {
+      // Fallback jika tab gagal dibuka di awal
+      const fallbackTab = window.open(blobUrl, '_blank');
+      if (!fallbackTab) {
+        throw new Error('Pop-up diblokir! Harap izinkan pop-up untuk melihat dokumen.');
+      }
     }
     
     setTimeout(() => window.URL.revokeObjectURL(blobUrl), 60000);
   } catch (error: any) {
     console.error('View failed:', error);
+    if (newTab) newTab.close();
     throw error;
   }
 };
@@ -174,21 +190,34 @@ const processQueue = (error: any, token: string | null = null) => {
 
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('token');
+  
+  // Mandatory for ngrok bypass
+  // This header must be present for all ngrok requests to skip the splash screen
   config.headers['ngrok-skip-browser-warning'] = 'true';
+  
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
   
-  // Debug: Log semua request untuk troubleshooting
-  console.log(`🚀 API Request: ${config.method?.toUpperCase()} ${config.baseURL}${config.url}`);
-  console.log(`🔍 Full URL: ${config.baseURL}${config.url}`);
-  console.log(`📝 Data:`, config.data);
+  // Clean up URL formatting to prevent double slashes or missing slashes
+  let baseUrl = config.baseURL || '';
+  let requestUrl = config.url || '';
   
-  // Logging Request (Hanya di mode development biar console bersih di prod)
+  // Ensure baseUrl doesn't end with slash if requestUrl starts with one
+  if (baseUrl.endsWith('/') && requestUrl.startsWith('/')) {
+    baseUrl = baseUrl.slice(0, -1);
+  } else if (baseUrl && !baseUrl.endsWith('/') && !requestUrl.startsWith('/')) {
+    baseUrl = baseUrl + '/';
+  }
+  
+  const fullUrl = `${baseUrl}${requestUrl}`;
+  console.log(`🚀 [API Request] ${config.method?.toUpperCase()} ${fullUrl}`);
+  
   if (process.env.NODE_ENV === 'development') {
-    console.groupCollapsed(`🚀 Request: ${config.method?.toUpperCase()} ${config.url}`);
+    console.groupCollapsed(`🔍 Request Details: ${requestUrl}`);
+    console.log('Full URL:', fullUrl);
     console.log('Headers:', config.headers);
-    console.log('Data:', config.data);
+    console.log('Payload:', config.data);
     console.groupEnd();
   }
   

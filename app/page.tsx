@@ -100,7 +100,7 @@ export default function Home() {
               <div>
                 <CardTitle className="text-white text-base md:text-lg">Upload artikel & ikut pelatihan</CardTitle>
                 <CardDescription className="text-white">
-                  Upload draft jurnalmu dan Tim Jupalo akan bantu biar naskahmu makin siap publish.
+                  Upload draft jurnalmu dan Tim JUKI akan bantu biar naskahmu makin siap publish.
                 </CardDescription>
               </div>
             </CardHeader>
@@ -144,7 +144,7 @@ export default function Home() {
           <p className="mb-2">Email: <span className="font-medium">jep@umm.ac.id</span></p>
           <p className="mb-4 text-sm">Jam Layanan: 08.00 - 16.00 WIB (Senin-Jumat)</p>
           <a
-            href="https://wa.me/6281803821237?text=Halo%20Admin%2C%20saya%20ingin%20bertanya%20tentang%20pelatihan%20Jupalo"
+            href="https://wa.me/6281803821237?text=Halo%20Admin%2C%20saya%20ingin%20bertanya%20tentang%20pelatihan%20JUKI"
             target="_blank"
             rel="noopener noreferrer"
           >

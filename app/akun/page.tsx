@@ -592,13 +592,13 @@ export default function AkunPage() {
                   {/* Kotak Input Feedback */}
                   <div className="border-2 border-white rounded-2xl sm:rounded-[24px] p-4 sm:p-6 md:p-8">
                     <h2 className="text-xl sm:text-2xl font-bold mb-1">Feedback</h2>
-                    <p className="text-xs sm:text-sm mb-4 sm:mb-6 text-white/80">Punya saran atau pengalaman seru bareng Jupalo? Ceritain ke kami ya!</p>
+                    <p className="text-xs sm:text-sm mb-4 sm:mb-6 text-white/80">Punya saran atau pengalaman seru bareng JUKI? Ceritain ke kami ya!</p>
 
                     <div className="space-y-4">
                       <div className="relative group">
                         <textarea 
                           className="w-full h-32 sm:h-40 md:h-48 rounded-2xl sm:rounded-[20px] p-4 sm:p-6 pr-4 sm:pr-6 pb-12 sm:pb-16 bg-[#D4C4AF] border border-[#C0C0C0] text-[#4A5548] text-sm sm:text-base font-medium shadow-[inset_0_2px_4px_rgba(0,0,0,0.05)] focus:outline-none focus:ring-2 focus:ring-white/80 focus:border-transparent resize-none placeholder:text-[#8C968A] transition-all duration-300"
-                          placeholder="Ceritakan pengalamanmu atau berikan saran untuk Jupalo..."
+                          placeholder="Ceritakan pengalamanmu atau berikan saran untuk JUKI..."
                           value={newFeedback}
                           onChange={(e) => setNewFeedback(e.target.value)}
                         ></textarea>

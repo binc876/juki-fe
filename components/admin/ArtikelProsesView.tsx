@@ -402,9 +402,8 @@ export default function ArtikelProsesView() {
                 <select value={journalFilter} onChange={(e) => setJournalFilter(e.target.value)} className="w-full bg-[#F5F5F5] border-none rounded-xl px-4 py-3 text-gray-700 font-bold focus:outline-none cursor-pointer appearance-none">
                     <option value="">Semua Jurnal</option>
                     <option value="JIE">JIE</option>
-                    <option value="FOFEI">FOFEI</option>
-                    <option value="JOESMENT">JOESMENT</option>
-                </select>
+                    <option value="JOFEI">JOFEI</option>
+                    <option value="JOESMENT">JOESMENT</option>                </select>
                 <ChevronLeft className="absolute right-4 top-3.5 w-5 h-5 text-gray-400 -rotate-90 pointer-events-none" />
             </div>
           </div>
@@ -430,7 +429,7 @@ export default function ArtikelProsesView() {
                 ) : filteredUsers.length > 0 ? (
                   filteredUsers.map((user, idx) => (
                     <tr key={idx} className="border-b border-gray-50 last:border-none hover:bg-gray-50 transition-colors">
-                      <td className="py-6 font-medium">{user.profile?.fullName || '-'}</td>
+                      <td className="py-6 font-medium max-w-[200px] truncate" title={user.profile?.fullName || ''}>{user.profile?.fullName || '-'}</td>
                       <td className="py-6 text-center">{user.profile?.nim || '-'}</td>
                       <td className="py-6 pr-4 max-w-[200px] truncate" title={user.trainingFlow?.articleTitle}>{user.trainingFlow?.articleTitle || '-'}</td>
                       <td className="py-6 text-center">{user.trainingFlow?.journalCode || '-'}</td>

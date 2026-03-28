@@ -242,6 +242,32 @@ export default function VerifikasiView() {
 
   const submitOjsVerification = async () => {
     if (!selectedUser) return
+
+    const { username, password, journalCode, journalLink } = ojsForm;
+
+    // Basic required validation
+    if (!username?.trim() || !password?.trim() || !journalCode || !journalLink?.trim()) {
+      showAlert({
+        title: 'Perhatian',
+        message: 'Semua field (Username, Password, Jurnal, Link) wajib diisi.',
+        type: 'warning'
+      })
+      return
+    }
+
+    // URL Validation: ensure it is a valid URL and not just "https://"
+    try {
+      const url = new URL(journalLink.trim());
+      if (!url.hostname) throw new Error();
+    } catch (err) {
+      showAlert({
+        title: 'Gagal',
+        message: 'Link jurnal tidak valid. Pastikan menyertakan domain lengkap (contoh: https://ejournal.umm.ac.id)',
+        type: 'error'
+      })
+      return
+    }
+
     try {
       const token = localStorage.getItem('token')
       await api.post(`/admin/administrative/${selectedUser.id}/ojs`, ojsForm, {
@@ -376,7 +402,7 @@ export default function VerifikasiView() {
                         ) : users.length > 0 ? (
                           users.map((user, idx) => (
                             <tr key={idx} className="border-b border-gray-50 last:border-none">
-                              <td className="py-6 font-medium">{user.profile?.fullName || '-'}</td>
+                              <td className="py-6 font-medium max-w-[200px] truncate" title={user.profile?.fullName || ''}>{user.profile?.fullName || '-'}</td>
                               <td className="py-6 text-center">{user.profile?.nim || '-'}</td>
                               <td className="py-6 text-center">
                                  {user.trainingFlow?.statusCode === 'PAYMENT_WAITING' ? (
@@ -446,9 +472,9 @@ export default function VerifikasiView() {
                         const paymentProof = user.attachments?.find(a => a.type === 'PAYMENT');
                         return (
                         <tr key={idx} className="border-b border-gray-50 last:border-none">
-                          <td className="py-6 font-medium">{user.profile?.fullName || '-'}</td>
+                          <td className="py-6 font-medium max-w-[200px] truncate" title={user.profile?.fullName || ''}>{user.profile?.fullName || '-'}</td>
                           <td className="py-6 text-center">{user.profile?.nim || '-'}</td>
-                          <td className="py-6 text-center">{user.email}</td>
+                          <td className="py-6 text-center max-w-[200px] truncate" title={user.email}>{user.email}</td>
                           <td className="py-6 text-center">{user.profile?.phone || '-'}</td>
                           <td className="py-6 text-center">
                              {paymentProof ? (
@@ -553,7 +579,7 @@ export default function VerifikasiView() {
              <div className="space-y-4">
                 <div><label className="text-xs font-bold text-[#5C7B78] block mb-1">Username OJS</label><input type="text" className="w-full border border-[#5C7B78] rounded-lg p-2.5 text-sm outline-none focus:ring-1 focus:ring-[#5C7B78]" value={ojsForm.username} onChange={(e) => setOjsForm({...ojsForm, username: e.target.value})} /></div>
                 <div><label className="text-xs font-bold text-[#5C7B78] block mb-1">Password OJS</label><input type="text" className="w-full border border-[#5C7B78] rounded-lg p-2.5 text-sm outline-none focus:ring-1 focus:ring-[#5C7B78]" placeholder="Generate atau input manual" value={ojsForm.password} onChange={(e) => setOjsForm({...ojsForm, password: e.target.value})} /></div>
-                <div><label className="text-xs font-bold text-[#5C7B78] block mb-1">Kelompok Jurnal</label><select className="w-full border border-[#5C7B78] rounded-lg p-2.5 text-sm outline-none focus:ring-1 focus:ring-[#5C7B78] bg-white" value={ojsForm.journalCode} onChange={(e) => setOjsForm({...ojsForm, journalCode: e.target.value})}><option value="">Pilih Jurnal</option><option value="JIE">JIE</option><option value="JOEFI">JOEFI</option><option value="JOESMENT">JOESMENT</option></select></div>
+                <div><label className="text-xs font-bold text-[#5C7B78] block mb-1">Kelompok Jurnal</label><select className="w-full border border-[#5C7B78] rounded-lg p-2.5 text-sm outline-none focus:ring-1 focus:ring-[#5C7B78] bg-white" value={ojsForm.journalCode} onChange={(e) => setOjsForm({...ojsForm, journalCode: e.target.value})}><option value="">Pilih Jurnal</option><option value="JIE">JIE</option><option value="JOFEI">JOFEI</option><option value="JOESMENT">JOESMENT</option></select></div>
                 <div><label className="text-xs font-bold text-[#5C7B78] block mb-1">Link Jurnal</label><input type="text" className="w-full border border-[#5C7B78] rounded-lg p-2.5 text-sm outline-none focus:ring-1 focus:ring-[#5C7B78]" placeholder="https://..." value={ojsForm.journalLink} onChange={(e) => setOjsForm({...ojsForm, journalLink: e.target.value})} /></div>
                 <div className="flex gap-3 pt-6"><Button variant="outline" onClick={() => setIsOjsActionOpen(false)} className="flex-1 py-2.5 rounded-xl text-gray-600 border-gray-300">Batal</Button><Button onClick={submitOjsVerification} className="flex-1 py-2.5 rounded-xl text-white font-bold bg-[#5C7B78] hover:bg-[#4a6361]">Simpan & Verifikasi</Button></div>
              </div>

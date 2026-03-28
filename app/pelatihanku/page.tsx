@@ -5,19 +5,15 @@ import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { 
   CheckCircle2, 
-  Circle, 
-  Upload, 
   MapPin, 
   Users, 
   FileText, 
   CalendarDays, 
   Clock, 
-  AlertCircle,
   AlertTriangle,
   Download,
   Loader2,
   ChevronRight,
-  ChevronLeft,
   X,
   User,
   Copy
@@ -338,6 +334,26 @@ export default function PelatihankuPage() {
   const handleUploadPayment = async () => {
     if (!filePayment) return showAlert({ title: 'Perhatian', message: 'Pilih file terlebih dahulu!', type: 'warning' })
     
+    // Validasi Ukuran File (Max 5MB)
+    const maxSize = 5 * 1024 * 1024; // 5MB dalam bytes
+    if (filePayment.size > maxSize) {
+      return showAlert({ 
+        title: 'File Terlalu Besar', 
+        message: 'Ukuran file maksimal adalah 5MB. Silakan kompres file Anda atau pilih file lain.', 
+        type: 'error' 
+      })
+    }
+
+    // Validasi Tipe File (Gambar atau PDF)
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg', 'application/pdf'];
+    if (!allowedTypes.includes(filePayment.type)) {
+      return showAlert({ 
+        title: 'Format Tidak Sesuai', 
+        message: 'Format file yang diperbolehkan hanya JPG, PNG, atau PDF.', 
+        type: 'error' 
+      })
+    }
+
     const formData = new FormData()
     formData.append('file', filePayment)
 
@@ -501,6 +517,25 @@ export default function PelatihankuPage() {
       // TAMPILAN BAYAR (Informasi Pembayaran)
       return (
         <div className="flex flex-col items-center py-8 px-4">
+          
+          {/* REJECTION ALERT */}
+          {profile?.user?.trainingFlow?.rejectionReason && (
+              <div className="w-full max-w-3xl bg-red-50 border-2 border-red-200 p-6 rounded-2xl mb-8 flex items-start gap-4 animate-in fade-in slide-in-from-top-4 duration-500">
+                 <div className="bg-red-100 p-2 rounded-full shrink-0">
+                    <AlertTriangle className="w-6 h-6 text-red-600" />
+                 </div>
+                 <div className="space-y-1 text-left">
+                    <h4 className="font-bold text-red-800 text-lg">Pembayaran Ditolak</h4>
+                    <p className="text-red-700 font-medium">
+                       {profile.user.trainingFlow.rejectionReason}
+                    </p>
+                    <p className="text-red-600 text-xs mt-2 italic">
+                       *Silakan upload ulang bukti transfer yang valid untuk melanjutkan proses verifikasi.
+                    </p>
+                 </div>
+              </div>
+          )}
+
           <h2 className="text-2xl font-bold text-white mb-8">Informasi Pembayaran</h2>
           
           <div className="bg-white rounded-[24px] shadow-xl w-full max-w-3xl overflow-hidden p-8 md:p-10 relative">
@@ -1085,7 +1120,7 @@ export default function PelatihankuPage() {
                                                   Kelompok Jurnal :
                                                   <strong className="text-gray-900">
                                                     {' '}
-                                                    {training.journalCode && ['JIE', 'JOEFI', 'JOESMENT'].includes(training.journalCode) 
+                                                    {training.journalCode && ['JIE', 'JOFEI', 'JOESMENT'].includes(training.journalCode) 
                                                       ? training.journalCode 
                                                       : '-'}
                                                   </strong>

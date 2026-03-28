@@ -38,19 +38,42 @@ export default function RegistrasiModal({ isOpen, onClose, onSwitchToLogin }: Re
 
     if (!form.name.trim()) newErrors.name = 'Nama lengkap harus diisi!'
     
-    if (form.student_number.length < 5) newErrors.student_number = 'NIM tidak valid (min. 5 karakter)!'
+    // NIM: Harus angka, min 5
+    if (!/^\d+$/.test(form.student_number)) {
+      newErrors.student_number = 'NIM hanya boleh berisi angka!'
+    } else if (form.student_number.length < 5) {
+      newErrors.student_number = 'NIM tidak valid (min. 5 karakter)!'
+    }
     
-    if (form.mobile_number.length < 9) newErrors.mobile_number = 'Nomor WhatsApp tidak valid (min. 9 angka)!'
+    // WhatsApp: Sudah difilter saat input, cek panjang
+    if (form.mobile_number.length < 9) {
+      newErrors.mobile_number = 'Nomor WhatsApp tidak valid (min. 9 angka)!'
+    } else if (form.mobile_number.length > 13) { // 13 + 62 = 15 total
+      newErrors.mobile_number = 'Nomor WhatsApp terlalu panjang (max 15 angka total)!'
+    }
     
     if (!form.birthPlace.trim()) newErrors.birthPlace = 'Tempat lahir harus diisi!'
 
-    if (!form.birthDate) newErrors.birthDate = 'Tanggal lahir harus diisi!'
+    if (!form.birthDate) {
+      newErrors.birthDate = 'Tanggal lahir harus diisi!'
+    } else {
+      const selectedDate = new Date(form.birthDate)
+      const today = new Date()
+      today.setHours(0, 0, 0, 0) // Reset waktu untuk perbandingan murni tanggal
+
+      if (isNaN(selectedDate.getTime())) {
+        newErrors.birthDate = 'Tanggal lahir tidak valid!'
+      } else if (selectedDate > today) {
+        newErrors.birthDate = 'Tanggal lahir tidak boleh di masa depan!'
+      }
+    }
 
     if (!form.gender) newErrors.gender = 'Jenis kelamin harus dipilih!'
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    if (!emailRegex.test(form.email)) newErrors.email = 'Format email tidak valid!'
-    
+    // Email: Alphanumeric + @ + .
+    const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/
+    if (!emailRegex.test(form.email)) newErrors.email = 'Format email tidak valid (contoh: user@domain.com)!'
+
     // Validasi Password Kompleks
     const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/
     if (!form.password) {
@@ -58,14 +81,14 @@ export default function RegistrasiModal({ isOpen, onClose, onSwitchToLogin }: Re
     } else if (!passwordRegex.test(form.password)) {
        newErrors.password = 'Password harus mengandung huruf besar, kecil, angka, dan simbol!'
     }
-    
+
     if (form.password !== form.password_confirmation) newErrors.password_confirmation = 'Password tidak cocok!'
 
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
-  }
+    }
 
-  const handleSubmit = async (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setGeneralError('')
 
@@ -81,14 +104,13 @@ export default function RegistrasiModal({ isOpen, onClose, onSwitchToLogin }: Re
         email: form.email,
         password: form.password,
         birthPlace: form.birthPlace,
-        birthDate: new Date(form.birthDate).toISOString(), // Ensure ISO string
+        birthDate: new Date(form.birthDate).toISOString(),
         gender: form.gender
       }
 
       const res = await api.post('/auth/register', payload)
       console.log('✅ Registrasi sukses:', res.data)
-      
-      // Backend sekarang hanya mengembalikan message sukses, user harus login manual.
+
       setShowAlert(true)
     } catch (err: any) {
       console.log('❌ Registrasi gagal:', err)
@@ -96,38 +118,46 @@ export default function RegistrasiModal({ isOpen, onClose, onSwitchToLogin }: Re
     } finally {
       setLoading(false)
     }
-  }
+    }
 
-  if (showAlert) {
+    if (showAlert) {
     return <BerhasilDaftar onSwitchToLogin={onSwitchToLogin} />;
-  }
+    }
 
-  return (
+    // Today's date in YYYY-MM-DD format for input max attribute
+    const todayStr = new Date().toISOString().split('T')[0];
+
+    return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent
-        className="!fixed !inset-0 !w-screen !h-screen !max-w-none !max-h-none !p-0 !m-0 !border-none !rounded-none !bg-[#D9C8B2] !overflow-auto !z-50 !translate-x-0 !translate-y-0"
+        className="!fixed !inset-0 !w-screen !h-screen !max-w-none !max-h-none !p-0 !m-0 !border-none !rounded-none !bg-[#D9C8B2] !overflow-y-auto !z-50 !translate-x-0 !translate-y-0"
         showCloseButton={false}
       >
         <DialogTitle className="sr-only">Registrasi</DialogTitle>
 
-        <div className="min-h-screen flex items-center justify-center py-4 sm:py-6 md:py-8 px-4">
-            <div className="max-w-5xl mx-auto space-y-4 sm:space-y-6 md:space-y-8 w-full">
+        <div className="min-h-full flex flex-col items-center justify-start py-8 sm:py-12 px-4 sm:px-6 md:px-12">
+            <div className="w-full max-w-6xl">
                 {/* Header */}
-                <div className="flex justify-between items-center text-[#5C7B78]">
-                  <span className="font-bold text-2xl sm:text-3xl md:px-12">Juki.hub</span>
-                  <button onClick={onClose} className="hover:text-[#D15651] transition">
-                    <X className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8"/>
+                <div className="w-full flex justify-between items-center mb-8 px-4 md:px-12">
+                  <span className="font-bold text-3xl sm:text-4xl text-[#5C7B78]">Juki.hub</span>
+                  <button 
+                    onClick={onClose} 
+                    className="text-[#5C7B78] hover:text-[#D15651] transition-all duration-300 p-1"
+                  >
+                    <X className="w-10 h-10 stroke-2" />
                   </button>
                 </div>
 
                 {/* Konten */}
-                <div className="flex flex-col md:flex-row rounded-xl overflow-hidden">
+                <div className="w-full flex flex-col md:flex-row items-center md:items-stretch">
                   {/* Form */}
-                  <div className="w-full md:w-1/2 p-4 sm:p-6 md:p-12 text-[#5C7B78] flex flex-col justify-center gap-3 sm:gap-4 md:gap-5">
-                    <h1 className="text-xl sm:text-2xl md:text-3xl font-bold">Selangkah lebih dekat menuju kelulusan.</h1>
-                    <p className="-mt-1 sm:-mt-2 md:-mt-3 text-sm sm:text-base">Daftar sekarang dan ikuti pelatihan jurnal dengan lebih mudah!</p>
+                  <div className="w-full md:w-1/2 px-6 sm:px-10 md:px-16 py-6 text-[#5C7B78] flex flex-col justify-center gap-4 sm:gap-6">
+                    <div className="space-y-2">
+                      <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold leading-tight">Selangkah lebih dekat menuju kelulusan.</h1>
+                      <p className="text-sm sm:text-base opacity-90">Daftar sekarang dan ikuti pelatihan jurnal dengan lebih mudah!</p>
+                    </div>
 
-                    <form className="flex flex-col gap-3 sm:gap-4" onSubmit={handleSubmit}>
+                    <form className="flex flex-col gap-4 sm:gap-5" onSubmit={handleSubmit}>
                       <div>
                         <input
                           type="text"
@@ -150,7 +180,11 @@ export default function RegistrasiModal({ isOpen, onClose, onSwitchToLogin }: Re
                           name="student_number"
                           placeholder="Nomor Induk Mahasiswa"
                           value={form.student_number}
-                          onChange={(e) => setForm({ ...form, student_number: e.target.value })}
+                          onChange={(e) => {
+                            const value = e.target.value.replace(/\D/g, ""); // Hanya angka
+                            setForm({ ...form, student_number: value });
+                          }}
+                          maxLength={20}
                           className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl bg-transparent border text-[#5C7B78] placeholder-[#5C7B78] outline-none focus:ring-2 text-sm sm:text-base ${
                             errors.student_number 
                               ? 'border-red-500 focus:ring-red-500' 
@@ -177,7 +211,10 @@ export default function RegistrasiModal({ isOpen, onClose, onSwitchToLogin }: Re
                               if (value.startsWith("0")) {
                                 value = value.slice(1)
                               }
-                              setForm({ ...form, mobile_number: value })
+                              // Limit to 13 digits (+62 at front makes it 15)
+                              if (value.length <= 13) {
+                                setForm({ ...form, mobile_number: value })
+                              }
                             }}
                             className="flex-1 px-2 sm:px-3 py-2.5 sm:py-3 bg-transparent outline-none text-sm sm:text-base"
                           />
@@ -202,16 +239,12 @@ export default function RegistrasiModal({ isOpen, onClose, onSwitchToLogin }: Re
                           />
                           {errors.birthPlace && <p className="text-red-500 text-xs mt-1">{errors.birthPlace}</p>}
                         </div>
-                        
+
                         <div className="w-full sm:w-1/2 relative">
                           <input
-                            type={form.birthDate ? "date" : "text"}
+                            type="date"
                             name="birthDate"
-                            placeholder="Tanggal Lahir"
-                            onFocus={(e) => (e.target.type = "date")}
-                            onBlur={(e) => {
-                              if (!e.target.value) e.target.type = "text";
-                            }}
+                            max={todayStr}
                             value={form.birthDate}
                             onChange={(e) => setForm({ ...form, birthDate: e.target.value })}
                             className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl bg-transparent border text-[#5C7B78] placeholder-[#5C7B78] outline-none focus:ring-2 text-sm sm:text-base ${
@@ -220,17 +253,9 @@ export default function RegistrasiModal({ isOpen, onClose, onSwitchToLogin }: Re
                                 : 'border-[#5C7B78] focus:ring-[#5C7B78]'
                             }`}
                           />
-                          {/* Icon Kalender (Optional Visual Cue) */}
-                          {!form.birthDate && (
-                             <div className="absolute right-4 top-3 pointer-events-none text-[#5C7B78]">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-calendar"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
-                             </div>
-                          )}
                           {errors.birthDate && <p className="text-red-500 text-xs mt-1">{errors.birthDate}</p>}
                         </div>
-                      </div>
-
-                      {/* Dropdown Gender */}
+                      </div>                      {/* Dropdown Gender */}
                       <div>
                         <select
                           name="gender"

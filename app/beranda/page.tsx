@@ -22,7 +22,7 @@ export default function Home() {
         />
         <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/40 text-center text-white px-4">
           <h1 className="text-3xl md:text-6xl font-bold mb-5">
-            Panggah Lulus Kuliah,<br />Bareng Jupalo.
+            Panggah Lulus Kuliah,<br />Bareng JUKI.
           </h1>
           <p className="mb-8 max-w-xl text-lg md:leading-normal">
             Sistem administrasi pelatihan jurnal yang membantu mahasiswa mendapat LOA dengan cepat, mudah, dan bisa dipantau kapan saja.
@@ -32,9 +32,9 @@ export default function Home() {
 
       <section className="max-w-5xl mx-auto py-20 px-4 grid md:grid-cols-2 gap-12">
         <div>
-          <h2 className="text-4xl font-bold mb-4 text-[#5C7B78]">Tentang Jupalo.</h2>
+          <h2 className="text-4xl font-bold mb-4 text-[#5C7B78]">Tentang JUKI.</h2>
           <p className="mb-8 max-w-xl text-lg md:leading-normal">
-            <span className="font-bold text-[#5C7B78]">Jupalo</span> adalah sistem informasi pelatihan jurnal berbasis web, yang dirancang khusus untuk membantu mahasiswa dalam mengurus pelatihan, mengumpulkan artikel, dan mendapatkan LOA sebagai syarat kelulusan.
+            <span className="font-bold text-[#5C7B78]">JUKI</span> adalah sistem informasi pelatihan jurnal berbasis web, yang dirancang khusus untuk membantu mahasiswa dalam mengurus pelatihan, mengumpulkan artikel, dan mendapatkan LOA sebagai syarat kelulusan.
           </p>
         </div>
         <div className="space-y-4">
@@ -67,7 +67,7 @@ export default function Home() {
               <div>
                 <CardTitle className="text-white text-base md:text-lg">Upload artikel & ikut pelatihan</CardTitle>
                 <CardDescription className="text-white">
-                  Upload draft artikel jurnalmu dan Tim Jupalo akan bantu biar naskahmu makin siap publish.
+                  Upload draft artikel jurnalmu dan Tim JUKI akan bantu biar naskahmu makin siap publish.
                 </CardDescription>
               </div>
             </CardHeader>
@@ -111,7 +111,7 @@ export default function Home() {
           <p className="mb-2">Email: <span className="font-medium">jep@umm.ac.id</span></p>
           <p className="mb-4 text-sm">Jam Layanan: 08.00 - 16.00 WIB (Senin-Jumat)</p>
           <Link
-            href="https://wa.me/6281803821237?text=Halo%20Admin%2C%20saya%20ingin%20bertanya%20tentang%20pelatihan%20Jupalo"
+            href="https://wa.me/6281803821237?text=Halo%20Admin%2C%20saya%20ingin%20bertanya%20tentang%20pelatihan%20JUKI"
             target="_blank"
             rel="noopener noreferrer"
           >
@@ -122,7 +122,7 @@ export default function Home() {
 
       {/* Footer */}
       <footer className="bg-stone-950 text-center py-6 text-sm text-muted-foreground">
-        © 2025 Jupalo by Ruru Studio | All rights reserved
+        © 2025 JUKI by Ruru Studio | All rights reserved
       </footer>
     </main>
     </> 

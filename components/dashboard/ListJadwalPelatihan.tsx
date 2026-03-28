@@ -233,7 +233,7 @@ export default function ListJadwalPelatihan({
                                           Kelompok Jurnal :
                                           <strong className="text-gray-900">
                                             {' '}
-                                            {training.journalCode && ['JIE', 'JOEFI', 'JOESMENT'].includes(training.journalCode) 
+                                            {training.journalCode && ['JIE', 'JOFEI', 'JOESMENT'].includes(training.journalCode) 
                                               ? training.journalCode 
                                               : '-'}
                                           </strong>
@@ -382,7 +382,7 @@ export default function ListJadwalPelatihan({
                                           Kelompok Jurnal :
                                           <strong className="text-gray-900">
                                             {' '}
-                                            {training.journalCode && ['JIE', 'JOEFI', 'JOESMENT'].includes(training.journalCode) 
+                                            {training.journalCode && ['JIE', 'JOFEI', 'JOESMENT'].includes(training.journalCode) 
                                               ? training.journalCode 
                                               : '-'}
                                           </strong>

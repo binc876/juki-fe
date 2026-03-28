@@ -326,8 +326,34 @@ export default function AdminPage() {
         return
       }
 
-      // Kirim hanya field yang berubah
-      await api.patch(`/users/${selectedUser.id}`, changedFields)
+      // Sesuai rekomendasi BE: Gunakan PATCH /users/:id untuk edit data (termasuk OJS)
+      // Map field journalLink ke ojsJournalLink untuk payload PATCH
+      const finalPayload: Record<string, any> = {}
+      for (const key of Object.keys(changedFields)) {
+        if (key === 'journalLink') {
+          const val = editForm[key]?.trim();
+          if (val) {
+            try {
+              const url = new URL(val);
+              if (!url.hostname) throw new Error();
+            } catch (err) {
+              showAlert({
+                title: 'Gagal',
+                message: 'Link jurnal tidak valid. Pastikan menyertakan domain lengkap (contoh: https://ejournal.umm.ac.id)',
+                type: 'error'
+              })
+              return
+            }
+          }
+          finalPayload['ojsJournalLink'] = val;
+        } else {
+          finalPayload[key] = editForm[key]
+        }
+      }
+
+      // Kirim satu request PATCH untuk semua perubahan
+      await api.patch(`/users/${selectedUser.id}`, finalPayload)
+
       showAlert({ title: 'Berhasil', message: 'Data berhasil diupdate!', type: 'success' })
       setIsEditOpen(false)
       handleViewDetail(selectedUser.id) // Refresh detail
@@ -699,9 +725,9 @@ export default function AdminPage() {
                   <tbody className="text-gray-600 text-sm">
                     {users.map((user, idx) => (
                       <tr key={idx} className="hover:bg-gray-50 transition-colors border-b border-gray-50 last:border-none">
-                        <td className="py-4 pl-4 font-medium text-gray-900">{user.profile?.fullName || '-'}</td>
-                        <td className="py-4">{user.profile?.nim || '-'}</td>
-                        <td className="py-4">{user.email}</td>
+                        <td className="py-4 pl-4 pr-10 font-medium text-gray-900 max-w-[200px] truncate" title={user.profile?.fullName || ''}>{user.profile?.fullName || '-'}</td>
+                        <td className="py-4 pr-10 max-w-[150px] truncate" title={user.profile?.nim || ''}>{user.profile?.nim || '-'}</td>
+                        <td className="py-4 pr-10 max-w-[220px] truncate" title={user.email}>{user.email}</td>
                         <td className="py-4">{user.profile?.phone || '-'}</td>
                         <td className="py-4 text-center">
                            {getStatusBadge(user.trainingFlow?.statusCode || '')}
@@ -797,7 +823,7 @@ export default function AdminPage() {
               <Image src="/account-pic.jpg" alt="Admin" fill className="object-cover" />
            </div>
            <div>
-             <div className="text-xl font-bold tracking-wide">Admin Jupalo</div>
+             <div className="text-xl font-bold tracking-wide">Admin JUKI</div>
            </div>
         </div>
       </header>
@@ -869,25 +895,25 @@ export default function AdminPage() {
                   <div className="bg-white rounded-2xl p-8 shadow-sm text-gray-700">
                      <h3 className="text-xl font-bold text-[#5C7B78] mb-6 border-b pb-4">Informasi Pribadi</h3>
                      <div className="grid grid-cols-1 md:grid-cols-2 gap-y-6 gap-x-12">
-                        <div>
+                        <div className="overflow-hidden">
                            <p className="text-sm text-gray-500 mb-1">Nama Lengkap</p>
-                           <p className="text-lg font-bold text-[#5C7B78]">{selectedUser.profile?.fullName || '-'}</p>
+                           <p className="text-lg font-bold text-[#5C7B78] break-words">{selectedUser.profile?.fullName || '-'}</p>
                         </div>
-                        <div>
+                        <div className="overflow-hidden">
                            <p className="text-sm text-gray-500 mb-1">WhatsApp</p>
-                           <p className="text-lg font-bold text-[#5C7B78]">{selectedUser.profile?.phone || '-'}</p>
+                           <p className="text-lg font-bold text-[#5C7B78] break-words">{selectedUser.profile?.phone || '-'}</p>
                         </div>
-                        <div>
+                        <div className="overflow-hidden">
                            <p className="text-sm text-gray-500 mb-1">NIM</p>
-                           <p className="text-lg font-bold text-[#5C7B78]">{selectedUser.profile?.nim || '-'}</p>
+                           <p className="text-lg font-bold text-[#5C7B78] break-words">{selectedUser.profile?.nim || '-'}</p>
                         </div>
-                        <div>
+                        <div className="overflow-hidden">
                            <p className="text-sm text-gray-500 mb-1">Judul Artikel</p>
-                           <p className="text-lg font-bold text-[#5C7B78]">{selectedUser.trainingFlow?.articleTitle || '-'}</p>
+                           <p className="text-lg font-bold text-[#5C7B78] break-words">{selectedUser.trainingFlow?.articleTitle || '-'}</p>
                         </div>
-                        <div>
+                        <div className="overflow-hidden">
                            <p className="text-sm text-gray-500 mb-1">Email</p>
-                           <p className="text-lg font-bold text-[#5C7B78]">{selectedUser.email}</p>
+                           <p className="text-lg font-bold text-[#5C7B78] break-words">{selectedUser.email}</p>
                         </div>
                         <div>
                            <p className="text-sm text-gray-500 mb-1">Status</p>
@@ -900,21 +926,21 @@ export default function AdminPage() {
                   <div className="bg-white rounded-2xl p-8 shadow-sm text-gray-700">
                      <h3 className="text-xl font-bold text-[#5C7B78] mb-6 border-b pb-4">Data Akun OJS</h3>
                      <div className="grid grid-cols-1 md:grid-cols-2 gap-y-6 gap-x-12">
-                        <div>
+                        <div className="overflow-hidden">
                            <p className="text-sm text-gray-500 mb-1">Username</p>
-                           <p className="text-lg font-bold text-[#5C7B78]">{selectedUser.trainingFlow?.ojsAccount?.username || '-'}</p>
+                           <p className="text-lg font-bold text-[#5C7B78] break-words">{selectedUser.trainingFlow?.ojsAccount?.username || '-'}</p>
                         </div>
-                        <div>
+                        <div className="overflow-hidden">
                            <p className="text-sm text-gray-500 mb-1">Kelompok Jurnal</p>
-                           <p className="text-lg font-bold text-[#5C7B78]">{selectedUser.trainingFlow?.journalCode || '-'}</p>
+                           <p className="text-lg font-bold text-[#5C7B78] break-words">{selectedUser.trainingFlow?.journalCode || '-'}</p>
                         </div>
-                        <div>
+                        <div className="overflow-hidden">
                            <p className="text-sm text-gray-500 mb-1">Password</p>
-                           <p className="text-lg font-bold text-[#5C7B78]">{selectedUser.trainingFlow?.ojsAccount?.password || '-'}</p>
+                           <p className="text-lg font-bold text-[#5C7B78] break-words">{selectedUser.trainingFlow?.ojsAccount?.password || '-'}</p>
                         </div>
-                        <div>
+                        <div className="overflow-hidden">
                            <p className="text-sm text-gray-500 mb-1">Link Jurnal</p>
-                           <p className="text-lg font-bold text-[#5C7B78] truncate">{selectedUser.trainingFlow?.ojsAccount?.journalLink || '-'}</p>
+                           <p className="text-lg font-bold text-[#5C7B78] break-words leading-tight">{selectedUser.trainingFlow?.ojsAccount?.journalLink || '-'}</p>
                         </div>
                      </div>
                   </div>
@@ -986,18 +1012,18 @@ export default function AdminPage() {
                           <label className="text-gray-500 text-xs mb-1 block font-medium">Nama Lengkap</label>
                           <input 
                             type="text" 
-                            className="w-full border border-gray-300 rounded-lg p-2.5 text-sm text-gray-800 focus:ring-2 focus:ring-[#5C7B78] outline-none"
+                            className="w-full border border-gray-200 bg-gray-50 rounded-lg p-2.5 text-sm text-gray-500 cursor-not-allowed outline-none"
                             value={editForm.fullName || ''}
-                            onChange={(e) => setEditForm({...editForm, fullName: e.target.value})}
+                            readOnly
                           />
                        </div>
                        <div>
                           <label className="text-gray-500 text-xs mb-1 block font-medium">NIM</label>
                           <input 
                             type="text" 
-                            className="w-full border border-gray-300 rounded-lg p-2.5 text-sm text-gray-800"
+                            className="w-full border border-gray-200 bg-gray-50 rounded-lg p-2.5 text-sm text-gray-500 cursor-not-allowed outline-none"
                             value={editForm.nim || ''}
-                            onChange={(e) => setEditForm({...editForm, nim: e.target.value})}
+                            readOnly
                           />
                        </div>
                        <div className="grid grid-cols-2 gap-4">
@@ -1005,26 +1031,20 @@ export default function AdminPage() {
                              <label className="text-gray-500 text-xs mb-1 block font-medium">Email</label>
                              <input 
                                type="email" 
-                               className="w-full border border-gray-300 rounded-lg p-2.5 text-sm text-gray-800"
+                               className="w-full border border-gray-200 bg-gray-50 rounded-lg p-2.5 text-sm text-gray-500 cursor-not-allowed outline-none"
                                value={editForm.email || ''}
-                               onChange={(e) => setEditForm({...editForm, email: e.target.value})}
+                               readOnly
                              />
                           </div>
                           <div>
                              <label className="text-gray-500 text-xs mb-1 block font-medium">WhatsApp</label>
-                             <div className="flex items-center border border-gray-300 rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-[#5C7B78]">
-                                <span className="px-3 py-2.5 bg-gray-50 text-sm text-gray-500 font-medium border-r border-gray-300">+62</span>
+                             <div className="flex items-center border border-gray-200 bg-gray-50 rounded-lg overflow-hidden">
+                                <span className="px-3 py-2.5 bg-gray-100 text-sm text-gray-400 font-medium border-r border-gray-200">+62</span>
                                 <input 
                                   type="text" 
-                                  className="w-full p-2.5 text-sm text-gray-800 outline-none"
+                                  className="w-full p-2.5 text-sm text-gray-500 bg-transparent outline-none cursor-not-allowed"
                                   value={editForm.phone ? editForm.phone.replace(/^62|^0/, '') : ''}
-                                  onChange={(e) => {
-                                    let value = e.target.value.replace(/\D/g, "")
-                                    if (value.startsWith("0")) {
-                                      value = value.slice(1)
-                                    }
-                                    setEditForm({...editForm, phone: `62${value}`})
-                                  }}
+                                  readOnly
                                 />
                              </div>
                           </div>
@@ -1032,7 +1052,7 @@ export default function AdminPage() {
                        <div>
                           <label className="text-gray-500 text-xs mb-1 block font-medium">Judul Artikel</label>
                           <textarea 
-                            className="w-full border border-gray-300 rounded-lg p-2.5 text-sm text-gray-800 h-16 resize-none"
+                            className="w-full border border-gray-300 rounded-lg p-2.5 text-sm text-gray-800 h-16 resize-none focus:ring-2 focus:ring-[#5C7B78] outline-none"
                             value={editForm.articleTitle || ''}
                             onChange={(e) => setEditForm({...editForm, articleTitle: e.target.value})}
                           />
@@ -1096,7 +1116,7 @@ export default function AdminPage() {
                             >
                                <option value="">Pilih Kelompok</option>
                                <option value="JIE">JIE</option>
-                               <option value="JOEFI">JOEFI</option>
+                               <option value="JOFEI">JOFEI</option>
                                <option value="JOESMENT">JOESMENT</option>
                             </select>
                          </div>

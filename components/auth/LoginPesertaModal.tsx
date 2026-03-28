@@ -27,10 +27,10 @@ export default function LoginPesertaModal({ isOpen, onClose, onSwitchToRegistras
     setGeneralError('')
 
     const newErrors: Record<string, string> = {}
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/
     
     if (!emailRegex.test(form.email)) {
-      newErrors.email = 'Format email tidak valid!'
+      newErrors.email = 'Format email tidak valid (contoh: user@domain.com)!'
     }
     if (!form.password) {
       newErrors.password = 'Password harus diisi!'
@@ -92,41 +92,40 @@ export default function LoginPesertaModal({ isOpen, onClose, onSwitchToRegistras
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent
-        className="!fixed !inset-0 !w-screen !h-screen !max-w-none !max-h-none !p-0 !m-0 !border-none !rounded-none !bg-[#A5ADA1] !overflow-hidden !z-50 !translate-x-0 !translate-y-0"
+        className="!fixed !inset-0 !w-screen !h-screen !max-w-none !max-h-none !p-0 !m-0 !border-none !rounded-none !bg-[#A5ADA1] !overflow-y-auto !z-50 !translate-x-0 !translate-y-0"
         showCloseButton={false}
       >
         <DialogTitle className="sr-only">Login Peserta</DialogTitle>
 
-        {/* Full screen overlay */}
-        <div className="absolute inset-0 w-full h-full overflow-y-auto">
-          {/* Main Content - Centered Card */}
-          <div className="min-h-full flex flex-col items-center justify-center p-4 sm:p-6 md:p-8">
-
-            {/* Header di luar container */}
-            <div className="w-full max-w-6xl flex justify-between items-start mb-3 sm:mb-4 px-2 sm:px-4 md:ml-16">
-              <span className="font-bold text-2xl sm:text-3xl md:text-4xl text-white">Juki.hub</span>
+        {/* Main Content Wrapper */}
+        <div className="min-h-full flex flex-col items-center justify-start md:justify-center p-4 sm:p-6 md:p-12">
+          <div className="w-full max-w-6xl my-auto">
+            {/* Header */}
+            <div className="w-full flex justify-between items-center mb-6 sm:mb-8 px-4 md:px-12">
+              <span className="font-bold text-3xl sm:text-4xl text-white">Juki.hub</span>
               <button
                 onClick={onClose}
-                className="text-gray-300 hover:text-white transition-colors p-1"
+                className="text-white hover:text-[#D15651] transition-all duration-300 p-1"
               >
-                <X className="w-8 h-8 sm:w-10 sm:h-10 md:w-15 md:h-15 stroke-2" />
+                <X className="w-10 h-10 stroke-2" />
               </button>
             </div>
 
-            {/* Container utama tanpa rounded dan shadow */}
-            <div className="overflow-hidden max-w-6xl w-full flex flex-col md:flex-row relative">
-
+            {/* Content Container */}
+            <div className="w-full flex flex-col md:flex-row">
               {/* Left Side - Form */}
-              <div className="w-full md:w-1/2 bg-[#A5ADA1] px-6 sm:px-10 md:px-16 py-8 md:py-0 flex flex-col justify-center text-white relative">
-                <div className="max-w-md mx-auto md:mx-0 w-full">
-                  <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-2 sm:mb-3 leading-tight">
-                    Selamat Datang Kembali di Juki.hub!
-                  </h1>
-                  <p className="text-white/90 mb-4 sm:mb-6 text-sm sm:text-base">
-                    Login dulu, baru bisa lanjut ikut pelatihan.
-                  </p>
+              <div className="w-full md:w-1/2 px-6 sm:px-10 md:px-16 py-10 flex flex-col justify-center text-white">
+                <div className="max-w-md mx-auto md:mx-0 w-full space-y-6">
+                  <div className="space-y-2">
+                    <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold leading-tight">
+                      Selamat Datang Kembali di Juki.hub!
+                    </h1>
+                    <p className="text-white/80 text-base sm:text-lg">
+                      Login dulu, baru bisa lanjut ikut pelatihan.
+                    </p>
+                  </div>
 
-                  <form onSubmit={handleLogin} className="space-y-3 sm:space-y-4">
+                  <form onSubmit={handleLogin} className="space-y-4 sm:space-y-5">
                     <div>
                       <input
                         type="email"

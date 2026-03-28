@@ -62,7 +62,17 @@ export default function JadwalPelatihanView() {
   const [trainings, setTrainings] = useState<Training[]>([]);
   const [meta, setMeta] = useState({ page: 1, limit: 9, total: 0, totalPage: 1 });
   const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [loading, setLoading] = useState(true);
+
+  // --- Debounce Logic ---
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearch(searchQuery);
+    }, 500); // 500ms delay
+
+    return () => clearTimeout(handler);
+  }, [searchQuery]);
 
   // Edit States
   const [isEditSettingsOpen, setIsEditSettingsOpen] = useState(false);
@@ -107,7 +117,7 @@ export default function JadwalPelatihanView() {
         page: meta.page,
         limit: meta.limit,
       };
-      if (searchQuery) params.search = searchQuery;
+      if (debouncedSearch) params.search = debouncedSearch;
 
       const token = localStorage.getItem('token');
       const res = await api.get('/admin/trainings', { 
@@ -132,14 +142,20 @@ export default function JadwalPelatihanView() {
     fetchSettings();
   }, []);
 
+  // Reset page when search changes
+  useEffect(() => {
+    setMeta(prev => ({ ...prev, page: 1 }));
+  }, [debouncedSearch]);
+
+  // Fetch when page or debounced search changes
   useEffect(() => {
     fetchTrainings();
-  }, [meta.page]);
+  }, [meta.page, debouncedSearch]);
 
   const handleSearch = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
       setMeta(prev => ({ ...prev, page: 1 }));
-      fetchTrainings();
+      setDebouncedSearch(searchQuery);
     }
   };
 
@@ -682,7 +698,7 @@ export default function JadwalPelatihanView() {
                      >
                         <option value="" disabled>Pilih</option>
                         <option value="JIE">JIE</option>
-                        <option value="JOEFI">JOEFI</option>
+                        <option value="JOFEI">JOFEI</option>
                         <option value="JOESMENT">JOESMENT</option>
                      </select>
                      <ChevronLeft className="w-4 h-4 absolute right-3 top-2.5 -rotate-90 pointer-events-none text-gray-500" />

@@ -17,7 +17,16 @@ const nextConfig: NextConfig = {
     optimizePackageImports: ['lucide-react'],
   },
   
-  // Let nginx handle all proxying - no Next.js rewrites needed
+  // Let nginx handle all proxying in production
+  // But for local development, we add rewrites here:
+  async rewrites() {
+    return [
+      {
+        source: '/api/proxy/:path*',
+        destination: `${process.env.BACKEND_URL}/:path*`,
+      },
+    ];
+  },
 };
 
 export default nextConfig;
