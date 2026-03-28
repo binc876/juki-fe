@@ -211,9 +211,9 @@ api.interceptors.request.use((config) => {
   }
   
   const fullUrl = `${baseUrl}${requestUrl}`;
-  console.log(`🚀 [API Request] ${config.method?.toUpperCase()} ${fullUrl}`);
   
   if (process.env.NODE_ENV === 'development') {
+    console.log(`🚀 [API Request] ${config.method?.toUpperCase()} ${fullUrl}`);
     console.groupCollapsed(`🔍 Request Details: ${requestUrl}`);
     console.log('Full URL:', fullUrl);
     console.log('Headers:', config.headers);
