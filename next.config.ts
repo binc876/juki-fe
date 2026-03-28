@@ -18,9 +18,9 @@ const nextConfig: NextConfig = {
   },
 
   // // Remove console logs in production for security and performance
-  // compiler: {
-  //   removeConsole: process.env.NODE_ENV === 'production',
-  // },
+  compiler: {
+    removeConsole: process.env.NODE_ENV === 'production',
+  },
   
   // Let nginx handle all proxying in production
   // But for local development, we add rewrites here:
