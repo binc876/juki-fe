@@ -7,7 +7,8 @@ import {
   ChevronRight, 
   FileText, 
   CreditCard,
-  ExternalLink
+  ExternalLink,
+  RefreshCw
 } from 'lucide-react'
 import { api, getErrorMessage, downloadFile, viewFile } from '@/lib/api'
 import {
@@ -63,6 +64,8 @@ export default function VerifikasiView() {
 
   // Form (OJS) Verification State
   const [isOjsActionOpen, setIsOjsActionOpen] = useState(false)
+  const [isAdminRejectOpen, setIsAdminRejectOpen] = useState(false)
+  const [adminRejectReason, setAdminRejectReason] = useState('')
   const [ojsForm, setOjsForm] = useState({
     username: '',
     password: '',
@@ -240,6 +243,85 @@ export default function VerifikasiView() {
     setIsOjsActionOpen(true)
   }
 
+  const handleOpenAdminRejectAction = (user: User) => {
+    setSelectedUser(user)
+    setAdminRejectReason('')
+    setIsAdminRejectOpen(true)
+  }
+
+  const handleGeneratePassword = () => {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%';
+    let pass = '';
+    for (let i = 0; i < 10; i++) {
+      pass += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    setOjsForm(prev => ({ ...prev, password: pass }));
+  }
+
+  const submitAdminRejection = async () => {
+    if (!selectedUser || !adminRejectReason.trim()) {
+      showAlert({ title: 'Perhatian', message: 'Alasan penolakan wajib diisi.', type: 'warning' })
+      return
+    }
+
+    try {
+      await api.post(`/admin/administrative/${selectedUser.id}/reject`, { 
+        reason: adminRejectReason 
+      })
+      
+      showAlert({
+        title: 'Berhasil',
+        message: 'Administrasi berhasil ditolak.',
+        type: 'success'
+      })
+      setIsAdminRejectOpen(false)
+      fetchUsers()
+    } catch (err: any) {
+      console.error('Admin rejection failed:', err)
+      
+      const errorMessage = getErrorMessage(err);
+      
+      // Handle specific BE guidance for 400 Admin not found
+      if (err.response?.status === 400 && errorMessage.toLowerCase().includes('admin not found')) {
+         showAlert({
+            title: 'Sesi Bermasalah',
+            message: 'Sesi Anda tidak valid (Admin tidak ditemukan). Sistem akan mengeluarkan Anda, silakan login kembali.',
+            type: 'warning',
+            onConfirm: () => {
+                localStorage.clear();
+                window.location.href = '/';
+            }
+         });
+         return;
+      }
+
+      showAlert({
+        title: 'Gagal',
+        message: errorMessage,
+        type: 'error'
+      })
+    }
+  }
+
+  const submitAdminComplete = async (user: User) => {
+    try {
+      await api.post(`/admin/administrative/${user.id}/complete`, {})
+      showAlert({
+        title: 'Berhasil',
+        message: 'Administrasi berhasil diverifikasi!',
+        type: 'success'
+      })
+      fetchUsers()
+    } catch (err: any) {
+      console.error('Admin complete failed:', err)
+      showAlert({
+        title: 'Gagal',
+        message: getErrorMessage(err),
+        type: 'error'
+      })
+    }
+  }
+
   const submitOjsVerification = async () => {
     if (!selectedUser) return
 
@@ -269,10 +351,7 @@ export default function VerifikasiView() {
     }
 
     try {
-      const token = localStorage.getItem('token')
-      await api.post(`/admin/administrative/${selectedUser.id}/ojs`, ojsForm, {
-        headers: { Authorization: `Bearer ${token}` }
-      })
+      await api.post(`/admin/administrative/${selectedUser.id}/ojs`, ojsForm)
       showAlert({
         title: 'Berhasil',
         message: 'Akun OJS berhasil dibuat dan peserta terverifikasi!',
@@ -495,7 +574,10 @@ export default function VerifikasiView() {
                           <td className="py-6 text-center">
                              <div className="flex justify-center gap-3">
                                 <button 
-                                  onClick={() => view === 'payment' ? handleOpenPaymentAction(user, 'verify') : handleOpenOjsAction(user)}
+                                  onClick={() => {
+                                      if (view === 'payment') handleOpenPaymentAction(user, 'verify')
+                                      else handleOpenOjsAction(user)
+                                  }}
                                   className="bg-[#5C7B78] text-white px-6 py-1.5 rounded-lg text-sm font-bold shadow-sm"
                                 >
                                   Terima
@@ -503,7 +585,7 @@ export default function VerifikasiView() {
                                 <button 
                                   onClick={() => {
                                       if (view === 'payment') handleOpenPaymentAction(user, 'reject')
-                                      else showAlert({ title: 'Info', message: 'Fitur tolak form administratif belum tersedia.', type: 'info' })
+                                      else handleOpenAdminRejectAction(user)
                                   }}
                                   className="border-2 border-[#D15651] text-[#D15651] px-6 py-1.5 rounded-lg text-sm font-bold"
                                 >
@@ -569,6 +651,35 @@ export default function VerifikasiView() {
           </DialogContent>
        </Dialog>
 
+       {/* --- Admin (Administrative) Rejection Dialog --- */}
+       <Dialog open={isAdminRejectOpen} onOpenChange={setIsAdminRejectOpen}>
+          <DialogContent className="max-w-md p-8 rounded-2xl bg-white">
+             <DialogHeader>
+                <DialogTitle className="text-[#5C7B78] font-bold text-xl text-center mb-2">
+                   Tolak Administrasi?
+                </DialogTitle>
+                <DialogDescription className="text-center text-gray-500">
+                   Berikan alasan mengapa data administrasi dari {selectedUser?.profile.fullName} ditolak.
+                </DialogDescription>
+             </DialogHeader>
+             <div className="space-y-4 mt-4">
+                <div>
+                   <label className="text-sm font-bold text-gray-600 block mb-2">Alasan Penolakan</label>
+                   <textarea 
+                      className="w-full border border-gray-300 rounded-lg p-3 text-sm focus:ring-2 focus:ring-[#5C7B78] outline-none h-24 resize-none"
+                      placeholder="Contoh: Data jurnal yang Anda masukkan tidak sesuai dengan SK Rektor."
+                      value={adminRejectReason}
+                      onChange={(e) => setAdminRejectReason(e.target.value)}
+                   />
+                </div>
+                <div className="flex gap-3 pt-2">
+                   <Button variant="outline" onClick={() => setIsAdminRejectOpen(false)} className="flex-1 py-6 rounded-xl text-gray-600 border-gray-300">Batal</Button>
+                   <Button onClick={submitAdminRejection} className="flex-1 py-6 rounded-xl text-white font-bold bg-[#D15651] hover:bg-[#b54641]">Tolak</Button>
+                </div>
+             </div>
+          </DialogContent>
+       </Dialog>
+
        {/* --- OJS Account Creation Dialog --- */}
        <Dialog open={isOjsActionOpen} onOpenChange={setIsOjsActionOpen}>
           <DialogContent className="max-w-lg p-8 rounded-2xl bg-white">
@@ -578,7 +689,26 @@ export default function VerifikasiView() {
              </DialogHeader>
              <div className="space-y-4">
                 <div><label className="text-xs font-bold text-[#5C7B78] block mb-1">Username OJS</label><input type="text" className="w-full border border-[#5C7B78] rounded-lg p-2.5 text-sm outline-none focus:ring-1 focus:ring-[#5C7B78]" value={ojsForm.username} onChange={(e) => setOjsForm({...ojsForm, username: e.target.value})} /></div>
-                <div><label className="text-xs font-bold text-[#5C7B78] block mb-1">Password OJS</label><input type="text" className="w-full border border-[#5C7B78] rounded-lg p-2.5 text-sm outline-none focus:ring-1 focus:ring-[#5C7B78]" placeholder="Generate atau input manual" value={ojsForm.password} onChange={(e) => setOjsForm({...ojsForm, password: e.target.value})} /></div>
+                <div>
+                   <label className="text-xs font-bold text-[#5C7B78] block mb-1">Password OJS</label>
+                   <div className="relative">
+                      <input 
+                         type="text" 
+                         className="w-full border border-[#5C7B78] rounded-lg p-2.5 pr-10 text-sm outline-none focus:ring-1 focus:ring-[#5C7B78]" 
+                         placeholder="Generate atau input manual" 
+                         value={ojsForm.password} 
+                         onChange={(e) => setOjsForm({...ojsForm, password: e.target.value})} 
+                      />
+                      <button 
+                         type="button"
+                         onClick={handleGeneratePassword}
+                         title="Generate Password"
+                         className="absolute right-2 top-1/2 -translate-y-1/2 text-[#5C7B78] hover:bg-gray-100 p-1.5 rounded-md transition-colors"
+                      >
+                         <RefreshCw className="w-4 h-4" />
+                      </button>
+                   </div>
+                </div>
                 <div><label className="text-xs font-bold text-[#5C7B78] block mb-1">Kelompok Jurnal</label><select className="w-full border border-[#5C7B78] rounded-lg p-2.5 text-sm outline-none focus:ring-1 focus:ring-[#5C7B78] bg-white" value={ojsForm.journalCode} onChange={(e) => setOjsForm({...ojsForm, journalCode: e.target.value})}><option value="">Pilih Jurnal</option><option value="JIE">JIE</option><option value="JOFEI">JOFEI</option><option value="JOESMENT">JOESMENT</option></select></div>
                 <div><label className="text-xs font-bold text-[#5C7B78] block mb-1">Link Jurnal</label><input type="text" className="w-full border border-[#5C7B78] rounded-lg p-2.5 text-sm outline-none focus:ring-1 focus:ring-[#5C7B78]" placeholder="https://..." value={ojsForm.journalLink} onChange={(e) => setOjsForm({...ojsForm, journalLink: e.target.value})} /></div>
                 <div className="flex gap-3 pt-6"><Button variant="outline" onClick={() => setIsOjsActionOpen(false)} className="flex-1 py-2.5 rounded-xl text-gray-600 border-gray-300">Batal</Button><Button onClick={submitOjsVerification} className="flex-1 py-2.5 rounded-xl text-white font-bold bg-[#5C7B78] hover:bg-[#4a6361]">Simpan & Verifikasi</Button></div>

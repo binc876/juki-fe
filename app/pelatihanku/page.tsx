@@ -28,7 +28,7 @@ import { useAlert } from '@/components/ui/alert-provider'
 // --- Tipe Data ---
 type UserStatus = 
   | 'PAYMENT_REQUIRED' | 'PAYMENT_WAITING' | 'PAYMENT_VERIFIED'
-  | 'ADMINISTRATIVE_REQUIRED' | 'WAITING_ADMINISTRATIVE'
+  | 'ADMINISTRATIVE_REQUIRED' | 'WAITING_ADMINISTRATIVE' | 'ADMINISTRATIVE_REJECTED'
   | 'ARTICLE_WAITING' | 'ARTICLE_VERIFIED'
   | 'TRAINING_WAITING' | 'TRAINING_VERIFIED' | 'TRAINING_RESCHEDULE'
   | 'REVIEW_WAITING' | 'REVIEW_REVISION' | 'REVIEW_VERIFIED'
@@ -56,6 +56,7 @@ const getStepNumber = (status: UserStatus | string): number => {
       return 1;
     case 'ADMINISTRATIVE_REQUIRED':
     case 'WAITING_ADMINISTRATIVE':
+    case 'ADMINISTRATIVE_REJECTED':
     case 'ARTICLE_WAITING': // Bridge view is in Step 2
       return 2;
     case 'ARTICLE_VERIFIED': // Siap pilih jadwal
@@ -759,9 +760,28 @@ export default function PelatihankuPage() {
          )
       }
 
-      // 2. DEFAULT: PENGISIAN FORM (Belum Mengisi)
+      // 2. DEFAULT: PENGISIAN FORM (Belum Mengisi atau Ditolak)
       return (
         <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
+           
+           {/* REJECTION ALERT */}
+           {status === 'ADMINISTRATIVE_REJECTED' && profile?.user?.trainingFlow?.rejectionReason && (
+              <div className="w-full max-w-2xl bg-red-50 border-2 border-red-200 p-6 rounded-2xl mb-8 flex items-start gap-4 animate-in fade-in slide-in-from-top-4 duration-500 mx-auto">
+                 <div className="bg-red-100 p-2 rounded-full shrink-0">
+                    <AlertTriangle className="w-6 h-6 text-red-600" />
+                 </div>
+                 <div className="space-y-1 text-left">
+                    <h4 className="font-bold text-red-800 text-lg">Administrasi Ditolak</h4>
+                    <p className="text-red-700 font-medium">
+                       {profile.user.trainingFlow.rejectionReason}
+                    </p>
+                    <p className="text-red-600 text-xs mt-2 italic">
+                       *Silakan perbaiki data Anda dan klik tombol konfirmasi kembali.
+                    </p>
+                 </div>
+              </div>
+           )}
+
            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">Pengisian Form Administratif</h2>
            <p className="text-white/90 max-w-2xl mx-auto mb-10 leading-relaxed">
               Silahkan lakukan pengisian data pada tautan google form berikut untuk pendaftaran akun OJS.

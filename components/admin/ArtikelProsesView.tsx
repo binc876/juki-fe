@@ -70,6 +70,7 @@ export default function ArtikelProsesView() {
   
   // Upload LOA Modal
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false)
+  const [isGenerating, setIsGenerating] = useState(false)
   const [loaFile, setLoaFile] = useState<File | null>(null)
   const loaRef = useRef<HTMLDivElement>(null)
 
@@ -204,9 +205,14 @@ export default function ArtikelProsesView() {
   }
 
   const submitUploadLoa = async () => {
-      if (!selectedUser || !loaRef.current) return
+      if (!selectedUser || !loaRef.current || isGenerating) return
       
       try {
+          setIsGenerating(true)
+          
+          // Safari fix: Give some time for the browser to prepare the DOM
+          await new Promise(resolve => setTimeout(resolve, 300));
+
           let capturedLinkRect: DOMRect | null = null;
 
           // 1. Generate PDF from DOM
@@ -215,6 +221,7 @@ export default function ArtikelProsesView() {
               backgroundColor: '#ffffff',
               useCORS: true,
               logging: false,
+              imageTimeout: 15000, // Safari might need more time for images
               onclone: (clonedDoc) => {
                   // 1. Fix for "lab" color function error
                   const style = clonedDoc.createElement('style');
@@ -302,6 +309,8 @@ export default function ArtikelProsesView() {
               message: getErrorMessage(err), 
               type: 'error' 
           })
+      } finally {
+          setIsGenerating(false)
       }
   }
 
@@ -543,12 +552,21 @@ export default function ArtikelProsesView() {
                 <div className="p-8 pt-4 border-t border-gray-50 bg-white">
                    <Button 
                       onClick={submitUploadLoa} 
-                      className="w-full py-6 bg-[#5C7B78] hover:bg-[#4a6361] text-white font-bold text-base rounded-xl shadow-lg hover:shadow-xl transition-all mb-3"
+                      disabled={isGenerating}
+                      className="w-full py-6 bg-[#5C7B78] hover:bg-[#4a6361] text-white font-bold text-base rounded-xl shadow-lg hover:shadow-xl transition-all mb-3 disabled:opacity-70"
                    >
-                      Generate & Terbitkan
+                      {isGenerating ? (
+                         <div className="flex items-center gap-2">
+                            <RefreshCw className="w-5 h-5 animate-spin" />
+                            <span>Sedang Generate...</span>
+                         </div>
+                      ) : (
+                         "Generate & Terbitkan"
+                      )}
                    </Button>
                    <Button 
                       variant="ghost" 
+                      disabled={isGenerating}
                       onClick={() => setIsUploadModalOpen(false)} 
                       className="w-full text-gray-400 hover:text-gray-600 hover:bg-gray-50 rounded-xl"
                    >
