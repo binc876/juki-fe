@@ -120,9 +120,11 @@ export default function RegistrasiModal({ isOpen, onClose, onSwitchToLogin }: Re
     }
     }
 
-    if (showAlert) {
+    if (showAlert && isOpen) {
     return <BerhasilDaftar onSwitchToLogin={onSwitchToLogin} />;
     }
+
+    if (!isOpen) return null;
 
     // Today's date in YYYY-MM-DD format for input max attribute
     const todayStr = new Date().toISOString().split('T')[0];

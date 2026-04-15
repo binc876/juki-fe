@@ -17,30 +17,26 @@ interface BerhasilDaftarProps {
 export default function BerhasilDaftar({ onSwitchToLogin }: BerhasilDaftarProps) {
   const router = useRouter()
   const [countdown, setCountdown] = useState(5)
-  const [isOpen] = useState(true)
 
   useEffect(() => {
-    const countdownInterval = setInterval(() => {
-      setCountdown((prev) => prev - 1)
-    }, 1000)
-
-    const redirectTimeout = setTimeout(() => {
+    if (countdown <= 0) {
       if (onSwitchToLogin) {
         onSwitchToLogin()
       } else {
-        // Fallback if no handler provided
         router.push('/')
       }
-    }, 5000)
-
-    return () => {
-      clearInterval(countdownInterval)
-      clearTimeout(redirectTimeout)
+      return
     }
-  }, [router, onSwitchToLogin])
+
+    const timer = setInterval(() => {
+      setCountdown((prev) => prev - 1)
+    }, 1000)
+
+    return () => clearInterval(timer)
+  }, [countdown, onSwitchToLogin, router])
 
   return (
-    <Dialog open={isOpen}>
+    <Dialog open={true} onOpenChange={() => onSwitchToLogin?.()}>
       <DialogContent className="max-w-sm text-center">
         <DialogHeader>
           <DialogTitle className="text-green-600 text-xl">Registrasi Berhasil!</DialogTitle>
