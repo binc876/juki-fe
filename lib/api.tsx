@@ -189,7 +189,13 @@ const processQueue = (error: any, token: string | null = null) => {
 };
 
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token');
+  let token = localStorage.getItem('token');
+  
+  // Safety check: prevent sending "null" or "undefined" as strings
+  if (token === 'null' || token === 'undefined') {
+    token = null;
+    localStorage.removeItem('token');
+  }
   
   // Mandatory for ngrok bypass
   // This header must be present for all ngrok requests to skip the splash screen

@@ -400,7 +400,7 @@ export default function ArtikelProsesView() {
        </div>
 
        {/* Main Card */}
-       <div className="bg-white rounded-[32px] p-10 min-h-[600px] shadow-sm mt-4">
+       <div className="bg-white rounded-[32px] p-10 shadow-sm mt-4">
           
           <div className="flex flex-col md:flex-row justify-between mb-8 gap-4">
             <div className="relative w-full max-w-md">
@@ -457,17 +457,27 @@ export default function ArtikelProsesView() {
             </table>
           </div>
 
-          <div className="flex justify-between items-center mt-12 pt-6 border-t border-gray-100">
-             <div className="text-gray-600 font-medium">
-                Menampilkan <span className="font-bold text-gray-900">{(meta.page - 1) * meta.limit + 1}-{Math.min(meta.page * meta.limit, meta.total)}</span> dari <span className="font-bold text-gray-900">{meta.total}</span> Peserta
-             </div>
-             <div className="flex items-center gap-4">
-                <button onClick={() => setMeta({...meta, page: 1})} disabled={meta.page === 1} className="p-2 text-gray-400 hover:text-[#5C7B78] disabled:opacity-30"><ChevronLeft className="w-6 h-6" /><ChevronLeft className="w-6 h-6 -ml-4" /></button>
-                <button onClick={() => setMeta({...meta, page: Math.max(1, meta.page - 1)})} disabled={meta.page === 1} className="flex items-center gap-1 font-bold text-gray-600 border border-gray-200 px-4 py-1.5 rounded-lg hover:bg-gray-50 disabled:opacity-50"><ChevronLeft className="w-4 h-4" /> Prev</button>
-                <span className="font-bold text-gray-900">Halaman {meta.page} dari {meta.totalPage}</span>
-                <button onClick={() => setMeta({...meta, page: Math.min(meta.totalPage, meta.page + 1)})} disabled={meta.page === meta.totalPage} className="flex items-center gap-1 font-bold text-gray-600 border border-gray-200 px-4 py-1.5 rounded-lg hover:bg-gray-50 disabled:opacity-50">Next <ChevronRight className="w-4 h-4" /></button>
-                <button onClick={() => setMeta({...meta, page: meta.totalPage})} disabled={meta.page === meta.totalPage} className="p-2 text-gray-400 hover:text-[#5C7B78] disabled:opacity-30"><ChevronRight className="w-6 h-6" /><ChevronRight className="w-6 h-6 -ml-4" /></button>
-             </div>
+          <div className="flex justify-between items-center mt-8 pt-4 border-t border-gray-100 text-sm text-gray-600">
+            <div>
+              Menampilkan <span className="font-bold">{meta.total > 0 ? (meta.page - 1) * meta.limit + 1 : 0}-{Math.min(meta.page * meta.limit, meta.total)}</span> dari <span className="font-bold">{meta.total}</span> Peserta
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setMeta({...meta, page: Math.max(1, meta.page - 1)})}
+                disabled={meta.page === 1}
+                className="p-2 border rounded-lg hover:bg-gray-50 disabled:opacity-50"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+              <span className="font-bold px-2">Halaman {meta.page} dari {meta.totalPage}</span>
+              <button
+                onClick={() => setMeta({...meta, page: Math.min(meta.totalPage, meta.page + 1)})}
+                disabled={meta.page === meta.totalPage}
+                className="p-2 border rounded-lg hover:bg-gray-50 disabled:opacity-50"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
           </div>
        </div>
 

@@ -25,10 +25,14 @@ const nextConfig: NextConfig = {
   // Let nginx handle all proxying in production
   // But for local development, we add rewrites here:
   async rewrites() {
+    const backendUrl = (process.env.BACKEND_URL || 'http://localhost:3001').replace(/\/$/, '');
     return [
       {
         source: '/api/proxy/:path*',
-        destination: `${process.env.BACKEND_URL}/:path*`,
+        // Jika backendUrl sudah punya /api/v1, jangan tambahkan lagi
+        destination: backendUrl.includes('/api/v1') 
+          ? `${backendUrl}/:path*` 
+          : `${backendUrl}/api/v1/:path*`,
       },
     ];
   },
