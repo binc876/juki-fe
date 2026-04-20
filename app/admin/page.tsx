@@ -4,14 +4,14 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
-import { 
-  LayoutDashboard, 
-  Users, 
-  CalendarDays, 
-  FileText, 
-  CheckCircle, 
-  Award, 
-  MessageSquare, 
+import {
+  LayoutDashboard,
+  Users,
+  CalendarDays,
+  FileText,
+  CheckCircle,
+  Award,
+  MessageSquare,
   LogOut,
   Search,
   MoreVertical,
@@ -84,7 +84,7 @@ const getStatusBadge = (status: string, customLabel?: string) => {
     'REVIEW_VERIFIED': 'bg-[#97A094] text-white',
     'LOA_PUBLISHED': 'bg-[#37C618] text-white',
   }
-  
+
   const labels: Record<string, string> = {
     'PAYMENT_REQUIRED': 'Belum Bayar Pelatihan',
     'PAYMENT_WAITING': 'Sudah Bayar Pelatihan',
@@ -99,7 +99,7 @@ const getStatusBadge = (status: string, customLabel?: string) => {
 
   const statusCode = status || 'PAYMENT_REQUIRED';
   const label = customLabel || labels[statusCode] || statusCode.replace(/_/g, ' ');
-  
+
   return (
     <span className={`inline-block w-[180px] py-1.5 rounded-md text-[9px] font-bold uppercase tracking-wider whitespace-nowrap text-center ${styles[statusCode] || 'bg-gray-300 text-gray-700'}`}>
       {label}
@@ -112,8 +112,8 @@ const decodeToken = (token: string) => {
   try {
     const base64Url = token.split('.')[1];
     const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-    const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
-        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+    const jsonPayload = decodeURIComponent(atob(base64).split('').map(function (c) {
+      return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
     }).join(''));
 
     return JSON.parse(jsonPayload);
@@ -150,14 +150,14 @@ export default function AdminPage() {
   // Cek Role Admin via JWT
   useEffect(() => {
     const token = localStorage.getItem('token');
-    
+
     if (!token) {
       router.push('/');
       return;
     }
 
     const payload = decodeToken(token);
-    
+
     if (!payload || !payload.roles) {
       showAlert({ title: 'Sesi Tidak Valid', message: 'Sesi Anda tidak valid, silakan login kembali.', type: 'warning' });
       localStorage.clear();
@@ -196,7 +196,7 @@ export default function AdminPage() {
   const fetchUsers = async () => {
     try {
       setLoading(activeTab === 'users' ? false : true); // Hanya show global loading di awal
-      
+
       const params: any = {
         page: userMeta.page,
         limit: userMeta.limit,
@@ -206,10 +206,10 @@ export default function AdminPage() {
       if (statusFilter) params.status = statusFilter;
 
       const token = localStorage.getItem('token');
-      
+
       // Fetch Users and Stats in Parallel
       const [resUsers, resStats] = await Promise.all([
-        api.get('/users', { 
+        api.get('/users', {
           params,
           headers: { Authorization: `Bearer ${token}` }
         }),
@@ -217,7 +217,7 @@ export default function AdminPage() {
           headers: { Authorization: `Bearer ${token}` }
         })
       ]);
-      
+
       // Update Stats
       setUserStats(resStats.data);
 
@@ -227,32 +227,32 @@ export default function AdminPage() {
 
       // Fallback if meta is missing
       if (!meta) {
-         // Use stats.roles.user as total ONLY if no filters are applied
-         const isFiltering = searchQuery.trim() || statusFilter;
-         const statsTotal = resStats.data?.roles?.user || 0;
-         const effectiveTotal = isFiltering ? data.length : statsTotal;
+        // Use stats.roles.user as total ONLY if no filters are applied
+        const isFiltering = searchQuery.trim() || statusFilter;
+        const statsTotal = resStats.data?.roles?.user || 0;
+        const effectiveTotal = isFiltering ? data.length : statsTotal;
 
-         meta = { 
-            page: userMeta.page, 
-            limit: userMeta.limit, 
-            total: effectiveTotal, 
-            totalPage: Math.ceil(effectiveTotal / userMeta.limit) || 1
-         };
+        meta = {
+          page: userMeta.page,
+          limit: userMeta.limit,
+          total: effectiveTotal,
+          totalPage: Math.ceil(effectiveTotal / userMeta.limit) || 1
+        };
       }
-      
+
       setUsers(Array.isArray(data) ? data : []);
       setUserMeta(meta);
-      
+
     } catch (err: any) {
       console.error('Gagal ambil data user:', err);
       if (err.response?.status === 401) {
-         // Handled globally but keeping consistent wording if triggered
-         showAlert({
-            title: 'Sesi Berakhir',
-            message: 'Ups, sesi kamu telah berakhir! 😅\n\nDemi keamanan akun, silakan login kembali untuk melanjutkan aktivitas ya.',
-            type: 'warning',
-            onConfirm: () => handleLogout()
-         });
+        // Handled globally but keeping consistent wording if triggered
+        showAlert({
+          title: 'Sesi Berakhir',
+          message: 'Ups, sesi kamu telah berakhir! 😅\n\nDemi keamanan akun, silakan login kembali untuk melanjutkan aktivitas ya.',
+          type: 'warning',
+          onConfirm: () => handleLogout()
+        });
       }
     } finally {
       setLoading(false);
@@ -367,19 +367,19 @@ export default function AdminPage() {
   // --- Reset Password ---
   const handleResetPassword = async () => {
     if (!selectedUser) return
-    
+
     setResetPasswordLoading(true)
     try {
       const res = await api.post(`/users/${selectedUser.id}/reset-password`, {})
       const data = res.data.data || res.data
-      
+
       setResetPasswordResult(data)
       setIsResetPasswordOpen(true)
-      
-      showAlert({ 
-        title: 'Berhasil', 
-        message: 'Password berhasil direset! Silakan copy dan kirim ke peserta.', 
-        type: 'success' 
+
+      showAlert({
+        title: 'Berhasil',
+        message: 'Password berhasil direset! Silakan copy dan kirim ke peserta.',
+        type: 'success'
       })
     } catch (err) {
       console.error('Reset password gagal:', err)
@@ -401,7 +401,7 @@ export default function AdminPage() {
       showAlert({ title: 'Perhatian', message: 'Nomor WhatsApp tidak tersedia', type: 'warning' })
       return
     }
-    
+
     const phone = resetPasswordResult.phone.replace(/^0/, '62') // 08xxx -> 628xxx
     const message = encodeURIComponent(resetPasswordResult.whatsappMessage)
     window.open(`https://wa.me/${phone}?text=${message}`, '_blank')
@@ -664,18 +664,18 @@ export default function AdminPage() {
         return (
           <div>
             <div className="flex flex-col gap-1 mb-6">
-               <h2 className="text-3xl font-bold text-[#5C7B78]">Management Peserta</h2>
-               <p className="text-[#5C7B78]/80 font-medium text-lg">Total : {userStats?.roles?.user ?? 0} Peserta</p>
+              <h2 className="text-3xl font-bold text-[#5C7B78]">Management Peserta</h2>
+              <p className="text-[#5C7B78]/80 font-medium text-lg">Total : {userStats?.roles?.user ?? 0} Peserta</p>
             </div>
-            
+
             <div className="bg-white rounded-[24px] p-6 min-h-[600px] shadow-sm">
               {/* Toolbar */}
               <div className="flex flex-col md:flex-row justify-between mb-6 gap-4">
                 <div className="relative w-full max-w-md">
                   <Search className="absolute left-4 top-3.5 w-5 h-5 text-gray-400" />
-                  <input 
-                    type="text" 
-                    placeholder="Cari peserta" 
+                  <input
+                    type="text"
+                    placeholder="Cari peserta"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     onKeyDown={(e) => {
@@ -684,95 +684,104 @@ export default function AdminPage() {
                         fetchUsers();
                       }
                     }}
-                    className="w-full bg-white border border-gray-200 rounded-xl pl-12 pr-4 py-3 text-gray-700 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#5C7B78]/20" 
+                    className="w-full bg-white border border-gray-200 rounded-xl pl-12 pr-4 py-3 text-gray-700 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#5C7B78]/20"
                   />
                 </div>
                 <div className="w-full max-w-[250px]">
-                   <select 
+                  <select
                     value={statusFilter}
                     onChange={(e) => {
                       setStatusFilter(e.target.value);
-                      setUserMeta(prev => ({...prev, page: 1})); // Reset ke hal 1 saat filter berubah
+                      setUserMeta(prev => ({ ...prev, page: 1 })); // Reset ke hal 1 saat filter berubah
                     }}
                     className="w-full bg-[#F5F5F5] border-none rounded-xl px-4 py-3 text-gray-700 font-medium focus:outline-none cursor-pointer text-sm"
-                   >
-                      <option value="">Semua Status</option>
-                      <option value="PAYMENT_REQUIRED">Belum Bayar Pelatihan</option>
-                      <option value="PAYMENT_WAITING">Sudah Bayar Pelatihan</option>
-                      <option value="ARTICLE_WAITING">Belum submit artikel di OJS</option>
-                      <option value="ARTICLE_VERIFIED">Sudah submit artikel di OJS</option>
-                      <option value="TRAINING_WAITING">Sudah Daftar Pelatihan</option>
-                      <option value="TRAINING_VERIFIED">Sudah mengikuti pelatihan</option>
-                      <option value="REVIEW_VERIFIED">Sudah review artikel di OJS</option>
-                      <option value="LOA_PUBLISHED">Sudah terbit LOA</option>
-                   </select>
+                  >
+                    <option value="">Semua Status</option>
+                    <option value="PAYMENT_REQUIRED">Belum Bayar Pelatihan</option>
+                    <option value="PAYMENT_WAITING">Sudah Bayar Pelatihan</option>
+                    <option value="ARTICLE_WAITING">Belum submit artikel di OJS</option>
+                    <option value="ARTICLE_VERIFIED">Sudah submit artikel di OJS</option>
+                    <option value="TRAINING_WAITING">Sudah Daftar Pelatihan</option>
+                    <option value="TRAINING_VERIFIED">Sudah mengikuti pelatihan</option>
+                    <option value="REVIEW_VERIFIED">Sudah review artikel di OJS</option>
+                    <option value="LOA_PUBLISHED">Sudah terbit LOA</option>
+                  </select>
                 </div>
               </div>
 
               {/* Table */}
-              <div className="overflow-x-auto">
-                <table className="w-full min-w-[800px]">
-                  <thead>
-                    <tr className="text-[#5C7B78] text-left border-b border-gray-100">
-                      <th className="pb-4 font-bold pl-4">Nama</th>
-                      <th className="pb-4 font-bold">NIM</th>
-                      <th className="pb-4 font-bold">Email</th>
-                      <th className="pb-4 font-bold">WhatsApp</th>
-                      <th className="pb-4 font-bold text-center">Status</th>
-                      <th className="pb-4 font-bold text-center">Aksi</th>
-                    </tr>
-                  </thead>
-                  <tbody className="text-gray-600 text-sm">
-                    {users.map((user, idx) => (
-                      <tr key={idx} className="hover:bg-gray-50 transition-colors border-b border-gray-50 last:border-none">
-                        <td className="py-4 pl-4 pr-10 font-medium text-gray-900 max-w-[200px] truncate" title={user.profile?.fullName || ''}>{user.profile?.fullName || '-'}</td>
-                        <td className="py-4 pr-10 max-w-[150px] truncate" title={user.profile?.nim || ''}>{user.profile?.nim || '-'}</td>
-                        <td className="py-4 pr-10 max-w-[220px] truncate" title={user.email}>{user.email}</td>
-                        <td className="py-4">{user.profile?.phone || '-'}</td>
-                        <td className="py-4 text-center">
-                           {getStatusBadge(user.trainingFlow?.statusCode || '')}
-                        </td>
-                        <td className="py-4 text-center">
-                          <button 
-                            onClick={() => handleViewDetail(user.id)}
-                            className="bg-[#5C7B78] hover:bg-[#4a6361] text-white px-4 py-1.5 rounded-lg text-xs font-bold transition-colors"
-                          >
-                            Lihat Detail
-                          </button>
-                        </td>
+              <div className="w-full overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="w-full min-w-[800px]">
+                    <thead>
+                      <tr className="text-[#5C7B78] text-left border-b border-gray-100">
+                        <th className="pb-4 font-bold pl-4">Nama</th>
+                        <th className="pb-4 font-bold">NIM</th>
+                        <th className="pb-4 font-bold">Email</th>
+                        <th className="pb-4 font-bold">WhatsApp</th>
+                        <th className="pb-4 font-bold text-center">Status</th>
+                        <th className="pb-4 font-bold text-center">Aksi</th>
                       </tr>
-                    ))}
-                    {users.length === 0 && (
-                       <tr>
-                         <td colSpan={6} className="text-center py-10 text-gray-400">Data tidak ditemukan</td>
-                       </tr>
-                    )}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody className="text-gray-600 text-sm">
+                      {users.map((user, idx) => (
+                        <tr key={idx} className="hover:bg-gray-50 transition-colors border-b border-gray-50 last:border-none">
+                          <td className="py-4 pl-4 pr-10 font-medium text-gray-900 max-w-[200px] truncate" title={user.profile?.fullName || ''}>
+                            {user.profile?.fullName || '-'}
+                          </td>
+                          <td className="py-4 pr-10 max-w-[150px] truncate" title={user.profile?.nim || ''}>
+                            {user.profile?.nim || '-'}
+                          </td>
+                          <td className="py-4 pr-10 max-w-[220px] truncate" title={user.email}>
+                            {user.email}
+                          </td>
+                          <td className="py-4">{user.profile?.phone || '-'}</td>
+                          <td className="py-4 text-center">{getStatusBadge(user.trainingFlow?.statusCode || '')}</td>
+                          <td className="py-4 text-center">
+                            <button
+                              onClick={() => handleViewDetail(user.id)}
+                              className="bg-[#5C7B78] hover:bg-[#4a6361] text-white px-4 py-1.5 rounded-lg text-xs font-bold transition-colors"
+                            >
+                              Lihat Detail
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                      {users.length === 0 && (
+                        <tr>
+                          <td colSpan={6} className="text-center py-10 text-gray-400">
+                            Data tidak ditemukan
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
               </div>
+
 
               {/* Pagination */}
               <div className="flex justify-between items-center mt-8 pt-4 border-t border-gray-100 text-sm text-gray-600">
-                 <div>
-                    Menampilkan <span className="font-bold">{users.length > 0 ? (userMeta.page - 1) * userMeta.limit + 1 : 0}-{Math.min(userMeta.page * userMeta.limit, userMeta.total)}</span> dari <span className="font-bold">{userMeta.total}</span> Peserta
-                 </div>
-                 <div className="flex items-center gap-2">
-                    <button 
-                      onClick={() => setUserMeta({...userMeta, page: Math.max(1, userMeta.page - 1)})}
-                      disabled={userMeta.page === 1}
-                      className="p-2 border rounded-lg hover:bg-gray-50 disabled:opacity-50"
-                    >
-                       <ChevronLeft className="w-4 h-4" />
-                    </button>
-                    <span className="font-bold px-2">Halaman {userMeta.page} dari {userMeta.totalPage}</span>
-                    <button 
-                      onClick={() => setUserMeta({...userMeta, page: Math.min(userMeta.totalPage, userMeta.page + 1)})}
-                      disabled={userMeta.page === userMeta.totalPage}
-                      className="p-2 border rounded-lg hover:bg-gray-50 disabled:opacity-50"
-                    >
-                       <ChevronRight className="w-4 h-4" />
-                    </button>
-                 </div>
+                <div>
+                  Menampilkan <span className="font-bold">{users.length > 0 ? (userMeta.page - 1) * userMeta.limit + 1 : 0}-{Math.min(userMeta.page * userMeta.limit, userMeta.total)}</span> dari <span className="font-bold">{userMeta.total}</span> Peserta
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setUserMeta({ ...userMeta, page: Math.max(1, userMeta.page - 1) })}
+                    disabled={userMeta.page === 1}
+                    className="p-2 border rounded-lg hover:bg-gray-50 disabled:opacity-50"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                  </button>
+                  <span className="font-bold px-2">Halaman {userMeta.page} dari {userMeta.totalPage}</span>
+                  <button
+                    onClick={() => setUserMeta({ ...userMeta, page: Math.min(userMeta.totalPage, userMeta.page + 1) })}
+                    disabled={userMeta.page === userMeta.totalPage}
+                    className="p-2 border rounded-lg hover:bg-gray-50 disabled:opacity-50"
+                  >
+                    <ChevronRight className="w-4 h-4" />
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -791,7 +800,7 @@ export default function AdminPage() {
       default:
         return (
           <div className="flex items-center justify-center h-full text-white/50">
-             Fitur ini belum diimplementasikan.
+            Fitur ini belum diimplementasikan.
           </div>
         )
     }
@@ -801,11 +810,10 @@ export default function AdminPage() {
   const MenuButton = ({ id, label, icon: Icon }: any) => (
     <button
       onClick={() => setActiveTab(id)}
-      className={`w-full text-left px-6 py-3 rounded-r-full transition-all duration-300 font-medium flex items-center gap-3 ${
-        activeTab === id
-          ? 'bg-white text-[#949F93] shadow-lg translate-x-2' 
+      className={`w-full text-left px-6 py-3 rounded-r-full transition-all duration-300 font-medium flex items-center gap-3 ${activeTab === id
+          ? 'bg-white text-[#949F93] shadow-lg translate-x-2'
           : 'text-white hover:bg-white/10'
-      }`}
+        }`}
     >
       <Icon className="w-5 h-5" />
       <span>{label}</span>
@@ -814,22 +822,22 @@ export default function AdminPage() {
 
   return (
     <div className="min-h-screen bg-[#949F93] text-white font-sans selection:bg-white/30">
-      
+
       {/* Header Admin Fixed */}
       <header className="fixed top-0 left-0 w-full z-50 bg-[#949F93]/90 backdrop-blur-md px-6 md:px-12 py-6 flex items-center justify-between border-b border-white/10">
         <div className="flex items-center gap-3">
-           {/* Placeholder Avatar User */}
-           <div className="w-12 h-12 relative rounded-full overflow-hidden border-2 border-white/50 bg-[#D4C4AF]">
-              <Image src="/account-pic.jpg" alt="Admin" fill className="object-cover" />
-           </div>
-           <div>
-             <div className="text-xl font-bold tracking-wide">Admin JUKI</div>
-           </div>
+          {/* Placeholder Avatar User */}
+          <div className="w-12 h-12 relative rounded-full overflow-hidden border-2 border-white/50 bg-[#D4C4AF]">
+            <Image src="/account-pic.jpg" alt="Admin" fill className="object-cover" />
+          </div>
+          <div>
+            <div className="text-xl font-bold tracking-wide">Admin JUKI</div>
+          </div>
         </div>
       </header>
 
       <main className="px-6 md:px-12 pb-12 flex flex-col md:flex-row gap-8 md:gap-12 pt-32">
-        
+
         {/* Sidebar Menu */}
         <aside className="w-full md:w-64 shrink-0 flex flex-col md:sticky md:top-28 md:h-[calc(100vh-160px)]">
           <nav className="space-y-2">
@@ -844,7 +852,7 @@ export default function AdminPage() {
 
           {/* Logout */}
           <div className="mt-auto pt-8 border-t border-white/10">
-            <button 
+            <button
               onClick={() => setShowLogoutConfirm(true)}
               className="flex items-center gap-3 px-6 py-3 border border-white/50 rounded-xl hover:bg-white hover:text-[#949F93] transition-colors w-full"
             >
@@ -855,29 +863,29 @@ export default function AdminPage() {
         </aside>
 
         {/* Content Area */}
-        <section className="flex-1 relative">
-           {/* Untuk Tab yang memiliki layout sendiri (header + card), tampilkan langsung tanpa wrapper tambahan */}
-           {['users', 'trainings', 'articles', 'verification', 'loa', 'feedback'].includes(activeTab) ? renderContent() : (
-             <div className="border-2 border-white rounded-[32px] min-h-[600px] p-8 md:p-10 relative bg-white/5 backdrop-blur-sm">
-                {renderContent()}
-             </div>
-           )}
+        <section className="flex-1 min-w-0 relative overflow-hidden">
+          {/* Untuk Tab yang memiliki layout sendiri (header + card), tampilkan langsung tanpa wrapper tambahan */}
+          {['users', 'trainings', 'articles', 'verification', 'loa', 'feedback'].includes(activeTab) ? renderContent() : (
+            <div className="border-2 border-white rounded-[32px] min-h-[600px] p-8 md:p-10 relative bg-white/5 backdrop-blur-sm">
+              {renderContent()}
+            </div>
+          )}
         </section>
 
       </main>
 
       {/* --- MODAL DETAIL USER (Fullscreen) --- */}
       <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
-        <DialogContent 
+        <DialogContent
           className="!fixed !inset-0 !w-screen !h-screen !max-w-none !max-h-none !p-0 !m-0 !border-none !rounded-none !bg-[#D4D4D4] !overflow-hidden !z-50 !translate-x-0 !translate-y-0"
           showCloseButton={false}
         >
           <DialogTitle className="sr-only">Data Peserta</DialogTitle>
-          
+
           {/* Full screen overlay scrollable */}
           <div className="absolute inset-0 w-full h-full overflow-y-auto">
             <div className="min-h-full flex flex-col items-center p-4 sm:p-6 md:p-10">
-              
+
               {/* Header */}
               <div className="w-full max-w-7xl flex justify-between items-start mb-8 mt-4 px-4 sm:px-6 md:px-10">
                 <span className="font-bold text-3xl sm:text-4xl md:text-5xl text-[#5C7B78] tracking-tight">Data Peserta</span>
@@ -893,102 +901,102 @@ export default function AdminPage() {
                 <div className="w-full max-w-6xl space-y-6 pb-12 animate-in fade-in zoom-in-95 duration-300">
                   {/* Card 1: Informasi Pribadi */}
                   <div className="bg-white rounded-2xl p-8 shadow-sm text-gray-700">
-                     <h3 className="text-xl font-bold text-[#5C7B78] mb-6 border-b pb-4">Informasi Pribadi</h3>
-                     <div className="grid grid-cols-1 md:grid-cols-2 gap-y-6 gap-x-12">
-                        <div className="overflow-hidden">
-                           <p className="text-sm text-gray-500 mb-1">Nama Lengkap</p>
-                           <p className="text-lg font-bold text-[#5C7B78] break-words">{selectedUser.profile?.fullName || '-'}</p>
-                        </div>
-                        <div className="overflow-hidden">
-                           <p className="text-sm text-gray-500 mb-1">WhatsApp</p>
-                           <p className="text-lg font-bold text-[#5C7B78] break-words">{selectedUser.profile?.phone || '-'}</p>
-                        </div>
-                        <div className="overflow-hidden">
-                           <p className="text-sm text-gray-500 mb-1">NIM</p>
-                           <p className="text-lg font-bold text-[#5C7B78] break-words">{selectedUser.profile?.nim || '-'}</p>
-                        </div>
-                        <div className="overflow-hidden">
-                           <p className="text-sm text-gray-500 mb-1">Judul Artikel</p>
-                           <p className="text-lg font-bold text-[#5C7B78] break-words">{selectedUser.trainingFlow?.articleTitle || '-'}</p>
-                        </div>
-                        <div className="overflow-hidden">
-                           <p className="text-sm text-gray-500 mb-1">Email</p>
-                           <p className="text-lg font-bold text-[#5C7B78] break-words">{selectedUser.email}</p>
-                        </div>
-                        <div>
-                           <p className="text-sm text-gray-500 mb-1">Status</p>
-                           {getStatusBadge(selectedUser.trainingFlow?.statusCode)}
-                        </div>
-                     </div>
+                    <h3 className="text-xl font-bold text-[#5C7B78] mb-6 border-b pb-4">Informasi Pribadi</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-y-6 gap-x-12">
+                      <div className="overflow-hidden">
+                        <p className="text-sm text-gray-500 mb-1">Nama Lengkap</p>
+                        <p className="text-lg font-bold text-[#5C7B78] break-words">{selectedUser.profile?.fullName || '-'}</p>
+                      </div>
+                      <div className="overflow-hidden">
+                        <p className="text-sm text-gray-500 mb-1">WhatsApp</p>
+                        <p className="text-lg font-bold text-[#5C7B78] break-words">{selectedUser.profile?.phone || '-'}</p>
+                      </div>
+                      <div className="overflow-hidden">
+                        <p className="text-sm text-gray-500 mb-1">NIM</p>
+                        <p className="text-lg font-bold text-[#5C7B78] break-words">{selectedUser.profile?.nim || '-'}</p>
+                      </div>
+                      <div className="overflow-hidden">
+                        <p className="text-sm text-gray-500 mb-1">Judul Artikel</p>
+                        <p className="text-lg font-bold text-[#5C7B78] break-words">{selectedUser.trainingFlow?.articleTitle || '-'}</p>
+                      </div>
+                      <div className="overflow-hidden">
+                        <p className="text-sm text-gray-500 mb-1">Email</p>
+                        <p className="text-lg font-bold text-[#5C7B78] break-words">{selectedUser.email}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-500 mb-1">Status</p>
+                        {getStatusBadge(selectedUser.trainingFlow?.statusCode)}
+                      </div>
+                    </div>
                   </div>
 
                   {/* Card 2: Data Akun OJS */}
                   <div className="bg-white rounded-2xl p-8 shadow-sm text-gray-700">
-                     <h3 className="text-xl font-bold text-[#5C7B78] mb-6 border-b pb-4">Data Akun OJS</h3>
-                     <div className="grid grid-cols-1 md:grid-cols-2 gap-y-6 gap-x-12">
-                        <div className="overflow-hidden">
-                           <p className="text-sm text-gray-500 mb-1">Username</p>
-                           <p className="text-lg font-bold text-[#5C7B78] break-words">{selectedUser.trainingFlow?.ojsAccount?.username || '-'}</p>
-                        </div>
-                        <div className="overflow-hidden">
-                           <p className="text-sm text-gray-500 mb-1">Kelompok Jurnal</p>
-                           <p className="text-lg font-bold text-[#5C7B78] break-words">{selectedUser.trainingFlow?.journalCode || '-'}</p>
-                        </div>
-                        <div className="overflow-hidden">
-                           <p className="text-sm text-gray-500 mb-1">Password</p>
-                           <p className="text-lg font-bold text-[#5C7B78] break-words">{selectedUser.trainingFlow?.ojsAccount?.password || '-'}</p>
-                        </div>
-                        <div className="overflow-hidden">
-                           <p className="text-sm text-gray-500 mb-1">Link Jurnal</p>
-                           <p className="text-lg font-bold text-[#5C7B78] break-words leading-tight">{selectedUser.trainingFlow?.ojsAccount?.journalLink || '-'}</p>
-                        </div>
-                     </div>
+                    <h3 className="text-xl font-bold text-[#5C7B78] mb-6 border-b pb-4">Data Akun OJS</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-y-6 gap-x-12">
+                      <div className="overflow-hidden">
+                        <p className="text-sm text-gray-500 mb-1">Username</p>
+                        <p className="text-lg font-bold text-[#5C7B78] break-words">{selectedUser.trainingFlow?.ojsAccount?.username || '-'}</p>
+                      </div>
+                      <div className="overflow-hidden">
+                        <p className="text-sm text-gray-500 mb-1">Kelompok Jurnal</p>
+                        <p className="text-lg font-bold text-[#5C7B78] break-words">{selectedUser.trainingFlow?.journalCode || '-'}</p>
+                      </div>
+                      <div className="overflow-hidden">
+                        <p className="text-sm text-gray-500 mb-1">Password</p>
+                        <p className="text-lg font-bold text-[#5C7B78] break-words">{selectedUser.trainingFlow?.ojsAccount?.password || '-'}</p>
+                      </div>
+                      <div className="overflow-hidden">
+                        <p className="text-sm text-gray-500 mb-1">Link Jurnal</p>
+                        <p className="text-lg font-bold text-[#5C7B78] break-words leading-tight">{selectedUser.trainingFlow?.ojsAccount?.journalLink || '-'}</p>
+                      </div>
+                    </div>
                   </div>
 
                   {/* Card 3: Dokumen */}
                   <div className="bg-white rounded-2xl p-8 shadow-sm text-gray-700">
-                     <h3 className="text-xl font-bold text-[#5C7B78] mb-6 border-b pb-4">Dokumen</h3>
-                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {selectedUser.attachments && selectedUser.attachments.length > 0 ? (
-                           selectedUser.attachments.map((doc: any, idx: number) => (
-                              <div key={idx} className="border border-dashed border-gray-400 rounded-lg p-4 bg-gray-50 flex items-center justify-between hover:bg-gray-100 transition">
-                                 <div className="flex items-center gap-3 overflow-hidden">
-                                    <FileIcon className="text-[#5C7B78] shrink-0" />
-                                    <div className="flex flex-col min-w-0">
-                                       <span className="font-medium text-sm truncate max-w-[150px] md:max-w-[200px]" title={doc.originalName}>
-                                          {doc.originalName}
-                                       </span>
-                                       <span className="text-xs text-gray-500 font-semibold">{doc.type.replace(/_/g, ' ')}</span>
-                                    </div>
-                                 </div>
-                                 <button 
-                                    onClick={async () => {
-                                        try {
-                                            await viewFile(`/attachments/admin/${doc.id}/download`);
-                                        } catch (err) {
-                                            showAlert({ title: 'Gagal', message: 'Gagal melihat dokumen', type: 'error' });
-                                        }
-                                    }}
-                                    className="bg-[#5C7B78] hover:bg-[#4a6361] text-white text-xs px-4 py-2 rounded-lg font-bold transition-colors ml-2 flex items-center gap-1"
-                                 >
-                                    <Eye className="w-3 h-3" /> Lihat
-                                 </button>
+                    <h3 className="text-xl font-bold text-[#5C7B78] mb-6 border-b pb-4">Dokumen</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      {selectedUser.attachments && selectedUser.attachments.length > 0 ? (
+                        selectedUser.attachments.map((doc: any, idx: number) => (
+                          <div key={idx} className="border border-dashed border-gray-400 rounded-lg p-4 bg-gray-50 flex items-center justify-between hover:bg-gray-100 transition">
+                            <div className="flex items-center gap-3 overflow-hidden">
+                              <FileIcon className="text-[#5C7B78] shrink-0" />
+                              <div className="flex flex-col min-w-0">
+                                <span className="font-medium text-sm truncate max-w-[150px] md:max-w-[200px]" title={doc.originalName}>
+                                  {doc.originalName}
+                                </span>
+                                <span className="text-xs text-gray-500 font-semibold">{doc.type.replace(/_/g, ' ')}</span>
                               </div>
-                           ))
-                        ) : (
-                           <p className="text-gray-400 italic col-span-2 text-center py-4">Belum ada dokumen yang diunggah.</p>
-                        )}
-                     </div>
+                            </div>
+                            <button
+                              onClick={async () => {
+                                try {
+                                  await viewFile(`/attachments/admin/${doc.id}/download`);
+                                } catch (err) {
+                                  showAlert({ title: 'Gagal', message: 'Gagal melihat dokumen', type: 'error' });
+                                }
+                              }}
+                              className="bg-[#5C7B78] hover:bg-[#4a6361] text-white text-xs px-4 py-2 rounded-lg font-bold transition-colors ml-2 flex items-center gap-1"
+                            >
+                              <Eye className="w-3 h-3" /> Lihat
+                            </button>
+                          </div>
+                        ))
+                      ) : (
+                        <p className="text-gray-400 italic col-span-2 text-center py-4">Belum ada dokumen yang diunggah.</p>
+                      )}
+                    </div>
                   </div>
 
                   {/* Tombol Edit */}
                   <div className="flex justify-center pt-8">
-                     <button 
-                        onClick={handleOpenEdit}
-                        className="bg-[#5C7B78] hover:bg-[#4a6361] text-white text-xl font-bold py-4 px-20 rounded-xl shadow-lg transition-transform hover:scale-105"
-                     >
-                        Edit Data
-                     </button>
+                    <button
+                      onClick={handleOpenEdit}
+                      className="bg-[#5C7B78] hover:bg-[#4a6361] text-white text-xl font-bold py-4 px-20 rounded-xl shadow-lg transition-transform hover:scale-105"
+                    >
+                      Edit Data
+                    </button>
                   </div>
                 </div>
               )}
@@ -1000,292 +1008,292 @@ export default function AdminPage() {
       {/* --- MODAL EDIT USER (Stacked) --- */}
       <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
         <DialogContent className="max-w-5xl bg-white rounded-3xl p-0 border-none overflow-hidden">
-           <div className="p-8">
-              <DialogTitle className="text-2xl font-bold text-[#5C7B78] text-center mb-6">Edit Data Peserta</DialogTitle>
-              
-              <div className="space-y-4">
-                 {/* Section Info Pribadi */}
-                 <div>
-                    <h3 className="text-base font-bold text-[#5C7B78] mb-3">Informasi Pribadi</h3>
-                    <div className="space-y-3">
-                       <div>
-                          <label className="text-gray-500 text-xs mb-1 block font-medium">Nama Lengkap</label>
-                          <input 
-                            type="text" 
-                            className="w-full border border-gray-200 bg-gray-50 rounded-lg p-2.5 text-sm text-gray-500 cursor-not-allowed outline-none"
-                            value={editForm.fullName || ''}
-                            readOnly
-                          />
-                       </div>
-                       <div>
-                          <label className="text-gray-500 text-xs mb-1 block font-medium">NIM</label>
-                          <input 
-                            type="text" 
-                            className="w-full border border-gray-200 bg-gray-50 rounded-lg p-2.5 text-sm text-gray-500 cursor-not-allowed outline-none"
-                            value={editForm.nim || ''}
-                            readOnly
-                          />
-                       </div>
-                       <div className="grid grid-cols-2 gap-4">
-                          <div>
-                             <label className="text-gray-500 text-xs mb-1 block font-medium">Email</label>
-                             <input 
-                               type="email" 
-                               className="w-full border border-gray-200 bg-gray-50 rounded-lg p-2.5 text-sm text-gray-500 cursor-not-allowed outline-none"
-                               value={editForm.email || ''}
-                               readOnly
-                             />
-                          </div>
-                          <div>
-                             <label className="text-gray-500 text-xs mb-1 block font-medium">WhatsApp</label>
-                             <div className="flex items-center border border-gray-200 bg-gray-50 rounded-lg overflow-hidden">
-                                <span className="px-3 py-2.5 bg-gray-100 text-sm text-gray-400 font-medium border-r border-gray-200">+62</span>
-                                <input 
-                                  type="text" 
-                                  className="w-full p-2.5 text-sm text-gray-500 bg-transparent outline-none cursor-not-allowed"
-                                  value={editForm.phone ? editForm.phone.replace(/^62|^0/, '') : ''}
-                                  readOnly
-                                />
-                             </div>
-                          </div>
-                       </div>
-                       <div>
-                          <label className="text-gray-500 text-xs mb-1 block font-medium">Judul Artikel</label>
-                          <textarea 
-                            className="w-full border border-gray-300 rounded-lg p-2.5 text-sm text-gray-800 h-16 resize-none focus:ring-2 focus:ring-[#5C7B78] outline-none"
-                            value={editForm.articleTitle || ''}
-                            onChange={(e) => setEditForm({...editForm, articleTitle: e.target.value})}
-                          />
-                       </div>
-                    </div>
-                 </div>
+          <div className="p-8">
+            <DialogTitle className="text-2xl font-bold text-[#5C7B78] text-center mb-6">Edit Data Peserta</DialogTitle>
 
-                 {/* Reset Password Button */}
-                 <div className="pt-3 border-t border-gray-100">
-                    <div className="flex items-center justify-between">
-                       <div>
-                          <h3 className="text-base font-bold text-[#5C7B78]">Reset Password</h3>
-                          <p className="text-xs text-gray-500 mt-1">Password akan di-generate otomatis dan Anda akan mendapatkan pesan WhatsApp yang siap dikirim</p>
-                       </div>
-                       <button 
-                          onClick={handleResetPassword}
-                          disabled={resetPasswordLoading}
-                          className="bg-[#D15651] hover:bg-[#b54641] text-white px-6 py-2.5 rounded-lg text-sm font-bold transition shadow-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-                       >
-                          {resetPasswordLoading ? (
-                             <>
-                                <Clock className="w-4 h-4 animate-spin" />
-                                Memproses...
-                             </>
-                          ) : (
-                             'Reset Password'
-                          )}
-                       </button>
+            <div className="space-y-4">
+              {/* Section Info Pribadi */}
+              <div>
+                <h3 className="text-base font-bold text-[#5C7B78] mb-3">Informasi Pribadi</h3>
+                <div className="space-y-3">
+                  <div>
+                    <label className="text-gray-500 text-xs mb-1 block font-medium">Nama Lengkap</label>
+                    <input
+                      type="text"
+                      className="w-full border border-gray-200 bg-gray-50 rounded-lg p-2.5 text-sm text-gray-500 cursor-not-allowed outline-none"
+                      value={editForm.fullName || ''}
+                      readOnly
+                    />
+                  </div>
+                  <div>
+                    <label className="text-gray-500 text-xs mb-1 block font-medium">NIM</label>
+                    <input
+                      type="text"
+                      className="w-full border border-gray-200 bg-gray-50 rounded-lg p-2.5 text-sm text-gray-500 cursor-not-allowed outline-none"
+                      value={editForm.nim || ''}
+                      readOnly
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-gray-500 text-xs mb-1 block font-medium">Email</label>
+                      <input
+                        type="email"
+                        className="w-full border border-gray-200 bg-gray-50 rounded-lg p-2.5 text-sm text-gray-500 cursor-not-allowed outline-none"
+                        value={editForm.email || ''}
+                        readOnly
+                      />
                     </div>
-                 </div>
-
-                 {/* Section Data Akun OJS - Hanya muncul jika ada data */}
-                 {(selectedUser?.trainingFlow?.ojsAccount || editForm.ojsUsername) && (
-                   <div className="pt-3 border-t border-gray-100">
-                      <h3 className="text-base font-bold text-[#5C7B78] mb-3">Data Akun OJS</h3>
-                      <div className="grid grid-cols-2 gap-x-4 gap-y-3">
-                         <div>
-                            <label className="text-gray-500 text-xs mb-1 block font-medium">Username</label>
-                            <input 
-                              type="text" 
-                              className="w-full border border-gray-300 rounded-lg p-2.5 text-sm text-gray-800"
-                              value={editForm.ojsUsername || ''}
-                              onChange={(e) => setEditForm({...editForm, ojsUsername: e.target.value})}
-                            />
-                         </div>
-                         <div>
-                            <label className="text-gray-500 text-xs mb-1 block font-medium">Password</label>
-                            <input 
-                              type="text" 
-                              className="w-full border border-gray-300 rounded-lg p-2.5 text-sm text-gray-800"
-                              value={editForm.ojsPassword || ''}
-                              onChange={(e) => setEditForm({...editForm, ojsPassword: e.target.value})}
-                            />
-                         </div>
-                         <div>
-                            <label className="text-gray-500 text-xs mb-1 block font-medium">Kelompok Jurnal</label>
-                            <select 
-                              className="w-full border border-gray-300 rounded-lg p-2.5 text-sm text-gray-800 appearance-none bg-white"
-                              value={editForm.journalCode || ''}
-                              onChange={(e) => setEditForm({...editForm, journalCode: e.target.value})}
-                            >
-                               <option value="">Pilih Kelompok</option>
-                               <option value="JIE">JIE</option>
-                               <option value="JOFEI">JOFEI</option>
-                               <option value="JOESMENT">JOESMENT</option>
-                            </select>
-                         </div>
-                         <div>
-                            <label className="text-gray-500 text-xs mb-1 block font-medium">Link Jurnal</label>
-                            <textarea 
-                              className="w-full border border-gray-300 rounded-lg p-2.5 text-sm text-gray-800 h-16 resize-none"
-                              value={editForm.journalLink || ''}
-                              onChange={(e) => setEditForm({...editForm, journalLink: e.target.value})}
-                            />
-                         </div>
+                    <div>
+                      <label className="text-gray-500 text-xs mb-1 block font-medium">WhatsApp</label>
+                      <div className="flex items-center border border-gray-200 bg-gray-50 rounded-lg overflow-hidden">
+                        <span className="px-3 py-2.5 bg-gray-100 text-sm text-gray-400 font-medium border-r border-gray-200">+62</span>
+                        <input
+                          type="text"
+                          className="w-full p-2.5 text-sm text-gray-500 bg-transparent outline-none cursor-not-allowed"
+                          value={editForm.phone ? editForm.phone.replace(/^62|^0/, '') : ''}
+                          readOnly
+                        />
                       </div>
-                   </div>
-                 )}
-
-                 {/* Actions */}
-                 <div className="grid grid-cols-2 gap-4 mt-4">
-                    <button 
-                       onClick={() => setIsEditOpen(false)}
-                       className="border-2 border-[#D15651] text-[#D15651] py-2.5 rounded-xl text-sm font-bold hover:bg-[#D15651] hover:text-white transition shadow-sm"
-                    >
-                       Batal
-                    </button>
-                    <button 
-                       onClick={handleUpdateUser}
-                       className="bg-[#5C7B78] text-white py-2.5 rounded-xl text-sm font-bold hover:opacity-90 transition shadow-lg"
-                    >
-                       Update
-                    </button>
-                 </div>
+                    </div>
+                  </div>
+                  <div>
+                    <label className="text-gray-500 text-xs mb-1 block font-medium">Judul Artikel</label>
+                    <textarea
+                      className="w-full border border-gray-300 rounded-lg p-2.5 text-sm text-gray-800 h-16 resize-none focus:ring-2 focus:ring-[#5C7B78] outline-none"
+                      value={editForm.articleTitle || ''}
+                      onChange={(e) => setEditForm({ ...editForm, articleTitle: e.target.value })}
+                    />
+                  </div>
+                </div>
               </div>
-           </div>
+
+              {/* Reset Password Button */}
+              <div className="pt-3 border-t border-gray-100">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-base font-bold text-[#5C7B78]">Reset Password</h3>
+                    <p className="text-xs text-gray-500 mt-1">Password akan di-generate otomatis dan Anda akan mendapatkan pesan WhatsApp yang siap dikirim</p>
+                  </div>
+                  <button
+                    onClick={handleResetPassword}
+                    disabled={resetPasswordLoading}
+                    className="bg-[#D15651] hover:bg-[#b54641] text-white px-6 py-2.5 rounded-lg text-sm font-bold transition shadow-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                  >
+                    {resetPasswordLoading ? (
+                      <>
+                        <Clock className="w-4 h-4 animate-spin" />
+                        Memproses...
+                      </>
+                    ) : (
+                      'Reset Password'
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              {/* Section Data Akun OJS - Hanya muncul jika ada data */}
+              {(selectedUser?.trainingFlow?.ojsAccount || editForm.ojsUsername) && (
+                <div className="pt-3 border-t border-gray-100">
+                  <h3 className="text-base font-bold text-[#5C7B78] mb-3">Data Akun OJS</h3>
+                  <div className="grid grid-cols-2 gap-x-4 gap-y-3">
+                    <div>
+                      <label className="text-gray-500 text-xs mb-1 block font-medium">Username</label>
+                      <input
+                        type="text"
+                        className="w-full border border-gray-300 rounded-lg p-2.5 text-sm text-gray-800"
+                        value={editForm.ojsUsername || ''}
+                        onChange={(e) => setEditForm({ ...editForm, ojsUsername: e.target.value })}
+                      />
+                    </div>
+                    <div>
+                      <label className="text-gray-500 text-xs mb-1 block font-medium">Password</label>
+                      <input
+                        type="text"
+                        className="w-full border border-gray-300 rounded-lg p-2.5 text-sm text-gray-800"
+                        value={editForm.ojsPassword || ''}
+                        onChange={(e) => setEditForm({ ...editForm, ojsPassword: e.target.value })}
+                      />
+                    </div>
+                    <div>
+                      <label className="text-gray-500 text-xs mb-1 block font-medium">Kelompok Jurnal</label>
+                      <select
+                        className="w-full border border-gray-300 rounded-lg p-2.5 text-sm text-gray-800 appearance-none bg-white"
+                        value={editForm.journalCode || ''}
+                        onChange={(e) => setEditForm({ ...editForm, journalCode: e.target.value })}
+                      >
+                        <option value="">Pilih Kelompok</option>
+                        <option value="JIE">JIE</option>
+                        <option value="JOFEI">JOFEI</option>
+                        <option value="JOESMENT">JOESMENT</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="text-gray-500 text-xs mb-1 block font-medium">Link Jurnal</label>
+                      <textarea
+                        className="w-full border border-gray-300 rounded-lg p-2.5 text-sm text-gray-800 h-16 resize-none"
+                        value={editForm.journalLink || ''}
+                        onChange={(e) => setEditForm({ ...editForm, journalLink: e.target.value })}
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Actions */}
+              <div className="grid grid-cols-2 gap-4 mt-4">
+                <button
+                  onClick={() => setIsEditOpen(false)}
+                  className="border-2 border-[#D15651] text-[#D15651] py-2.5 rounded-xl text-sm font-bold hover:bg-[#D15651] hover:text-white transition shadow-sm"
+                >
+                  Batal
+                </button>
+                <button
+                  onClick={handleUpdateUser}
+                  className="bg-[#5C7B78] text-white py-2.5 rounded-xl text-sm font-bold hover:opacity-90 transition shadow-lg"
+                >
+                  Update
+                </button>
+              </div>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
       {/* Logout Confirmation Modal */}
       <Dialog open={showLogoutConfirm} onOpenChange={setShowLogoutConfirm}>
         <DialogContent className="max-w-md p-8 rounded-2xl">
-           <div className="flex flex-col items-center text-center space-y-4">
-              <div className="w-12 h-12 rounded-full border-2 border-[#D15651] flex items-center justify-center text-[#D15651]">
-                 <LogOut className="w-6 h-6 ml-1" />
-              </div>
-              <DialogTitle className="text-xl font-bold text-gray-800">
-                Keluar dari Admin Panel?
-              </DialogTitle>
-              
-              <div className="flex gap-4 w-full mt-6">
-                 <Button 
-                   onClick={handleLogout}
-                   className="flex-1 bg-[#D15651] hover:bg-[#b54641] text-white py-6 rounded-xl"
-                 >
-                   Keluar
-                 </Button>
-                 <Button 
-                   variant="outline"
-                   onClick={() => setShowLogoutConfirm(false)}
-                   className="flex-1 border-gray-300 text-gray-600 py-6 rounded-xl hover:bg-gray-50"
-                 >
-                   Batal
-                 </Button>
-              </div>
-           </div>
+          <div className="flex flex-col items-center text-center space-y-4">
+            <div className="w-12 h-12 rounded-full border-2 border-[#D15651] flex items-center justify-center text-[#D15651]">
+              <LogOut className="w-6 h-6 ml-1" />
+            </div>
+            <DialogTitle className="text-xl font-bold text-gray-800">
+              Keluar dari Admin Panel?
+            </DialogTitle>
+
+            <div className="flex gap-4 w-full mt-6">
+              <Button
+                onClick={handleLogout}
+                className="flex-1 bg-[#D15651] hover:bg-[#b54641] text-white py-6 rounded-xl"
+              >
+                Keluar
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => setShowLogoutConfirm(false)}
+                className="flex-1 border-gray-300 text-gray-600 py-6 rounded-xl hover:bg-gray-50"
+              >
+                Batal
+              </Button>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
 
       {/* Reset Password Result Modal */}
       <Dialog open={isResetPasswordOpen} onOpenChange={setIsResetPasswordOpen}>
         <DialogContent className="max-w-2xl bg-white rounded-3xl p-8 border-none">
-           <div className="space-y-6">
-              {/* Header */}
-              <div className="text-center">
-                 <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-green-100 flex items-center justify-center">
-                    <CheckCircle className="w-8 h-8 text-green-600" />
-                 </div>
-                 <DialogTitle className="text-2xl font-bold text-[#5C7B78] mb-2">
-                    Password Berhasil Direset!
-                 </DialogTitle>
-                 <p className="text-sm text-gray-600">
-                    Silakan copy informasi di bawah dan kirim ke peserta via WhatsApp
-                 </p>
+          <div className="space-y-6">
+            {/* Header */}
+            <div className="text-center">
+              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-green-100 flex items-center justify-center">
+                <CheckCircle className="w-8 h-8 text-green-600" />
               </div>
+              <DialogTitle className="text-2xl font-bold text-[#5C7B78] mb-2">
+                Password Berhasil Direset!
+              </DialogTitle>
+              <p className="text-sm text-gray-600">
+                Silakan copy informasi di bawah dan kirim ke peserta via WhatsApp
+              </p>
+            </div>
 
-              {resetPasswordResult && (
-                <div className="space-y-4">
-                   {/* Password Baru */}
-                   <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
-                      <label className="text-xs font-bold text-gray-600 mb-2 block">PASSWORD BARU</label>
-                      <div className="flex items-center gap-3">
-                         <code className="flex-1 bg-white px-4 py-3 rounded-lg border border-gray-300 font-mono text-lg font-bold text-[#5C7B78] break-all">
-                            {resetPasswordResult.newPassword}
-                         </code>
-                         <button 
-                            onClick={() => copyToClipboard(resetPasswordResult.newPassword, 'Password')}
-                            className="bg-[#5C7B78] hover:bg-[#4a6361] text-white px-4 py-3 rounded-lg font-bold text-sm transition flex items-center gap-2 shrink-0"
-                         >
-                            <Download className="w-4 h-4" />
-                            Copy
-                         </button>
-                      </div>
-                   </div>
-
-                   {/* Nomor WhatsApp */}
-                   <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
-                      <label className="text-xs font-bold text-gray-600 mb-2 block">NOMOR WHATSAPP</label>
-                      <div className="flex items-center gap-3">
-                         <div className="flex-1 bg-white px-4 py-3 rounded-lg border border-gray-300 font-bold text-gray-800">
-                            {resetPasswordResult.phone || 'Tidak tersedia'}
-                         </div>
-                         {resetPasswordResult.phone && (
-                            <button 
-                               onClick={() => copyToClipboard(resetPasswordResult.phone, 'Nomor WhatsApp')}
-                               className="bg-[#5C7B78] hover:bg-[#4a6361] text-white px-4 py-3 rounded-lg font-bold text-sm transition flex items-center gap-2 shrink-0"
-                            >
-                               <Download className="w-4 h-4" />
-                               Copy
-                            </button>
-                         )}
-                      </div>
-                   </div>
-
-                   {/* Pesan WhatsApp */}
-                   <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
-                      <label className="text-xs font-bold text-gray-600 mb-2 block">PESAN WHATSAPP</label>
-                      <div className="space-y-3">
-                         <textarea 
-                            readOnly
-                            value={resetPasswordResult.whatsappMessage}
-                            className="w-full bg-white px-4 py-3 rounded-lg border border-gray-300 text-sm text-gray-700 resize-none font-mono"
-                            rows={10}
-                         />
-                         <button 
-                            onClick={() => copyToClipboard(resetPasswordResult.whatsappMessage, 'Pesan WhatsApp')}
-                            className="w-full bg-[#5C7B78] hover:bg-[#4a6361] text-white px-4 py-3 rounded-lg font-bold text-sm transition flex items-center justify-center gap-2"
-                         >
-                            <Download className="w-4 h-4" />
-                            Copy Pesan WhatsApp
-                         </button>
-                      </div>
-                   </div>
-
-                   {/* Actions */}
-                   <div className="grid grid-cols-2 gap-4 pt-4">
-                      <button 
-                         onClick={openWhatsApp}
-                         disabled={!resetPasswordResult.phone}
-                         className="bg-[#25D366] hover:bg-[#20ba5a] text-white py-4 rounded-xl font-bold text-base transition shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                      >
-                         <MessageSquare className="w-5 h-5" />
-                         Buka WhatsApp Web
-                      </button>
-                      <button 
-                         onClick={() => {
-                            setIsResetPasswordOpen(false)
-                            setResetPasswordResult(null)
-                         }}
-                         className="border-2 border-gray-300 text-gray-700 hover:bg-gray-50 py-4 rounded-xl font-bold text-base transition"
-                      >
-                         Tutup
-                      </button>
-                   </div>
-
-                   {/* Info Note */}
-                   <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
-                      <p className="text-xs text-blue-800">
-                         <span className="font-bold">ℹ️ Catatan:</span> Semua sesi login peserta telah dihapus. Peserta harus login ulang dengan password baru ini.
-                      </p>
-                   </div>
+            {resetPasswordResult && (
+              <div className="space-y-4">
+                {/* Password Baru */}
+                <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
+                  <label className="text-xs font-bold text-gray-600 mb-2 block">PASSWORD BARU</label>
+                  <div className="flex items-center gap-3">
+                    <code className="flex-1 bg-white px-4 py-3 rounded-lg border border-gray-300 font-mono text-lg font-bold text-[#5C7B78] break-all">
+                      {resetPasswordResult.newPassword}
+                    </code>
+                    <button
+                      onClick={() => copyToClipboard(resetPasswordResult.newPassword, 'Password')}
+                      className="bg-[#5C7B78] hover:bg-[#4a6361] text-white px-4 py-3 rounded-lg font-bold text-sm transition flex items-center gap-2 shrink-0"
+                    >
+                      <Download className="w-4 h-4" />
+                      Copy
+                    </button>
+                  </div>
                 </div>
-              )}
-           </div>
+
+                {/* Nomor WhatsApp */}
+                <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
+                  <label className="text-xs font-bold text-gray-600 mb-2 block">NOMOR WHATSAPP</label>
+                  <div className="flex items-center gap-3">
+                    <div className="flex-1 bg-white px-4 py-3 rounded-lg border border-gray-300 font-bold text-gray-800">
+                      {resetPasswordResult.phone || 'Tidak tersedia'}
+                    </div>
+                    {resetPasswordResult.phone && (
+                      <button
+                        onClick={() => copyToClipboard(resetPasswordResult.phone, 'Nomor WhatsApp')}
+                        className="bg-[#5C7B78] hover:bg-[#4a6361] text-white px-4 py-3 rounded-lg font-bold text-sm transition flex items-center gap-2 shrink-0"
+                      >
+                        <Download className="w-4 h-4" />
+                        Copy
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {/* Pesan WhatsApp */}
+                <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
+                  <label className="text-xs font-bold text-gray-600 mb-2 block">PESAN WHATSAPP</label>
+                  <div className="space-y-3">
+                    <textarea
+                      readOnly
+                      value={resetPasswordResult.whatsappMessage}
+                      className="w-full bg-white px-4 py-3 rounded-lg border border-gray-300 text-sm text-gray-700 resize-none font-mono"
+                      rows={10}
+                    />
+                    <button
+                      onClick={() => copyToClipboard(resetPasswordResult.whatsappMessage, 'Pesan WhatsApp')}
+                      className="w-full bg-[#5C7B78] hover:bg-[#4a6361] text-white px-4 py-3 rounded-lg font-bold text-sm transition flex items-center justify-center gap-2"
+                    >
+                      <Download className="w-4 h-4" />
+                      Copy Pesan WhatsApp
+                    </button>
+                  </div>
+                </div>
+
+                {/* Actions */}
+                <div className="grid grid-cols-2 gap-4 pt-4">
+                  <button
+                    onClick={openWhatsApp}
+                    disabled={!resetPasswordResult.phone}
+                    className="bg-[#25D366] hover:bg-[#20ba5a] text-white py-4 rounded-xl font-bold text-base transition shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  >
+                    <MessageSquare className="w-5 h-5" />
+                    Buka WhatsApp Web
+                  </button>
+                  <button
+                    onClick={() => {
+                      setIsResetPasswordOpen(false)
+                      setResetPasswordResult(null)
+                    }}
+                    className="border-2 border-gray-300 text-gray-700 hover:bg-gray-50 py-4 rounded-xl font-bold text-base transition"
+                  >
+                    Tutup
+                  </button>
+                </div>
+
+                {/* Info Note */}
+                <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+                  <p className="text-xs text-blue-800">
+                    <span className="font-bold">ℹ️ Catatan:</span> Semua sesi login peserta telah dihapus. Peserta harus login ulang dengan password baru ini.
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
         </DialogContent>
       </Dialog>
 
