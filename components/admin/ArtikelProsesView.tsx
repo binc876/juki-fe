@@ -75,18 +75,13 @@ export default function ArtikelProsesView() {
   const [loaFile, setLoaFile] = useState<File | null>(null)
   const loaRef = useRef<HTMLDivElement>(null)
 
-  // --- Fetch Stats ---
-  const fetchStats = async () => {
-    try {
-      const token = localStorage.getItem('token')
-      const res = await api.get('/users/stats', {
-        headers: { Authorization: `Bearer ${token}` }
-      })
-      setStats(res.data)
-    } catch (err) {
-      console.error('Failed to fetch stats:', err)
-    }
-  }
+  // Statuses yang termasuk "Artikel Proses" (level >= 1)
+  const ARTIKEL_PROSES_STATUSES = new Set([
+    'ARTICLE_WAITING', 'ARTICLE_VERIFIED',
+    'TRAINING_WAITING', 'TRAINING_VERIFIED', 'TRAINING_RESCHEDULE',
+    'REVIEW_WAITING', 'REVIEW_REVISION', 'REVIEW_VERIFIED',
+    'LOA_WAITING', 'LOA_PUBLISHED'
+  ])
 
   // --- Fetch Users ---
   const fetchUsers = useCallback(async () => {
@@ -95,7 +90,9 @@ export default function ArtikelProsesView() {
       const token = localStorage.getItem('token')
       const headers = { Authorization: `Bearer ${token}` }
 
-      fetchStats()
+      const statsRes = await api.get('/users/stats', { headers })
+      const newStats = statsRes.data
+      setStats(newStats)
 
       const params: any = {
         page: meta.page,
@@ -105,23 +102,35 @@ export default function ArtikelProsesView() {
       if (searchQuery) params.search = searchQuery
 
       const res = await api.get('/users', { params, headers })
-      const data = res.data.data || res.data
-      const newMeta = res.data.meta || {
-        page: meta.page,
-        limit: meta.limit,
-        total: Array.isArray(data) ? data.length : 0,
-        totalPage: 1
-      }
+      const rawData = res.data.data || res.data
 
-      setUsers(Array.isArray(data) ? data : [])
-      setMeta(newMeta)
+      // Filter client-side: hanya tampilkan user yang statusnya termasuk artikel proses
+      const filtered = (Array.isArray(rawData) ? rawData : []).filter(
+        (u: User) => ARTIKEL_PROSES_STATUSES.has(u.trainingFlow?.statusCode)
+      )
+
+      // Filter jurnal jika ada
+      const finalData = journalFilter
+        ? filtered.filter((u: User) => u.trainingFlow?.journalCode === journalFilter)
+        : filtered
+
+      // Gunakan stats untuk total yang akurat
+      const articleStageTotal = newStats?.process?.article_stage || finalData.length
+      const totalPage = Math.ceil(articleStageTotal / meta.limit) || 1
+
+      setUsers(finalData)
+      setMeta(prev => ({
+        ...prev,
+        total: articleStageTotal,
+        totalPage,
+      }))
 
     } catch (err: any) {
       console.error('Failed to fetch users:', err)
     } finally {
       setLoading(false)
     }
-  }, [meta.page, meta.limit, searchQuery])
+  }, [meta.page, meta.limit, searchQuery, journalFilter])
 
   useEffect(() => {
     fetchUsers()
@@ -382,9 +391,7 @@ export default function ArtikelProsesView() {
       }
   }
 
-  const filteredUsers = journalFilter 
-      ? users.filter(u => u.trainingFlow?.journalCode === journalFilter)
-      : users;
+
 
   return (
     <div className="space-y-6">
@@ -409,7 +416,7 @@ export default function ArtikelProsesView() {
             </div>
             
             <div className="relative w-full max-w-[200px]">
-                <select value={journalFilter} onChange={(e) => setJournalFilter(e.target.value)} className="w-full bg-[#F5F5F5] border-none rounded-xl px-4 py-3 text-gray-700 font-bold focus:outline-none cursor-pointer appearance-none">
+                <select value={journalFilter} onChange={(e) => { setJournalFilter(e.target.value); setMeta(prev => ({ ...prev, page: 1 })); }} className="w-full bg-[#F5F5F5] border-none rounded-xl px-4 py-3 text-gray-700 font-bold focus:outline-none cursor-pointer appearance-none">
                     <option value="">Semua Jurnal</option>
                     <option value="JIE">JIE</option>
                     <option value="JOFEI">JOFEI</option>
@@ -436,8 +443,8 @@ export default function ArtikelProsesView() {
               <tbody className="text-gray-800 text-base">
                 {loading ? (
                     <tr><td colSpan={9} className="text-center py-20 text-gray-400 font-bold">Memuat data...</td></tr>
-                ) : filteredUsers.length > 0 ? (
-                  filteredUsers.map((user, idx) => (
+                ) : users.length > 0 ? (
+                  users.map((user, idx) => (
                     <tr key={idx} className="border-b border-gray-50 last:border-none hover:bg-gray-50 transition-colors">
                       <td className="py-6 font-medium max-w-[200px] truncate" title={user.profile?.fullName || ''}>{user.profile?.fullName || '-'}</td>
                       <td className="py-6 text-center">{user.profile?.nim || '-'}</td>

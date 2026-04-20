@@ -8,7 +8,8 @@ import {
   FileText, 
   CreditCard,
   ExternalLink,
-  RefreshCw
+  RefreshCw,
+  Eye
 } from 'lucide-react'
 import { api, getErrorMessage, downloadFile, viewFile } from '@/lib/api'
 import {
@@ -24,6 +25,7 @@ import { useAlert } from '@/components/ui/alert-provider'
 interface User {
   id: string;
   email: string;
+  createdAt?: string;
   profile: {
     fullName: string;
     nim: string;
@@ -49,6 +51,7 @@ export default function VerifikasiView() {
   const { showAlert } = useAlert();
   const [view, setView] = useState<'select' | 'payment' | 'form'>('select')
   const [users, setUsers] = useState<User[]>([])
+  const [allPendingUsers, setAllPendingUsers] = useState<User[]>([]) // semua data untuk client-side pagination
   const [meta, setMeta] = useState({ page: 1, limit: 10, total: 0, totalPage: 1 })
   const [loading, setLoading] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
@@ -97,29 +100,32 @@ export default function VerifikasiView() {
       fetchStats()
 
       if (view === 'select') {
-         // Fetch both lists for overview (Parallel)
+         // Fetch semua pending dari kedua status sekaligus (limit besar untuk dapat semua)
          const [resPayment, resForm] = await Promise.all([
-            api.get('/users', { params: { page: 1, limit: 50, status: 'PAYMENT_WAITING', search: searchQuery }, headers }),
-            api.get('/users', { params: { page: 1, limit: 50, status: 'WAITING_ADMINISTRATIVE', search: searchQuery }, headers })
+            api.get('/users', { params: { page: 1, limit: 100, status: 'PAYMENT_WAITING', search: searchQuery }, headers }),
+            api.get('/users', { params: { page: 1, limit: 100, status: 'WAITING_ADMINISTRATIVE', search: searchQuery }, headers })
          ])
 
-         // Robust data extraction
-         const paymentData = resPayment.data.data || resPayment.data
-         const formData = resForm.data.data || resForm.data
+         const paymentUsers: User[] = Array.isArray(resPayment.data.data || resPayment.data) ? (resPayment.data.data || resPayment.data) : []
+         const formUsers: User[] = Array.isArray(resForm.data.data || resForm.data) ? (resForm.data.data || resForm.data) : []
 
-         const paymentUsers = Array.isArray(paymentData) ? paymentData : []
-         const formUsers = Array.isArray(formData) ? formData : []
-         
-         // Combine
-         const combined = [...paymentUsers, ...formUsers]
-         
-         setUsers(combined)
-         setMeta({
-            page: 1,
-            limit: 100,
-            total: combined.length,
-            totalPage: 1
+         // Gabung dan sort by createdAt (terlama dulu / FIFO)
+         const combined = [...paymentUsers, ...formUsers].sort((a: any, b: any) => {
+            const dateA = new Date(a.createdAt || 0).getTime()
+            const dateB = new Date(b.createdAt || 0).getTime()
+            return dateA - dateB
          })
+
+         const grandTotal = combined.length
+         const totalPage = Math.ceil(grandTotal / meta.limit) || 1
+
+         // Slice sesuai page
+         const start = (meta.page - 1) * meta.limit
+         const pageData = combined.slice(start, start + meta.limit)
+
+         setAllPendingUsers(combined)
+         setUsers(pageData)
+         setMeta(prev => ({ ...prev, total: grandTotal, totalPage }))
 
       } else {
           // Specific View Fetch
@@ -155,16 +161,18 @@ export default function VerifikasiView() {
   }, [view, meta.page, meta.limit, searchQuery])
 
   useEffect(() => {
-    // Reset to page 1 when switching views, but trigger fetch handled by dependency
-    if (view !== 'select') {
-        setMeta(prev => ({ ...prev, page: 1 }))
-    }
+    // Reset to page 1 when switching views
+    setMeta(prev => ({ ...prev, page: 1 }))
     fetchUsers()
   }, [view])
 
   useEffect(() => {
-    if (view !== 'select') {
-        fetchUsers()
+    if (view === 'select' && allPendingUsers.length > 0) {
+      // Client-side pagination untuk selection view
+      const start = (meta.page - 1) * meta.limit
+      setUsers(allPendingUsers.slice(start, start + meta.limit))
+    } else if (view !== 'select') {
+      fetchUsers()
     }
   }, [meta.page])
 
@@ -536,7 +544,7 @@ export default function VerifikasiView() {
                       <th className="pb-6 font-bold text-center">Email</th>
                       <th className="pb-6 font-bold text-center">WhatsApp</th>
                       <th className="pb-6 font-bold text-center">
-                        {view === 'payment' ? 'Bukti Pembayaran' : 'Bukti Pembayaran'}
+                        {view === 'payment' ? 'Bukti Pembayaran' : 'Form Administrasi'}
                       </th>
                       <th className="pb-6 font-bold text-center">Aksi</th>
                     </tr>
@@ -554,7 +562,8 @@ export default function VerifikasiView() {
                           <td className="py-6 text-center max-w-[200px] truncate" title={user.email}>{user.email}</td>
                           <td className="py-6 text-center">{user.profile?.phone || '-'}</td>
                           <td className="py-6 text-center">
-                             {paymentProof ? (
+                             {view === 'payment' ? (
+                               paymentProof ? (
                                  <button 
                                     onClick={async () => {
                                         try {
@@ -563,11 +572,16 @@ export default function VerifikasiView() {
                                             showAlert({ title: 'Gagal', message: 'Gagal melihat bukti bayar', type: 'error' });
                                         }
                                     }}
-                                    className="text-gray-800 font-medium hover:underline inline-block"
+                                    className="text-[#5C7B78] font-bold hover:underline inline-flex items-center gap-1"
                                  >
-                                    Lihat Bukti
+                                    <Eye className="w-4 h-4" /> Lihat Bukti
                                  </button>
-                             ) : <span className="text-gray-400">BuktiBayar</span>}
+                               ) : (
+                                 <span className="text-gray-400 text-sm italic">Belum upload</span>
+                               )
+                             ) : (
+                               <span className="text-gray-500 text-sm">Menunggu input OJS</span>
+                             )}
                           </td>
                           <td className="py-6 text-center">
                              <div className="flex justify-center gap-3">
